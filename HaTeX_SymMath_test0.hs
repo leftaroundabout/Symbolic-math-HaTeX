@@ -3,6 +3,7 @@
 {-# LANGUAGE ConstraintKinds                  #-}
 {-# LANGUAGE ScopedTypeVariables              #-}
 {-# LANGUAGE MultiParamTypeClasses            #-}
+{-# LANGUAGE FlexibleInstances                #-}
 
 import Text.LaTeX.Base
 import Text.LaTeX.Packages.Inputenc
@@ -15,6 +16,7 @@ import Control.Monad.Identity
 import Data.Function
 import Data.Ratio
 import Data.Functor.Contravariant
+import Data.String
 
 
 
@@ -31,11 +33,11 @@ simple = do
 
 mathTestFloating :: (Monad m, Floating n, Show n) => LaTeXT m n
 mathTestFloating = wDefaultTeXMathDisplayConf $ do
-   lift "For "
+   "For "
    x <- mathDefinition "x" 19
-   lift " and "
+   " and "
    tau <- mathDefinition "\\tau" $ 2*pi
-   lift ", "
+   ", "
    displayMathExpr $
               2 + 7*(6 - tau) - exp(5 - sqrt(x**2 + 4/pi))
               
@@ -328,6 +330,9 @@ type MathematicalLaTeXT m a = ReaderT TeXMathDisplayConf (LaTeXT m) a
 type MathematicalLaTeXT_ m = MathematicalLaTeXT m ()  -- ReaderT TeXMathDisplayConf (LaTeXT m) ()
 type MathematicalLaTeX a = MathematicalLaTeXT Identity a  -- ReaderT TeXMathDisplayConf (LaTeXT Identity) a
 type MathematicalLaTeX_ = MathematicalLaTeXT Identity () -- ReaderT TeXMathDisplayConf (LaTeXT Identity) ()
+
+instance (Monad m) => IsString (MathematicalLaTeXT m a) where
+  fromString s = lift $ fromString s
 
 wDefaultTeXMathDisplayConf = (`runReaderT`())
 
