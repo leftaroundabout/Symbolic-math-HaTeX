@@ -5,8 +5,11 @@
 # visible by means of colorisation.
 
 recfile=/tmp/pdflatex_stdorec
+TeXC=pdflatex
 
-pdflatex -halt-on-error $1 > $recfile
+# even with halt-on-error, pdflatex will wait for user input when some input
+# files can't be found. Prevent this by piping it a near-empty string.
+echo ' ' | $TeXC -halt-on-error $* > $recfile
 exitc=$?
 
 RED=`echo -e '\033[01;31m'`
@@ -25,6 +28,6 @@ if [ $warningexc -eq 0 ]
 then
 # Chances are a warnings were just because of changed labels, in which case
 # re-running pdfLaTeX should fix the issue. Only output the warnings of this trial.
-  pdflatex -halt-on-error $1 | grep -i '\<warning\>\|^!' | sed "s/warning:/${AMBER}&${RESET}/gI"
+  echo ' ' | $TeXC -halt-on-error $* | grep -i '\<warning\>\|^!' | sed "s/warning:/${AMBER}&${RESET}/gI"
 fi
 exit 0
