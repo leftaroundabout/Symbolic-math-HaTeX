@@ -6,8 +6,10 @@
 {-# LANGUAGE FlexibleInstances                #-}
 
 import Text.LaTeX.Base
+import Text.LaTeX.Base.Class
+import Text.LaTeX.Base.Syntax
 import Text.LaTeX.Packages.Inputenc
--- import qualified Text.LaTeX.Packages.AMSMath as HTXM
+import Text.LaTeX.Packages.AMSMath
 import qualified Data.Text as T
 
 import Control.Monad.Reader
@@ -36,15 +38,15 @@ mathTestFloating = wDefaultTeXMathDisplayConf $ do
    "For "
    x <- mathDefinition "x" 19
    " and "
-   tau <- mathDefinition "\\tau" $ 2*pi
+   τ <- mathDefinition tau $ 2*pi
    ", "
    displayMathExpr $
-              2 + 7*(6 - tau) - exp(5 - sqrt(x**2 + 4/pi))
+              2 + 7*(6 - τ) - exp(5 - sqrt(x**2 + 4/pi))
               
 mathTestInteger :: Monad m => LaTeXT m Integer
 mathTestInteger = wDefaultTeXMathDisplayConf $ do
    displayMathExpr $
-             4 ^: (2 ^: 3) ^: 2 - 10000^7
+             4 ^* (2 ^* 3) ^* 2 - 10000^7
 
 thePreamble :: Monad m => LaTeXT_ m
 thePreamble = do
@@ -92,7 +94,7 @@ instance Functor Pair where { fmap f (Pair l r) = Pair (f l) (f r) }
 
 
 
-type MathPrimtvId = Text
+type MathPrimtvId = LaTeX
 data Fixity = Infix Int
             | Infixl Int
             | Infixr Int
@@ -111,7 +113,7 @@ data MathEvaluation res arg where
   MathEnvd :: Functor list =>
            { mathEnclosingFunc :: list (a -> b) -> c -> d
            , argToEnclosed :: MathPrimtvId
-           , enclosingLaTeX :: list Text -> Text
+           , enclosingLaTeX :: list LaTeX -> LaTeX
            , enclosedMathExpr :: MathPrimtvId -> list(MathLaTeXEval b (a,c))
            } -> MathEvaluation d c
 
@@ -130,7 +132,7 @@ instance Contravariant (MathLaTeXEval res) where
 type MathExpr a = MathLaTeXEval a ()
 
 
-mathExprRender :: forall b. MathLaTeXEval b () -> (b, Text)
+mathExprRender :: forall b. MathLaTeXEval b () -> (b, LaTeX)
 mathExprRender (MathLaTeXEval e _) = (calculated e (), rendered e)
  where calculated :: MathEvaluation d c -> c -> d
        calculated (MathEnvd f arg _ enclosed) c
@@ -138,11 +140,11 @@ mathExprRender (MathLaTeXEval e _) = (calculated e (), rendered e)
                                -> calculated e' (a,c) ) $ enclosed arg) c
 --        rendered (MathPrimitive _ txm) = txm
 --        rendered (MathDepdPrimitive _ txf) = txf i
-       rendered :: MathEvaluation c a -> Text
+       rendered :: MathEvaluation c a -> LaTeX
        rendered (MathEnvd _ a txf enclosed)
             = txf . fmap(rendered . mathLaTeXevaluation) $ enclosed a
 
-mathPrimtv :: b -> Text -> MathLaTeXEval b a
+mathPrimtv :: b -> LaTeX -> MathLaTeXEval b a
 -- mathPrimtv v name = MathLaTeXEval (MathPrimitive v name) 10
 mathPrimtv v name
   = MathLaTeXEval (MathEnvd (\None _->v) "" (const name) (const None)) $ Infix 10
@@ -162,8 +164,8 @@ mathExprFn :: (a->r) -> MathPrimtvId
 mathExprFn f fn e@(MathLaTeXEval _ fxty)
    = MathLaTeXEval (mathExprFunction f funnamer e) $ Infix 9
  where funnamer incl
-         | isotropFixity fxty <= 9   = T.concat [ fn, "{\\left(", incl, "\\right)}" ]
-         | otherwise                 = T.concat [ fn, "\\:{", incl, "}" ]
+         | isotropFixity fxty <= 9   = fn <> braces (autoParens incl)
+         | otherwise                 = fn <> commS":" <> braces incl
 
  
 
@@ -180,7 +182,7 @@ mathExprIfx :: (a->a->r) -> MathPrimtvId -> Fixity
                  -> MathLaTeXEval a c -> MathLaTeXEval a c ->  MathLaTeXEval r c
 mathExprIfx ifx ifxn fxty el@(MathLaTeXEval _ fxtl) er@(MathLaTeXEval _ fxtr)
     = MathLaTeXEval (mathExprInfix ifx ifxNamer el er) fxty
- where ifxNamer lexpr rexpr = T.concat
+ where ifxNamer lexpr rexpr = mconcat
                   [ case(fxty,fxtl) of
                       (Infixl ε, Infixl κ)
                          | ε<=κ  -> plain lexpr
@@ -195,8 +197,8 @@ mathExprIfx ifx ifxn fxty el@(MathLaTeXEval _ fxtl) er@(MathLaTeXEval _ fxtr)
                          | isotropFixity ε<isotropFixity κ   -> plain rexpr
                          | otherwise -> parenthd rexpr
                   ]
-       plain expr = T.concat ["{", expr, "}"]
-       parenthd expr = T.concat ["{\\left(", expr, "\\right)}"]
+       plain expr = braces expr
+       parenthd = braces . autoParens
        
 
 -- mathExprInfix :: (a->b->r) -> MathPrimtvId -> Fixity
@@ -213,75 +215,74 @@ mathExprIfx ifx ifxn fxty el@(MathLaTeXEval _ fxtl) er@(MathLaTeXEval _ fxtr)
                                    
 
 instance (Num res, Show res) => Num (MathLaTeXEval res arg) where
-  fromInteger n = mathPrimtv (fromInteger n)  (render n)
+  fromInteger n = mathPrimtv (fromInteger n) (rendertex n)
   
   (+) = mathExprIfx (+) "+" $ Infixl 6
   (-) = mathExprIfx (-) "-" $ Infixl 6
-  (*) = mathExprIfx (*) "\\cdot" $ Infixl 7
+  (*) = mathExprIfx (*) (commS"cdot") $ Infixl 7
   
-  signum = mathExprFn abs "\\mathrm{sgn}"
+  signum = mathExprFn abs (mathrm"sgn")
   abs = (`MathLaTeXEval`Infix 9) . mathExprFunction abs
-           (\e -> T.concat ["\\left|", e, "\\right|"] )
+           (autoBrackets "|" "|")
 
 
-infixr 8 ^:
+infixr 8 ^*
 class Num x => Powerable x where
-  (^:) :: x -> x -> x
-instance Powerable Int where { (^:) = (^) }
-instance Powerable Double where { (^:) = (**) }
-instance Powerable Float where { (^:) = (**) }
-instance Powerable Integer where { (^:) = (^) }
+  (^*) :: x -> x -> x
+instance Powerable Int where { (^*) = (^) }
+instance Powerable Double where { (^*) = (**) }
+instance Powerable Float where { (^*) = (**) }
+instance Powerable Integer where { (^*) = (^) }
 instance (Powerable res, Show res) => Powerable (MathLaTeXEval res arg) where
-  (^:) = mathExprIfx (^:) "^" $ Infixr 8
+  (^*) = mathExprIfx (^*) "^" $ Infixr 8
 
 
 instance (Fractional res, Show res) => Fractional (MathLaTeXEval res arg) where
   fromRational e = (`MathLaTeXEval`Infix 9) $ mathExprInfix (/)
-           (\n d -> T.concat ["\\tfrac{", n, "}{", d, "}"] )
+           (\n d -> TeXComm "tfrac" $ map FixArg [n,d] )
            (fromIntegral $ numerator e) (fromIntegral $ denominator e)
   
   a/b = (`MathLaTeXEval`Infix 9) $ mathExprInfix (/)
-           (\n d -> T.concat ["\\frac{", n, "}{", d, "}"] ) a b
+           (\n d -> TeXComm "frac" $ map FixArg [n,d] ) a b
   
   recip = (`MathLaTeXEval`Infix 9) . mathExprFunction recip
-           (\e -> T.concat ["\\frac1{", e, "}"] )
+           (TeXComm "frac1" . (:[]) . FixArg)
 
 instance (Floating res, Show res) => Floating (MathLaTeXEval res arg) where
-  pi = mathPrimtv pi "\\pi"
+  pi = mathPrimtv pi pi_
   
   sqrt = (`MathLaTeXEval`Infix 9) . mathExprFunction sqrt
-           (\x -> T.concat ["\\sqrt{", x, "}"] )
+              (TeXComm "sqrt" .(:[]). FixArg)
            
-  exp = (`MathLaTeXEval`Infix 8) . mathExprFunction exp
-           (\x -> T.concat ["e^{", x, "}"] )
+  exp = (`MathLaTeXEval`Infix 8) . mathExprFunction exp ("e" ^:)
 --   b**x = (`MathLaTeXEval`Infixr 8) $ mathExprInfix (**)
   (**) = mathExprIfx (**) "^" $ Infixr 8
 --            (\β ξ -> T.concat [ "{", β, "}^{", ξ, "}"] ) b x
            
-  log = mathExprFn log "\\ln"
+  log = mathExprFn log ln
   logBase b t = (`MathLaTeXEval`Infix 9) $ mathExprInfix logBase
-           (\β τ -> T.concat ["\\log_{", β, "}\\left(", τ, "\\right"] ) b t
+           (\β τ -> tlog !: β <> autoParens τ ) b t
   
-  sin = mathExprFn sin "\\sin"
-  cos = mathExprFn cos "\\cos"
-  tan = mathExprFn tan "\\tan"
-  asin = mathExprFn asin "\\arcsin"
-  acos = mathExprFn acos "\\arccos"
-  atan = mathExprFn atan "\\arctan"
-  sinh = mathExprFn sinh "\\sinh"
-  cosh = mathExprFn cosh "\\cosh"
-  tanh = mathExprFn tanh "\\tanh"
-  asinh = mathExprFn asinh "\\arcsinh"
-  acosh = mathExprFn acosh "\\arccosh"
-  atanh = mathExprFn atanh "\\arctanh"
+  sin = mathExprFn sin tsin
+  cos = mathExprFn cos tcos
+  tan = mathExprFn tan ttan
+  asin = mathExprFn asin arcsin
+  acos = mathExprFn acos arccos
+  atan = mathExprFn atan arctan
+  sinh = mathExprFn sinh (raw "\\sinh")
+  cosh = mathExprFn cosh (raw "\\cosh")
+  tanh = mathExprFn tanh (raw "\\tanh")
+  asinh = mathExprFn asinh (raw "\\arcsinh")
+  acosh = mathExprFn acosh (raw "\\arccosh")
+  atanh = mathExprFn atanh (raw "\\arctanh")
   
 
 prettyFloatApproxExprn :: Double -> MathExpr Double
 prettyFloatApproxExprn x
     | (mantissa, e:expon) <- break(=='e') s
     , m<-read $ take 7 mantissa, expn<-read expon
-                = prettyFloatApproxExprn m * 10 ^: fromInteger expn
-    | otherwise = mathPrimtv x $ T.pack s
+                = prettyFloatApproxExprn m * 10 ^* fromInteger expn
+    | otherwise = mathPrimtv x $ fromString s
  where s = show x
   
 
@@ -289,13 +290,13 @@ prettyFloatApproxExprn x
 
 inlineMathExpr :: Monad m => MathExpr b -> MathematicalLaTeXT m b
 inlineMathExpr e = do
-   lift . raw $ T.concat ["$", rendered, "$ "]
+   lift . fromLaTeX $ math rendered
    return result
  where (result, rendered) = mathExprRender e
 
 displayMathExpr :: Monad m => MathExpr b -> MathematicalLaTeXT m b
 displayMathExpr e = do
-   lift . raw $ T.concat ["\n\\[ ", rendered, " \\]\n"]
+   lift . fromLaTeX $ mathDisplay rendered
    return result
  where (result, rendered) = mathExprRender e
 
@@ -303,7 +304,7 @@ mathDefinition :: Monad m => MathPrimtvId -> MathExpr b
                                 -> MathematicalLaTeXT m(MathExpr b)
 mathDefinition varn e = do
    let (val, rendered) = mathExprRender e
-   lift . raw $ T.concat ["$", varn, " = ", rendered, "$"]
+   lift . fromLaTeX . math $ varn =: rendered
    return $ mathPrimtv val varn
 
 -- data MathExpr numConstraint numResult :: * where
