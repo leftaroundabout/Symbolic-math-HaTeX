@@ -1,14 +1,43 @@
+-- |
+-- Module      : Math.LaTeX.Prelude
+-- Copyright   : (c) Justus Sagemüller 2013
+-- License     : GPL v3
+-- 
+-- Maintainer  : (@) sagemuej $ smail.uni-koeln.de
+-- Stability   : experimental
+-- Portability : requires GHC>6 extensions
+-- 
+
 {-# LANGUAGE OverloadedStrings                #-}
 {-# LANGUAGE GADTs                            #-}
-{-# LANGUAGE ConstraintKinds                  #-}
 {-# LANGUAGE ScopedTypeVariables              #-}
 {-# LANGUAGE MultiParamTypeClasses            #-}
 {-# LANGUAGE FlexibleInstances                #-}
+{-# LANGUAGE PatternGuards                    #-}
+
+module Math.LaTeX.Prelude ( -- * Data types
+                            MathLaTeXEval
+                          , MathExpr
+                            -- * Rendering
+                          , mathExprRender
+                          , inlineMathExpr
+                          , displayMathExpr
+                          , wDefaultTeXMathDisplayConf
+                            -- * Construction
+                          , mathPrimitiv
+                          , mathExprFunction, mathExprFn
+                          , mathExprInfix, mathExprIfx
+                          , mathDefinition
+                          , Powerable(..)
+                          , prettyFloatApprox
+                            -- * The rendering monad
+                          , MathematicalLaTeX, MathematicalLaTeX_
+                          , MathematicalLaTeXT, MathematicalLaTeXT_
+                          ) where
 
 import Text.LaTeX.Base
 import Text.LaTeX.Base.Class
 import Text.LaTeX.Base.Syntax
-import Text.LaTeX.Packages.Inputenc
 import Text.LaTeX.Packages.AMSMath
 import qualified Data.Text as T
 
@@ -19,68 +48,6 @@ import Data.Function
 import Data.Ratio
 import Data.Functor.Contravariant
 import Data.String
-
-
-
--- Document structure copied from Daniel Diaz' 'Examples/simple.hs'.
-
-
-main :: IO ()
-main = execLaTeXT simple >>= renderFile "shorttest0.tex"
-
-simple :: Monad m => LaTeXT_ m
-simple = do
-   thePreamble
-   document theBody
-
-mathTestFloating :: (Monad m, Floating n, Show n) => LaTeXT m n
-mathTestFloating = wDefaultTeXMathDisplayConf $ do
-   "For "
-   x <- mathDefinition "x" 19
-   " and "
-   τ <- mathDefinition tau $ 2*pi
-   ", "
-   displayMathExpr $
-              2 + 7*(6 - τ) - exp(5 - sqrt(x**2 + 4/pi))
-              
-mathTestInteger :: Monad m => LaTeXT m Integer
-mathTestInteger = wDefaultTeXMathDisplayConf $ do
-   displayMathExpr $
-             4 ^* (2 ^* 3) ^* 2 - 10000^7
-
-thePreamble :: Monad m => LaTeXT_ m
-thePreamble = do
-   documentclass [] article
-   usepackage [utf8] inputenc
-   author "Justus Sagemüller"
-   title "Simple example"
-
-theBody :: Monad m => LaTeXT_ m
-theBody = do
-   maketitle
-   section "Hello"
-   "This is a simple example using the "
-   hatex
-   " library and some math stuff. "
-   
-   n <- mathTestInteger
-   " is "
-   rendertex n
-   ". "
-   
-   newline
-   x <- mathTestFloating
-   " is approximately "
-   wDefaultTeXMathDisplayConf . inlineMathExpr $ prettyFloatApproxExprn x
-   ". "
-
-
-
-
-
-
-
-
 
 
 
@@ -132,7 +99,7 @@ instance Contravariant (MathLaTeXEval res) where
 type MathExpr a = MathLaTeXEval a ()
 
 
-mathExprRender :: forall b. MathLaTeXEval b () -> (b, LaTeX)
+mathExprRender :: MathLaTeXEval b () -> (b, LaTeX)
 mathExprRender (MathLaTeXEval e _) = (calculated e (), rendered e)
  where calculated :: MathEvaluation d c -> c -> d
        calculated (MathEnvd f arg _ enclosed) c
@@ -144,9 +111,9 @@ mathExprRender (MathLaTeXEval e _) = (calculated e (), rendered e)
        rendered (MathEnvd _ a txf enclosed)
             = txf . fmap(rendered . mathLaTeXevaluation) $ enclosed a
 
-mathPrimtv :: b -> LaTeX -> MathLaTeXEval b a
--- mathPrimtv v name = MathLaTeXEval (MathPrimitive v name) 10
-mathPrimtv v name
+mathPrimitiv :: b -> LaTeX -> MathLaTeXEval b a
+-- mathPrimitiv v name = MathLaTeXEval (MathPrimitive v name) 10
+mathPrimitiv v name
   = MathLaTeXEval (MathEnvd (\None _->v) "" (const name) (const None)) $ Infix 10
 
 
@@ -170,7 +137,7 @@ mathExprFn f fn e@(MathLaTeXEval _ fxty)
  
 
 mathExprInfix :: (a->a->r)
-                 -> (MathPrimtvId -> MathPrimtvId -> MathPrimtvId)
+                 -> (LaTeX -> LaTeX -> LaTeX)
                  -> MathLaTeXEval a c -> MathLaTeXEval a c -> MathEvaluation r c
 mathExprInfix ifx ifxn el er
   = MathEnvd ( \(Pair q p) c -> q c `ifx` p c )
@@ -215,7 +182,7 @@ mathExprIfx ifx ifxn fxty el@(MathLaTeXEval _ fxtl) er@(MathLaTeXEval _ fxtr)
                                    
 
 instance (Num res, Show res) => Num (MathLaTeXEval res arg) where
-  fromInteger n = mathPrimtv (fromInteger n) (rendertex n)
+  fromInteger n = mathPrimitiv (fromInteger n) (rendertex n)
   
   (+) = mathExprIfx (+) "+" $ Infixl 6
   (-) = mathExprIfx (-) "-" $ Infixl 6
@@ -234,7 +201,7 @@ instance Powerable Double where { (^*) = (**) }
 instance Powerable Float where { (^*) = (**) }
 instance Powerable Integer where { (^*) = (^) }
 instance (Powerable res, Show res) => Powerable (MathLaTeXEval res arg) where
-  (^*) = mathExprIfx (^*) "^" $ Infixr 8
+  (^*) = mathExprIfx (^*) (raw"^") $ Infixr 8
 
 
 instance (Fractional res, Show res) => Fractional (MathLaTeXEval res arg) where
@@ -249,14 +216,14 @@ instance (Fractional res, Show res) => Fractional (MathLaTeXEval res arg) where
            (TeXComm "frac1" . (:[]) . FixArg)
 
 instance (Floating res, Show res) => Floating (MathLaTeXEval res arg) where
-  pi = mathPrimtv pi pi_
+  pi = mathPrimitiv pi pi_
   
   sqrt = (`MathLaTeXEval`Infix 9) . mathExprFunction sqrt
               (TeXComm "sqrt" .(:[]). FixArg)
            
   exp = (`MathLaTeXEval`Infix 8) . mathExprFunction exp ("e" ^:)
 --   b**x = (`MathLaTeXEval`Infixr 8) $ mathExprInfix (**)
-  (**) = mathExprIfx (**) "^" $ Infixr 8
+  (**) = mathExprIfx (**) (raw"^") $ Infixr 8
 --            (\β ξ -> T.concat [ "{", β, "}^{", ξ, "}"] ) b x
            
   log = mathExprFn log ln
@@ -269,21 +236,24 @@ instance (Floating res, Show res) => Floating (MathLaTeXEval res arg) where
   asin = mathExprFn asin arcsin
   acos = mathExprFn acos arccos
   atan = mathExprFn atan arctan
-  sinh = mathExprFn sinh (raw "\\sinh")
-  cosh = mathExprFn cosh (raw "\\cosh")
-  tanh = mathExprFn tanh (raw "\\tanh")
-  asinh = mathExprFn asinh (raw "\\arcsinh")
-  acosh = mathExprFn acosh (raw "\\arccosh")
-  atanh = mathExprFn atanh (raw "\\arctanh")
+  sinh = mathExprFn sinh tsinh
+  cosh = mathExprFn cosh tcosh
+  tanh = mathExprFn tanh ttanh
+  asinh = mathExprFn asinh $ mathrm "arcsinh"
+  acosh = mathExprFn acosh $ mathrm "arccosh"
+  atanh = mathExprFn atanh $ mathrm "arctanh"
   
 
-prettyFloatApproxExprn :: Double -> MathExpr Double
-prettyFloatApproxExprn x
+prettyFloatApprox :: Double -> MathExpr Double
+prettyFloatApprox x
     | (mantissa, e:expon) <- break(=='e') s
     , m<-read $ take 7 mantissa, expn<-read expon
-                = prettyFloatApproxExprn m * 10 ^* fromInteger expn
-    | otherwise = mathPrimtv x $ fromString s
- where s = show x
+                = prettyFloatApprox m * 10 ^* fromInteger expn
+    | otherwise = mathPrimitiv x $ fromString s
+ where s = remTrailing0 $ show x
+       remTrailing0 = reverse . r0 . reverse
+        where r0 ('0':'.':n) = n
+              r0 n = n
   
 
 
@@ -305,20 +275,8 @@ mathDefinition :: Monad m => MathPrimtvId -> MathExpr b
 mathDefinition varn e = do
    let (val, rendered) = mathExprRender e
    lift . fromLaTeX . math $ varn =: rendered
-   return $ mathPrimtv val varn
+   return $ mathPrimitiv val varn
 
--- data MathExpr numConstraint numResult :: * where
---   MathPrimitive { mathPrimIdtyfier :: MathPrimtvId
---                 , mathPrimValue  } :: MathPrimtvId -> MathExpr cstr a
---   MathEnvd { enclosingFunction :: a -> b
---            , enclosingLaTeX
---            , enclosedMathExpr :: MathExpr a } :: cstr a, cstr b => MathExpr b
-
-
-data TeXMathExpr = TeXMathExpr { mathExprRendered :: Text
-                               , mathExpr_isSimple :: Bool
-                               , mathExpr_fixity :: Int 
-                               }
                                
                                
           -- TeXMathDisplayConf should eventually contains things
@@ -334,18 +292,15 @@ type MathematicalLaTeX_ = MathematicalLaTeXT Identity () -- ReaderT TeXMathDispl
 
 instance (Monad m) => IsString (MathematicalLaTeXT m a) where
   fromString s = lift $ fromString s
+  
+instance (Monad m) => Monoid (MathematicalLaTeXT_ m) where
+  mempty = return()
+  a`mappend`b = do
+     a
+     b
 
 wDefaultTeXMathDisplayConf = (`runReaderT`())
 
 
--- inlineTeXMath :: TeXMathExpr -> MathematicalLaTeX_
--- inlineTeXMath (TeXMathExpr rendd _ _) = lift $ raw rendd
-
--- mathPrimtv :: Text -> TeXMathExpr
--- mathPrimtv name = TeXMathExpr name True 9
-
--- instance Num TeXMathExpr where
---   fromInteger = mathPrimtv . render
---   TeXMathExpr 
 
 
