@@ -22,13 +22,12 @@ module Math.LaTeX.Prelude ( -- * Data types
                             MathLaTeXEval
                           , MathExpr
                           , ComparisonsEval
-                          , Comparisons
                             -- * Rendering
                           , mathExprRender
-                          , inlineMathExpr
-                          , displayMathExpr
-                          , displayMathCompareSeq
-                          , wDefaultTeXMathDisplayConf
+                          , mathExprCalculate , mathExprCalculate_
+                          , inlineMathExpr , inlineMathExpr_
+                          , displayMathExpr , displayMathExpr_
+                          , displayMathCompareSeq , displayMathCompareSeq_
                             -- * Construction
                           , mathPrimitiv
                           , mathExprFunction, mathExprFn
@@ -45,6 +44,7 @@ module Math.LaTeX.Prelude ( -- * Data types
                             -- * The rendering monad
                           , MathematicalLaTeX, MathematicalLaTeX_
                           , MathematicalLaTeXT, MathematicalLaTeXT_
+                          , wDefaultTeXMathDisplayConf
                           ) where
 
 import Text.LaTeX.Base
@@ -57,9 +57,13 @@ import Control.Applicative
 import Control.Monad.Reader
 import Control.Monad.Identity
 
+import Data.List
+import Data.Chain
 import Data.Function
 import Data.Ratio
 import Data.Functor.Contravariant
+import Data.Bifunctor
+import Data.Bifoldable
 import Data.String
 
 
@@ -115,23 +119,21 @@ withArg = contramap . const
 type MathExpr a = MathLaTeXEval a ()
 
 
-mathExprRender :: MathLaTeXEval b arg -> arg -> (b, LaTeX)
-mathExprRender (MathLaTeXEval e _) arg = (calculated e arg, rendered e)
+mathExprRender :: MathLaTeXEval b arg -> LaTeX
+mathExprRender (MathLaTeXEval e _) = rendered e
+ where rendered :: MathEvaluation c a -> LaTeX
+       rendered (MathEnvd _ a txf enclosed)
+            = txf . fmap(rendered . mathLaTeXevaluation) $ enclosed a
+ 
+mathExprCalculate :: MathLaTeXEval b arg -> arg -> b
+mathExprCalculate (MathLaTeXEval e _) = calculated e
  where calculated :: MathEvaluation d c -> c -> d
        calculated (MathEnvd f arg _ enclosed) c
             = f (fmap(\(MathLaTeXEval e' _) a
-                               -> calculated e' (a,c) ) $ enclosed arg) c
---        rendered (MathPrimitive _ txm) = txm
---        rendered (MathDepdPrimitive _ txf) = txf i
-       rendered :: MathEvaluation c a -> LaTeX
-       rendered (MathEnvd _ a txf enclosed)
-            = txf . fmap(rendered . mathLaTeXevaluation) $ enclosed a
+                    -> calculated e' (a,c) ) $ enclosed arg) c
 
-mathExprRender_ :: MathLaTeXEval b () -> (b, LaTeX)
-mathExprRender_ x = mathExprRender x ()
-
-mathExprEval :: MathLaTeXEval b arg -> arg -> b
-mathExprEval x = fst . mathExprRender x
+mathExprCalculate_ :: MathLaTeXEval b () -> b
+mathExprCalculate_ x = mathExprCalculate x ()
 
 mathPrimitiv :: b -> LaTeX -> MathLaTeXEval b a
 -- mathPrimitiv v name = MathLaTeXEval (MathPrimitive v name) 10
@@ -217,53 +219,58 @@ instance (Num res, Show res) => Num (MathLaTeXEval res arg) where
 
 
 
+newtype ComparisonsEval x expr
+   = ComparisonsEval { runComparisonsEval :: Chain (x->x->Bool, LaTeX->LaTeX->LaTeX) expr }
+-- instance Contravariant (ComparisonsEval x expr) where
+--   contramap f(ComparisonsEval c) = ComparisonsEval c'
+--    where c' = linkMap (\(pr,re)->(\x y arg->pr x y $ f arg, re)) c
 
-         -- Perhaps a linear structure would actually be sufficient.
-data ComparisonsEval x expr arg = ExprToCompare expr
-                                | ExprComparison (x -> x -> arg -> Bool)
-                                                 (LaTeX->LaTeX -> LaTeX)
-                                                 (ComparisonsEval x expr arg)
-                                                 (ComparisonsEval x expr arg)
-instance Contravariant (ComparisonsEval x expr) where
-  contramap _ (ExprToCompare x) = ExprToCompare x
-  contramap f x@(ExprComparison c rend l r) = ExprComparison c' rend l' r'
-   where c' le re q = c le re $ f q
-         [l', r'] = map (contramap f) [l,r]
+-- data ComparisonsEval x expr arg
+--  = ExprComparison { exprnComparisonChain 
+--                       :: NonEmpty(expr, (x->x->arg->Bool, LaTeX->LaTeX->LaTeX))
+--                              -- alternating: the middle element of the comparison chain is at the end of the list. The comparator is WRT the element to the right.
+--                   , exprnComparisonTerminate :: expr }
+-- instance Contravariant (ComparisonsEval x expr) where
+--   contramap f (ExprComparison mids r) = ExprComparison
+--                   (fmap(\(e,q,b)->(e, \x y arg->q x y$f arg, b)) mids) r
 
-type Comparisons x = ComparisonsEval x ()
+-- type Comparisons x expr = ComparisonsEval x expr ()
                                         
-compareEnd :: (x -> x -> arg -> Bool) -> (LaTeX->LaTeX->LaTeX)
-    -> expr -> expr -> ComparisonsEval x expr arg
-compareEnd cmp rend = ExprComparison cmp rend `on` ExprToCompare
-compareMid :: (x ->x -> arg -> Bool) -> (LaTeX->LaTeX->LaTeX)
-    -> expr -> ComparisonsEval x expr arg -> ComparisonsEval x expr arg
-compareMid cmp rend = ExprComparison cmp rend . ExprToCompare
+compareEnd :: (x -> x -> Bool) -> (LaTeX->LaTeX->LaTeX)
+    -> expr -> expr -> ComparisonsEval x expr -- arg
+compareEnd cmp rend e = ComparisonsEval . Couple e (cmp,rend)
+-- compareEnd cmp rend e = ExprComparison $ Eventually(e, (cmp, rend))
 
-compareEnd_ :: (x->x->Bool) -> (LaTeX->LaTeX->LaTeX) -> expr -> expr -> ComparisonsEval x expr ()
-compareEnd_ cmp = compareEnd (\l r ()->cmp l r)
-compareMid_ :: (x->x->Bool) -> (LaTeX->LaTeX->LaTeX)
-    -> expr -> ComparisonsEval x expr () -> ComparisonsEval x expr ()
-compareMid_ cmp = compareMid (\l r ()->cmp l r)
+compareMid :: (x ->x -> Bool) -> (LaTeX->LaTeX->LaTeX)
+    -> expr -> ComparisonsEval x expr -> ComparisonsEval x expr -- arg
+compareMid cmp rend e (ComparisonsEval c) = ComparisonsEval $ chainConsl e (cmp,rend) c
+-- compareMid cmp rend e (ExprComparison) = ExprComparison cmp rend . ExprToCompare
 
-leftmostComparedExpr :: ComparisonsEval x expr arg -> expr
-leftmostComparedExpr (ExprToCompare e) = e
-leftmostComparedExpr (ExprComparison _ _ l _) = leftmostComparedExpr l
+-- compareEnd_ :: (x->x->Bool) -> (LaTeX->LaTeX->LaTeX) -> expr -> expr -> ComparisonsEval x expr ()
+-- compareEnd_ cmp = compareEnd (\l r ()->cmp l r)
+-- compareMid_ :: (x->x->Bool) -> (LaTeX->LaTeX->LaTeX)
+--     -> expr -> ComparisonsEval x expr () -> ComparisonsEval x expr ()
+-- compareMid_ cmp = compareMid (\l r ()->cmp l r)
+
+leftmostComparedExpr :: ComparisonsEval x expr -> expr
+leftmostComparedExpr (ComparisonsEval e) = leftEnd e
+-- leftmostComparedExpr (ExprComparison _ _ l _) = leftmostComparedExpr l
 
 
 
 infixr 4 =&, =.
 class Equatable x where
   type EquateExpressionResult x :: *
-  type EquationArgument x :: *
-  (=.) :: x -> x -> ComparisonsEval (EquateExpressionResult x) x (EquationArgument x)
-  (=&) :: x -> ComparisonsEval (EquateExpressionResult x) x (EquationArgument x)
-                   -> ComparisonsEval (EquateExpressionResult x) x (EquationArgument x)
+--   type EquationArgument x :: *
+  (=.) :: x -> x -> ComparisonsEval (EquateExpressionResult x) x -- (EquationArgument x)
+  (=&) :: x -> ComparisonsEval (EquateExpressionResult x) x -- (EquationArgument x)
+                   -> ComparisonsEval (EquateExpressionResult x) x -- (EquationArgument x)
   
 infixr 4 <&, <=&, >&, >=&, <., <=., >., >=.
 class (Equatable x) => Orderable x where
-  (<.), (<=.), (>.), (>=.) :: x -> x -> ComparisonsEval (EquateExpressionResult x) x (EquationArgument x)
-  (<&), (<=&), (>&), (>=&) :: x -> ComparisonsEval (EquateExpressionResult x) x (EquationArgument x)
-                                     -> ComparisonsEval (EquateExpressionResult x) x (EquationArgument x)
+  (<.), (<=.), (>.), (>=.) :: x -> x -> ComparisonsEval (EquateExpressionResult x) x -- (EquationArgument x)
+  (<&), (<=&), (>&), (>=&) :: x -> ComparisonsEval (EquateExpressionResult x) x -- (EquationArgument x)
+                                     -> ComparisonsEval (EquateExpressionResult x) x -- (EquationArgument x)
 
 -- instance (Eq x) => Equatable x where
 --   type EquationArgument x = ()
@@ -283,18 +290,20 @@ class (Equatable x) => Orderable x where
 
 exprnCompareEnd :: (x->x-> Bool) -> (LaTeX->LaTeX->LaTeX)
     -> MathLaTeXEval x arg -> MathLaTeXEval x arg
-    -> ComparisonsEval x (MathLaTeXEval x arg) arg
+    -> ComparisonsEval x (MathLaTeXEval x arg)
 exprnCompareEnd cmp rend a b
-           = compareEnd (\a b arg -> (cmp`on`(`mathExprEval`arg)) a b) rComb a b
+           = compareEnd cmp -- (\a b arg -> (cmp`on`(`mathExprEval`arg)) a b)
+                          rComb a b
    where rComb α β = α'`rend`β'
           where [α',β'] = zipWith parenth [a,b] [α,β]
                 parenth c γ | isotropFixity(mathLaTeXexprnFixity c)>4  = γ
                             | otherwise            = braces $ autoParens γ
 exprnCompareMid :: (x->x-> Bool) -> (LaTeX->LaTeX->LaTeX)
-    -> MathLaTeXEval x arg -> ComparisonsEval x (MathLaTeXEval x arg) arg
-    -> ComparisonsEval x (MathLaTeXEval x arg) arg
+    -> MathLaTeXEval x arg -> ComparisonsEval x (MathLaTeXEval x arg)
+    -> ComparisonsEval x (MathLaTeXEval x arg)
 exprnCompareMid cmp rend a b
-           = compareMid (\a b arg -> (cmp`on`(`mathExprEval`arg)) a b) rComb a b
+           = compareMid cmp -- (\a b arg -> (cmp`on`(`mathExprEval`arg)) a b)
+                          rComb a b
    where rComb α β = α'`rend`β'
           where [α',β'] = zipWith parenth [a,leftmostComparedExpr b] [α,β]
                 parenth c γ | isotropFixity(mathLaTeXexprnFixity c)>4  = γ
@@ -302,7 +311,7 @@ exprnCompareMid cmp rend a b
 
 instance (Eq x) => Equatable(MathLaTeXEval x arg) where
   type EquateExpressionResult(MathLaTeXEval x arg) = x
-  type EquationArgument(MathLaTeXEval x arg) = arg
+--   type EquationArgument(MathLaTeXEval x arg) = arg
   (=.)  = exprnCompareEnd (==) (=:)
   (=&)  = exprnCompareMid (==) (=:)
 
@@ -382,41 +391,55 @@ prettyFloatApprox x
 
 
 
-inlineMathExpr :: Monad m => MathExpr b -> MathematicalLaTeXT m b
+inlineMathExpr :: Monad m => MathLaTeXEval b arg -> MathematicalLaTeXT m (arg->b)
 inlineMathExpr e = do
-   lift . fromLaTeX $ math rendered
-   return result
- where (result, rendered) = mathExprRender_ e
+   lift . fromLaTeX . math $ mathExprRender e
+   return $ mathExprCalculate e
 
-displayMathExpr :: Monad m => MathExpr b -> MathematicalLaTeXT m b
+inlineMathExpr_ :: Monad m => MathExpr b -> MathematicalLaTeXT m b
+inlineMathExpr_ = liftM ($()) . inlineMathExpr
+
+displayMathExpr :: Monad m => MathLaTeXEval b arg -> MathematicalLaTeXT m (arg->b)
 displayMathExpr e = do
-   lift . fromLaTeX $ mathDisplay rendered
-   return result
- where (result, rendered) = mathExprRender_ e
+   lift . fromLaTeX . mathDisplay $ mathExprRender e
+   return $ mathExprCalculate e
+       
+displayMathExpr_ :: Monad m => MathExpr b -> MathematicalLaTeXT m b
+displayMathExpr_ = liftM ($()) . displayMathExpr
 
-displayMathCompareSeq :: forall x m . Monad m => Comparisons x (MathExpr x)
-                           -> MathematicalLaTeXT m Bool
-displayMathCompareSeq comparisons = do
+
+displayMathCompareSeq :: Monad m => ComparisonsEval x (MathLaTeXEval x arg)
+                           -> MathematicalLaTeXT m (arg->Bool)
+displayMathCompareSeq (ComparisonsEval comparisons) = do
   lift . fromLaTeX . align_ $ inlineFirst renders
   return result
  where inlineFirst (r1:r2:rs) = r1<>r2 : rs
        inlineFirst rs = rs
-       ((renders, result), _) = go comparisons
-       go :: Comparisons (MathExpr x) -> (([LaTeX], Bool), (x,x))
-       go (ExprToCompare x) = (([r],True), (q, q))
-        where (q,r) = mathExprRender_ x
-       go (ExprComparison c crend l r) = ( ( lrend ++ (((crend"""")& rrendhead) : rrendtail)
-                                           , lres && rres && c lrm rlm ()                   )
-                                         , ( llm, rrm )                                      )
-        where ((lrend              , lres), (llm, lrm)) = go l
-              ((rrendhead:rrendtail, rres), (rlm, rrm)) = go r
+       (renders, result) = bifoldr(\(re, q) (ex:ecs,predc)
+                                          -> (""`re`ex : ecs, liftA2(&&) q predc) )
+                                  (\e (ecs,predc) -> (mathExprRender e:ecs, predc) )
+                                  ([], const True)
+            $ linkMap (\l (cmp,re) r -> let[l',r']=map mathExprCalculate[l,r]
+                                        in (re, liftA2 cmp l' r'))
+                  comparisons
+                                        
+displayMathCompareSeq_ :: Monad m => ComparisonsEval x (MathExpr x) 
+                                                      -> MathematicalLaTeXT m Bool
+displayMathCompareSeq_ = liftM ($()) . displayMathCompareSeq
+--        go (ComparisonsEval (Middle x)) = (([r],True), (q, q))
+--         where (q,r) = mathExprRender_ x
+--        go (ComparisonsEval (Couple x ν )) = (([r],True), (q, q))
+--        go (ExprComparison c crend l r) = ( ( lrend ++ (((crend"""")& rrendhead) : rrendtail)
+--                                            , lres && rres && c lrm rlm ()                   )
+--                                          , ( llm, rrm )                                      )
+--         where ((lrend              , lres), (llm, lrm)) = go l
+--               ((rrendhead:rrendtail, rres), (rlm, rrm)) = go r
 
 mathDefinition :: Monad m => MathPrimtvId -> MathExpr b
                                 -> MathematicalLaTeXT m(MathExpr b)
 mathDefinition varn e = do
-   let (val, rendered) = mathExprRender_ e
-   lift . fromLaTeX . math $ varn =: rendered
-   return $ mathPrimitiv val varn
+   lift . fromLaTeX . math $ varn =: mathExprRender e
+   return $ mathPrimitiv (mathExprCalculate_ e) varn
 
                                
                                
