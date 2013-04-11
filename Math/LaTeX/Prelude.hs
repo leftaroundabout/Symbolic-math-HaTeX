@@ -97,9 +97,8 @@ data MathEvaluation res arg where
 --                     } :: MathEvaluation arg res
   MathEnvd :: Functor list =>
            { mathEnclosingFunc :: list (a -> b) -> c -> d
-           , argToEnclosed :: MathPrimtvId
            , enclosingLaTeX :: list LaTeX -> LaTeX
-           , enclosedMathExpr :: MathPrimtvId -> list(MathLaTeXEval b (a,c))
+           , enclosedMathExpr :: list(MathLaTeXEval b (a,c))
            } -> MathEvaluation d c
 
 data MathLaTeXEval res arg
@@ -110,9 +109,9 @@ data MathLaTeXEval res arg
 instance Contravariant (MathLaTeXEval res) where
   contramap f (MathLaTeXEval e fxty) = MathLaTeXEval (cmap f e) fxty
    where cmap :: forall c c' d. (c->c') -> MathEvaluation d c' -> MathEvaluation d c
-         cmap f(MathEnvd g ai wr encld) = MathEnvd g' ai wr encld'
+         cmap f(MathEnvd g wr encld) = MathEnvd g' wr encld'
           where g' l = g l . f
-                encld' = fmap(contramap $ \(a,c) -> (a,f c)) . encld
+                encld' = fmap(contramap $ \(a,c) -> (a,f c)) encld
 
 withArg :: a -> MathLaTeXEval res a -> MathLaTeXEval res ()
 withArg = contramap . const
@@ -123,15 +122,15 @@ type MathExpr a = MathLaTeXEval a ()
 mathExprRender :: MathLaTeXEval b arg -> LaTeX
 mathExprRender (MathLaTeXEval e _) = rendered e
  where rendered :: MathEvaluation c a -> LaTeX
-       rendered (MathEnvd _ a txf enclosed)
-            = txf . fmap(rendered . mathLaTeXevaluation) $ enclosed a
+       rendered (MathEnvd _ txf enclosed)
+            = txf . fmap(rendered . mathLaTeXevaluation) $ enclosed
  
 mathExprCalculate :: MathLaTeXEval b arg -> arg -> b
 mathExprCalculate (MathLaTeXEval e _) = calculated e
  where calculated :: MathEvaluation d c -> c -> d
-       calculated (MathEnvd f arg _ enclosed) c
+       calculated (MathEnvd f _ enclosed) c
             = f (fmap(\(MathLaTeXEval e' _) a
-                    -> calculated e' (a,c) ) $ enclosed arg) c
+                    -> calculated e' (a,c) ) $ enclosed) c
 
 mathExprCalculate_ :: MathLaTeXEval b () -> b
 mathExprCalculate_ x = mathExprCalculate x ()
@@ -139,7 +138,7 @@ mathExprCalculate_ x = mathExprCalculate x ()
 mathPrimitiv :: b -> LaTeX -> MathLaTeXEval b a
 -- mathPrimitiv v name = MathLaTeXEval (MathPrimitive v name) 10
 mathPrimitiv v name
-  = MathLaTeXEval (MathEnvd (\None _->v) "" (const name) (const None)) $ Infix 10
+  = MathLaTeXEval (MathEnvd (\None _->v) (const name) None) $ Infix 10
 
 
 
@@ -147,9 +146,8 @@ mathExprFunction :: (a->r)
                  -> (MathPrimtvId -> MathPrimtvId)
                  -> MathLaTeXEval a c -> MathEvaluation r c
 mathExprFunction f fn e = MathEnvd ( \(Identity q) -> f . q )
-                                   ( "" )
                                    ( fn . runIdentity )
-                                   ( const . Identity $ contramap fst e )
+                                   ( Identity $ contramap fst e )
    
 mathExprFn :: (a->r) -> MathPrimtvId
                  -> MathLaTeXEval a c -> MathLaTeXEval r c
@@ -166,9 +164,8 @@ mathExprInfix :: (a->a->r)
                  -> MathLaTeXEval a c -> MathLaTeXEval a c -> MathEvaluation r c
 mathExprInfix ifx ifxn el er
   = MathEnvd ( \(Pair q p) c -> q c `ifx` p c )
-             ( "" )
              ( \(Pair q p) -> ifxn q p )
-             ( const $ Pair (contramap fst el) (contramap fst er) )
+             ( Pair (contramap fst el) (contramap fst er) )
              
 mathExprIfx :: (a->a->r) -> MathPrimtvId -> Fixity
                  -> MathLaTeXEval a c -> MathLaTeXEval a c ->  MathLaTeXEval r c
@@ -218,6 +215,20 @@ instance (Num res, Show res) => Num (MathLaTeXEval res arg) where
   abs = (`MathLaTeXEval`Infix 9) . mathExprFunction abs
            (autoBrackets "|" "|")
 
+
+
+
+-- lSetSum :: Num res => MathPrimtvId 
+-- 
+-- 
+-- rSum :: (Enum rng, Num res) =>
+--       MathPrimtvId -> MathLaTeXEval rng a -> MathLaTeXEval rng a
+--           -> (MathExpr rng -> MathLaTeXEval res a)
+--           -> MathLaTeXEval res a
+-- rSum sumVar lBound uBound summand
+--   = MathLaTeXEval sumExpr $ Infix 6
+--  where sumExpr = MathEnvd 
+-- 
 
 
 
