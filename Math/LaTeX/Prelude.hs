@@ -28,6 +28,7 @@ module Math.LaTeX.Prelude ( -- * Data types
                           , inlineMathExpr , inlineMathExpr_
                           , displayMathExpr , displayMathExpr_
                           , displayMathCompareSeq , displayMathCompareSeq_
+                          , mathExprEvalApprox
                             -- * Construction
                           , mathPrimitiv
                           , mathExprFunction, mathExprFn
@@ -210,6 +211,7 @@ instance (Num res, Show res) => Num (MathLaTeXEval res arg) where
   
   (+) = mathExprIfx (+) "+" $ Infixl 6
   (-) = mathExprIfx (-) "-" $ Infixl 6
+  negate = mathExprFn negate ("-")
   (*) = mathExprIfx (*) (commS"cdot") $ Infixl 7
   
   signum = mathExprFn abs (mathrm"sgn")
@@ -221,6 +223,9 @@ instance (Num res, Show res) => Num (MathLaTeXEval res arg) where
 
 newtype ComparisonsEval x expr
    = ComparisonsEval { runComparisonsEval :: Chain (x->x->Bool, LaTeX->LaTeX->LaTeX) expr }
+
+instance Functor (ComparisonsEval x) where
+  fmap f (ComparisonsEval ev) = ComparisonsEval $ fmap f ev
 -- instance Contravariant (ComparisonsEval x expr) where
 --   contramap f(ComparisonsEval c) = ComparisonsEval c'
 --    where c' = linkMap (\(pr,re)->(\x y arg->pr x y $ f arg, re)) c
@@ -273,7 +278,7 @@ class (Equatable x) => Orderable x where
                                      -> ComparisonsEval (EquateExpressionResult x) x -- (EquationArgument x)
 
 -- instance (Eq x) => Equatable x where
---   type EquationArgument x = ()
+--   type EquateExpressionResult x = x
 --   (=.)  = compareEnd_ (==) (=:)
 --   (=&)  = compareMid_ (==) (=:)
 --   
@@ -388,6 +393,8 @@ prettyFloatApprox x
         where r0 ('0':'.':n) = n
               r0 n = n
   
+mathExprEvalApprox :: MathExpr Double -> MathExpr Double
+mathExprEvalApprox = prettyFloatApprox . mathExprCalculate_
 
 
 
@@ -416,7 +423,7 @@ displayMathCompareSeq (ComparisonsEval comparisons) = do
  where inlineFirst (r1:r2:rs) = r1<>r2 : rs
        inlineFirst rs = rs
        (renders, result) = bifoldr(\(re, q) (ex:ecs,predc)
-                                          -> (""`re`ex : ecs, liftA2(&&) q predc) )
+                                          -> (raw"&"`re`ex : ecs, liftA2(&&) q predc) )
                                   (\e (ecs,predc) -> (mathExprRender e:ecs, predc) )
                                   ([], const True)
             $ linkMap (\l (cmp,re) r -> let[l',r']=map mathExprCalculate[l,r]
@@ -462,6 +469,9 @@ instance (Monad m) => Monoid (MathematicalLaTeXT_ m) where
   a`mappend`b = do
      a
      b
+
+-- instance (Monad m) => LaTeXC (MathematicalLaTeXT_ m) where
+  
 
 wDefaultTeXMathDisplayConf = (`runReaderT`())
 

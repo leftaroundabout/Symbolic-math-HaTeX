@@ -22,6 +22,7 @@ thePreamble :: Monad m => LaTeXT_ m
 thePreamble = do
    documentclass [] article
    usepackage [utf8] inputenc
+   usepackage [] amsmath
    author "Justus Sagemüller"
    title "Simple example"
 
@@ -40,9 +41,16 @@ theBody = do
    wDefaultTeXMathDisplayConf . inlineMathExpr $ prettyFloatApprox x
    ". "
    
-   inversesCorrect <- mathTestTrigInverses
-   if inversesCorrect then "(Test passed.)"
-                      else textbf "(Test failed.)"
+   mathTestTrigInverses >>= testResult
+   newline
+   
+   "A simple equations chain:"
+   mathTestIntegerEquationchain >>= testResult
+   newline
+   
+   "Another equations chain, this time using floats:"
+   mathTestFloatEquationchain >>= testResult
+   
    
    
    
@@ -63,18 +71,40 @@ mathTestInteger = wDefaultTeXMathDisplayConf $ do
 
 mathTestTrigInverses :: Monad m => LaTeXT m Bool
 mathTestTrigInverses = wDefaultTeXMathDisplayConf $ do
-      zero <- displayMathExpr_ (
-        asin.sin . acos.cos . atan.tan $ 0 )
-      " is "
-      inlineMathExpr(prettyFloatApprox zero)
-      ", "
-      nonzero <- displayMathExpr_ (
-         asinh.sinh . acosh.(/2).cosh . atanh.tanh  $ 0 )
-      case nonzero of
-        0 -> "as well."
-        _ -> lift $ textbf " is not."
-      
-      return $ zero==0 && nonzero/=0
+   zero <- displayMathExpr_ (
+     asin.sin . acos.cos . atan.tan $ 0 )
+   " is "
+   inlineMathExpr(prettyFloatApprox zero)
+   ", "
+   nonzero <- displayMathExpr_ (
+      asinh.sinh . acosh.(/2).cosh . atanh.tanh  $ 0 )
+   case nonzero of
+     0 -> "as well."
+     _ -> lift $ textbf " is not."
+   
+   return $ zero==0 && nonzero/=0
+
+mathTestIntegerEquationchain :: Monad m => LaTeXT m Bool
+mathTestIntegerEquationchain = wDefaultTeXMathDisplayConf $ do
+   displayMathCompareSeq_ $
+        10 ^* 18
+     =& 10^*9 * 10^*9
+     =& 10^*(3^*2) * 10^*5 * 10^* 4
+     =. (1000000000000000000 :: MathExpr Integer)
+
+mathTestFloatEquationchain :: Monad m => LaTeXT m Bool
+mathTestFloatEquationchain = wDefaultTeXMathDisplayConf $ do
+   let compareChain =
+             10 ^* (-18)
+          =& 10^*(-9) * 10^*(-9)
+          =& 10^*(-3^*2) * 10^*(-5) * 10^*(-4)
+          =. (1/1000000000000000000 :: MathExpr Double)
+   displayMathCompareSeq_ compareChain
+   "reads, as evaluated expressions,"
+   displayMathCompareSeq_ $ fmap mathExprEvalApprox compareChain
+   
 
 
-
+testResult :: Monad m => Bool -> LaTeXT_ m
+testResult True = "(Test passed.)"
+testResult _    = textbf "(Test failed.)"
