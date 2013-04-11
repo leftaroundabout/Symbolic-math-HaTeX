@@ -23,6 +23,8 @@ module Math.LaTeX.Prelude ( -- * Data types
                             MathLaTeXEval
                           , MathExpr
                           , ComparisonsEval
+                            -- * Adaptions of arithmetic calculations
+                          , lSetSum, listAsFinSet
                             -- * Rendering
                           , mathExprRender
                           , mathExprCalculate , mathExprCalculate_
@@ -233,6 +235,7 @@ instance (Num res, Show res) => Num (MathLaTeXEval res arg) where
   abs = (`MathLaTeXEval`Infix 9) . mathExprFunction abs
            (autoBrackets "|" "|")
 
+-- instance (Enum r, Show r) => Enum (MathExpr
 
 
 
@@ -256,6 +259,13 @@ lSetSum sumVar rngSpec summand = sumExpr `MathLaTeXEval` Infix 6
                                 . summand $ mathVarEntry sumVar fst )
                                               :: Pair(MathLaTeXEval (res, [rng]) (rng, a) ) )
 
+-- | A list only represents a set properly when there are no duplicate elements,
+-- a precondition which this function doesn't (and can't!) check.
+listAsFinSet :: [MathLaTeXEval r a] -> MathLaTeXEval [r] a
+listAsFinSet ls = listExpr `MathLaTeXEval` Infix 9
+ where listExpr = MathEnvd ( const . map($()) )
+                           ( autoBraces . mconcat . intersperse(raw",") )
+                           ( map (contramap snd) ls )
 
 -- rsum :: (Enum rng, Num res) =>
 --       MathPrimtvId -> MathLaTeXEval rng a -> MathLaTeXEval rng a

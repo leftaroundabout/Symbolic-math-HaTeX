@@ -41,6 +41,12 @@ theBody = do
    wDefaultTeXMathDisplayConf . inlineMathExpr $ prettyFloatApprox x
    ". "
    
+   newline
+   s <- mathFloatSumTest
+   " is " <> rendertex s <> "."
+   
+   newline
+   
    mathTestTrigInverses >>= testResult
    newline
    
@@ -103,6 +109,9 @@ mathTestFloatEquationchain = wDefaultTeXMathDisplayConf $ do
    "reads, as evaluated expressions,"
    displayMathCompareSeq_ $ fmap mathExprEvalApprox compareChain
    
+mathFloatSumTest :: Monad m => LaTeXT m Double
+mathFloatSumTest = wDefaultTeXMathDisplayConf
+   $ displayMathExpr_ ( lSetSum "n" (listAsFinSet[1,2,3,4]) (2.5 - ) )
 
 
 testResult :: Monad m => Bool -> LaTeXT_ m
