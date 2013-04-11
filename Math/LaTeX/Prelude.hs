@@ -17,6 +17,7 @@
 -- {-# LANGUAGE OverlappingInstances             #-}
 {-# LANGUAGE PatternGuards                    #-}
 {-# LANGUAGE TypeFamilies                     #-}
+{-# LANGUAGE TupleSections                    #-}
 
 module Math.LaTeX.Prelude ( -- * Data types
                             MathLaTeXEval
@@ -106,12 +107,26 @@ data MathLaTeXEval res arg
                       , mathLaTeXexprnFixity :: Fixity
                       }
 
+instance Contravariant (MathEvaluation res) where
+  contramap f(MathEnvd g wr encld) = MathEnvd g' wr encld'
+     where g' l = g l . f
+           encld' = fmap(contramap $ \(a,c) -> (a,f c)) encld
 instance Contravariant (MathLaTeXEval res) where
-  contramap f (MathLaTeXEval e fxty) = MathLaTeXEval (cmap f e) fxty
-   where cmap :: forall c c' d. (c->c') -> MathEvaluation d c' -> MathEvaluation d c
-         cmap f(MathEnvd g wr encld) = MathEnvd g' wr encld'
-          where g' l = g l . f
-                encld' = fmap(contramap $ \(a,c) -> (a,f c)) encld
+  contramap f (MathLaTeXEval e fxty) = MathLaTeXEval (contramap f e) fxty
+
+class PseudoFunctor f where
+  pseudoFmap :: (a->b) -> f a c -> f b c
+
+-- 'Contravariant' and 'PseudoFunctor' together form, effectively, 'Flip Arrow'.
+-- However, the covariant part isn't really \"correct\" for 'MathLaTeXEval':
+-- the result of a mathematical expression can't change while the expression itself
+-- remains constant. So we don't export such an instance.
+instance PseudoFunctor MathEvaluation where
+  pseudoFmap φ (MathEnvd ψ l e) = MathEnvd ((φ.).ψ) l e
+instance PseudoFunctor MathLaTeXEval where
+  pseudoFmap φ (MathLaTeXEval e fxty) = MathLaTeXEval (pseudoFmap φ e) fxty
+
+
 
 withArg :: a -> MathLaTeXEval res a -> MathLaTeXEval res ()
 withArg = contramap . const
@@ -138,8 +153,11 @@ mathExprCalculate_ x = mathExprCalculate x ()
 mathPrimitiv :: b -> LaTeX -> MathLaTeXEval b a
 -- mathPrimitiv v name = MathLaTeXEval (MathPrimitive v name) 10
 mathPrimitiv v name
-  = MathLaTeXEval (MathEnvd (\None _->v) (const name) None) $ Infix 10
+  = (MathEnvd (\None _->v) (\None -> name) None) `MathLaTeXEval` Infix 10
 
+mathVarEntry :: MathPrimtvId -> (a->b) -> MathLaTeXEval b a
+mathVarEntry name esrc
+   = MathEnvd (\None -> esrc) (\None -> name) None `MathLaTeXEval` Infix 10
 
 
 mathExprFunction :: (a->r)
@@ -218,15 +236,33 @@ instance (Num res, Show res) => Num (MathLaTeXEval res arg) where
 
 
 
--- lSetSum :: Num res => MathPrimtvId 
--- 
--- 
--- rSum :: (Enum rng, Num res) =>
+lSetSum :: forall rng res a. Num res 
+       => MathPrimtvId -> MathLaTeXEval [rng] a
+                 -> (MathLaTeXEval rng (rng,a) -> MathLaTeXEval res (rng,a))
+                 -> MathLaTeXEval res a
+lSetSum sumVar rngSpec summand = sumExpr `MathLaTeXEval` Infix 6
+ where sumExpr 
+        = MathEnvd (                                    (
+                     \(Pair rngG summandG) _ -> 
+                         sum [ fst $ summandG x
+                          | x<-snd $ rngG undefined ]
+                                              ) :: Pair(rng -> (res, [rng])) -> a -> res )
+                   ( \(Pair rngV summandV) -> 
+                        braces $
+                          (TeXCommS "sum" !: braces(sumVar `in_` rngV)) <> summandV 
+                               )
+                   ( Pair ( pseudoFmap(undefined,) $ contramap snd rngSpec )
+                          ( pseudoFmap(,undefined)
+                                . summand $ mathVarEntry sumVar fst )
+                                              :: Pair(MathLaTeXEval (res, [rng]) (rng, a) ) )
+
+
+-- rsum :: (Enum rng, Num res) =>
 --       MathPrimtvId -> MathLaTeXEval rng a -> MathLaTeXEval rng a
 --           -> (MathExpr rng -> MathLaTeXEval res a)
 --           -> MathLaTeXEval res a
 -- rSum sumVar lBound uBound summand
---   = MathLaTeXEval sumExpr $ Infix 6
+--   = lSetSum 
 --  where sumExpr = MathEnvd 
 -- 
 
