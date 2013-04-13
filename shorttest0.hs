@@ -42,8 +42,7 @@ theBody = do
    ". "
    
    newline
-   s <- mathFloatSumTest
-   " is " <> rendertex s <> "."
+   mathFloatSumTest
    
    newline
    
@@ -109,9 +108,11 @@ mathTestFloatEquationchain = wDefaultTeXMathDisplayConf $ do
    "reads, as evaluated expressions,"
    displayMathCompareSeq_ $ fmap mathExprEvalApprox compareChain
    
-mathFloatSumTest :: Monad m => LaTeXT m Double
-mathFloatSumTest = wDefaultTeXMathDisplayConf
-   $ displayMathExpr_ ( lSetSum "n" (listAsFinSet[1,2,3,4]) (2.5 - ) )
+mathFloatSumTest :: Monad m => LaTeXT_ m
+mathFloatSumTest = wDefaultTeXMathDisplayConf $ do
+   a <- displayMathExpr_ ( lSetSum "n" (listAsFinSet[1,2,3,4]) (2.5 - ) )
+   b <- displayMathExpr_ ( finRSum "n" 1 4 (2.5 - ) )
+   return (a,b)
 
 
 testResult :: Monad m => Bool -> LaTeXT_ m

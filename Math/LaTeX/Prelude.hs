@@ -24,7 +24,7 @@ module Math.LaTeX.Prelude ( -- * Data types
                           , MathExpr
                           , ComparisonsEval
                             -- * Adaptions of arithmetic calculations
-                          , lSetSum, listAsFinSet
+                          , finRSum, lSetSum, listAsFinSet
                             -- * Rendering
                           , mathExprRender
                           , mathExprCalculate , mathExprCalculate_
@@ -72,12 +72,6 @@ import Data.String
 
 
 
--- Some trivial fixed-size-array functors, these model the structural recursion of
--- either primitive math (None), unary functions (Identity), or infix functions (Pair).
-data None a = None
-instance Functor None where { fmap _ None = None }
-data Pair a = Pair a a
-instance Functor Pair where { fmap f (Pair l r) = Pair (f l) (f r) }
 
 
 
@@ -210,6 +204,16 @@ mathExprIfx ifx ifxn fxty el@(MathLaTeXEval _ fxtl) er@(MathLaTeXEval _ fxtr)
        parenthd = braces . autoParens
        
 
+mathExpr_hetFn2 :: (a -> b -> r)
+                -> (LaTeX -> LaTeX -> LaTeX)
+                -> MathLaTeXEval a c -> MathLaTeXEval b c -> MathEvaluation r c
+mathExpr_hetFn2 ifx ifxn el er
+  = MathEnvd ( \(Pair q p) c -> fst(q c) `ifx` snd(p c) )
+             ( \(Pair q p) -> ifxn q p )
+             ( Pair ( pseudoFmap(,undefined) $ contramap fst el )
+                    ( pseudoFmap(undefined,) $ contramap fst er ) )
+
+
 -- mathExprInfix :: (a->b->r) -> MathPrimtvId -> Fixity
 --     -> MathLaTeXEval c a -> MathLaTeXEval c b -> MathLaTeXEval c r
 -- mathExprInfix ifx ifxn fxty (MathLaTeXEval a fxta) (MathLaTeXEval b fxtb)
@@ -251,11 +255,10 @@ lSetSum sumVar rngSpec summand = sumExpr `MathLaTeXEval` Infix 6
                           | x<-snd $ rngG undefined ]
                                               ) :: Pair(rng -> (res, [rng])) -> a -> res )
                    ( \(Pair rngV summandV) -> 
-                        braces $
                           (TeXCommS "sum" !: braces(sumVar `in_` rngV)) <> summandV 
                                )
-                   ( Pair ( pseudoFmap(undefined,) $ contramap snd rngSpec )
-                          ( pseudoFmap(,undefined)
+                   ( Pair ( pseudoFmap coSnd $ contramap snd rngSpec )
+                          ( pseudoFmap coFst
                                 . summand $ mathVarEntry sumVar fst )
                                               :: Pair(MathLaTeXEval (res, [rng]) (rng, a) ) )
 
@@ -267,14 +270,26 @@ listAsFinSet ls = listExpr `MathLaTeXEval` Infix 9
                            ( autoBraces . mconcat . intersperse(raw",") )
                            ( map (contramap snd) ls )
 
--- rsum :: (Enum rng, Num res) =>
---       MathPrimtvId -> MathLaTeXEval rng a -> MathLaTeXEval rng a
---           -> (MathExpr rng -> MathLaTeXEval res a)
---           -> MathLaTeXEval res a
--- rSum sumVar lBound uBound summand
---   = lSetSum 
---  where sumExpr = MathEnvd 
--- 
+
+-- | Sum over some range. The usual @ᵢ₌₁Σ³ aᵢ⋅bᵢ@-thing.
+finRSum :: (Enum rng, Num res) =>
+      MathPrimtvId -> MathLaTeXEval rng a -> MathLaTeXEval rng a
+          -> (MathLaTeXEval rng (rng,a) -> MathLaTeXEval res (rng,a))
+          -> MathLaTeXEval res a
+finRSum sumVar lBound uBound summand
+  = sumExpr `MathLaTeXEval` Infix 9
+ where sumExpr = MathEnvd ( \(Triple rngLG rngUG summandG) _ ->
+                               sum [ fst $ summandG x
+                                | x<-[snd $ rngLG undefined .. snd $ rngUG undefined] ] ) 
+                          ( \(Triple rngLV rngUV summandV) ->
+                                (TeXCommS "sum" !: braces(sumVar =: rngLV)
+                                                ^: braces(rngUV)        ) <> summandV )
+                          ( Triple (pseudoFmap coSnd $ contramap snd lBound )
+                                   (pseudoFmap coSnd $ contramap snd uBound )
+                                   (pseudoFmap coFst . summand
+                                      $ mathVarEntry sumVar fst                     ) )
+                         
+
 
 
 
@@ -534,4 +549,22 @@ wDefaultTeXMathDisplayConf = (`runReaderT`())
 
 
 
+
+
+
+
+-- Some trivial fixed-size-array functors, these model the structural recursion of
+-- either primitive math (None), unary functions (Identity), or infix functions (Pair).
+data None a = None
+instance Functor None where { fmap _ None = None }
+data Pair a = Pair a a
+instance Functor Pair where { fmap f (Pair l r) = Pair (f l) (f r) }
+data Triple a = Triple a a a
+instance Functor Triple where { fmap f (Triple l m r) = Triple (f l) (f m) (f r) }
+
+
+coFst :: a -> (a,b)
+coSnd :: b -> (a,b)
+coFst = (,undefined)
+coSnd = (undefined,)
 
