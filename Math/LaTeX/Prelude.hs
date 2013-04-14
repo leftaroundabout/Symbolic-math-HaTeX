@@ -18,6 +18,7 @@
 {-# LANGUAGE PatternGuards                    #-}
 {-# LANGUAGE TypeFamilies                     #-}
 {-# LANGUAGE TupleSections                    #-}
+{-# LANGUAGE RecordWildCards                  #-}
 
 module Math.LaTeX.Prelude ( -- * Data types
                             MathLaTeXEval
@@ -28,10 +29,11 @@ module Math.LaTeX.Prelude ( -- * Data types
                             -- * Rendering
                           , mathExprRender
                           , mathExprCalculate , mathExprCalculate_
-                          , inlineMathExpr , inlineMathExpr_
+                          , inlineMathExpr , inlineMathExpr_ , inlineRoughValue
                           , displayMathExpr , displayMathExpr_
+                          , displayMathExpr_wRResult
                           , displayMathCompareSeq , displayMathCompareSeq_
-                          , mathExprEvalApprox
+                          , mathExprEvalRough
                             -- * Construction
                           , mathPrimitiv
                           , mathExprFunction, mathExprFn
@@ -334,20 +336,24 @@ leftmostComparedExpr (ComparisonsEval e) = leftEnd e
 -- leftmostComparedExpr (ExprComparison _ _ l _) = leftmostComparedExpr l
 
 
-
 infixr 4 =&, =.
 class Equatable x where
   type EquateExpressionResult x :: *
---   type EquationArgument x :: *
-  (=.) :: x -> x -> ComparisonsEval (EquateExpressionResult x) x -- (EquationArgument x)
-  (=&) :: x -> ComparisonsEval (EquateExpressionResult x) x -- (EquationArgument x)
-                   -> ComparisonsEval (EquateExpressionResult x) x -- (EquationArgument x)
+  (=.) :: x -> x -> ComparisonsEval (EquateExpressionResult x) x
+  (=&) :: x -> ComparisonsEval (EquateExpressionResult x) x
+                   -> ComparisonsEval (EquateExpressionResult x) x
   
 infixr 4 <&, <=&, >&, >=&, <., <=., >., >=.
 class (Equatable x) => Orderable x where
-  (<.), (<=.), (>.), (>=.) :: x -> x -> ComparisonsEval (EquateExpressionResult x) x -- (EquationArgument x)
-  (<&), (<=&), (>&), (>=&) :: x -> ComparisonsEval (EquateExpressionResult x) x -- (EquationArgument x)
-                                     -> ComparisonsEval (EquateExpressionResult x) x -- (EquationArgument x)
+  (<.), (<=.), (>.), (>=.) :: x -> x -> ComparisonsEval (EquateExpressionResult x) x
+  (<&), (<=&), (>&), (>=&) :: x -> ComparisonsEval (EquateExpressionResult x) x
+                                     -> ComparisonsEval (EquateExpressionResult x) x
+
+infixr 4 =~&, =~.
+class (Equatable x) => RoughEqable x where
+  (=~.) :: x -> x -> ComparisonsEval (EquateExpressionResult x) x
+  (=~&) :: x -> ComparisonsEval (EquateExpressionResult x) x
+                   -> ComparisonsEval (EquateExpressionResult x) x
 
 -- instance (Eq x) => Equatable x where
 --   type EquateExpressionResult x = x
@@ -403,6 +409,15 @@ instance (Ord x) => Orderable(MathLaTeXEval x arg) where
   (>=&) = exprnCompareMid (>=) (>=:)
 
 
+(≈) :: (RealFloat x) => x -> x -> Bool
+a≈b = r>0.99 && r<1.01
+ where r = a/b
+
+instance (RealFloat x, e~MathLaTeXEval x arg, Equatable e) => RoughEqable e where
+  (=~.) = exprnCompareEnd (≈) (between $ comm0 "approx" :: LaTeXC l => l->l->l)
+  (=~&) = exprnCompareMid (≈) (between $ comm0 "approx" :: LaTeXC l => l->l->l)
+
+
 infixr 8 ^*
 class Num x => Powerable x where
   (^*) :: x -> x -> x
@@ -454,19 +469,48 @@ instance (Floating res, Show res) => Floating (MathLaTeXEval res arg) where
   atanh = mathExprFn atanh $ mathrm "arctanh"
   
 
-prettyFloatApprox :: Double -> MathExpr Double
+
+class MathRenderable v where
+  toMathExpr :: v -> MathExpr v
+
+instance MathRenderable Int where
+  toMathExpr = fromIntegral
+
+
+data RoughExpr v
+  = RoughExpr { getRoughExpression :: MathExpr v }
+  | ExactRoughExpr { getRoughExpression :: MathExpr v }
+
+class MathRoughRenderable v where
+  roughMathExpr :: v -> RoughExpr v
+
+-- instance (MathRenderable v) => MathRoughRenderable v where
+--   roughMathExpr = ExactRoughExpr . toMathExpr
+
+
+instance MathRoughRenderable Double where
+  roughMathExpr = prettyFloatApprox
+
+-- instance MathRoughRenderable Integer where
+--   roughMathExpr = prettyFloatApprox . fromInteger
+
+
+
+prettyFloatApprox :: Double -> RoughExpr Double
 prettyFloatApprox x
-    | (mantissa, e:expon) <- break(=='e') s
+    | (mantissa, 'e':expon) <- break(=='e') s
     , m<-read $ take 7 mantissa, expn<-read expon
-                = prettyFloatApprox m * 10 ^* fromInteger expn
-    | otherwise = mathPrimitiv x $ fromString s
+    , (ExactRoughExpr mR) <- prettyFloatApprox m
+                = RoughExpr $ mR * 10 ^* fromInteger expn
+    | otherwise = ExactRoughExpr . mathPrimitiv x $ fromString s
  where s = remTrailing0 $ show x
        remTrailing0 = reverse . r0 . reverse
         where r0 ('0':'.':n) = n
               r0 n = n
   
-mathExprEvalApprox :: MathExpr Double -> MathExpr Double
-mathExprEvalApprox = prettyFloatApprox . mathExprCalculate_
+mathExprEvalRough :: MathRoughRenderable v
+      => MathExpr v -> RoughExpr v
+mathExprEvalRough = roughMathExpr . mathExprCalculate_
 
 
 
@@ -486,6 +530,19 @@ displayMathExpr e = do
 displayMathExpr_ :: Monad m => MathExpr b -> MathematicalLaTeXT m b
 displayMathExpr_ = liftM ($()) . displayMathExpr
 
+inlineRoughValue :: ( Monad m, MathRoughRenderable b )
+                 => b -> MathematicalLaTeXT m b
+inlineRoughValue = inlineMathExpr_ . getRoughExpression . roughMathExpr
+
+displayMathExpr_wRResult :: ( Monad m, MathRoughRenderable b
+                            , e ~ MathExpr b, RoughEqable e  )
+                   => e -> MathematicalLaTeXT m b
+displayMathExpr_wRResult e = do
+   let res = mathExprCalculate e ()
+   displayMathCompareSeq_ $ case roughMathExpr res of
+      RoughExpr r     -> e =~. r
+      ExactRoughExpr r -> e =. r
+   return res
 
 displayMathCompareSeq :: Monad m => ComparisonsEval x (MathLaTeXEval x arg)
                            -> MathematicalLaTeXT m (arg->Bool)

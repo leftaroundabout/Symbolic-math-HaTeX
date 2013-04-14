@@ -37,8 +37,9 @@ theBody = do
    
    newline
    x <- mathTestFloating
+   return(x::Double)
    " is approximately "
-   wDefaultTeXMathDisplayConf . inlineMathExpr $ prettyFloatApprox x
+   wDefaultTeXMathDisplayConf $ inlineRoughValue x
    ". "
    
    newline
@@ -78,8 +79,9 @@ mathTestTrigInverses :: Monad m => LaTeXT m Bool
 mathTestTrigInverses = wDefaultTeXMathDisplayConf $ do
    zero <- displayMathExpr_ (
      asin.sin . acos.cos . atan.tan $ 0 )
+   return(zero::Double)
    " is "
-   inlineMathExpr(prettyFloatApprox zero)
+   inlineRoughValue zero
    ", "
    nonzero <- displayMathExpr_ (
       asinh.sinh . acosh.(/2).cosh . atanh.tanh  $ 0 )
@@ -105,14 +107,14 @@ mathTestFloatEquationchain = wDefaultTeXMathDisplayConf $ do
           =& 10^*(-3^*2) * 10^*(-5) * 10^*(-4)
           =. (1/1000000000000000000 :: MathExpr Double)
    displayMathCompareSeq_ compareChain
-   "reads, as evaluated expressions,"
-   displayMathCompareSeq_ $ fmap mathExprEvalApprox compareChain
    
-mathFloatSumTest :: Monad m => LaTeXT_ m
-mathFloatSumTest = wDefaultTeXMathDisplayConf $ do
-   a <- displayMathExpr_ ( lSetSum "n" (listAsFinSet[1,2,3,4]) (2.5 - ) )
-   b <- displayMathExpr_ ( finRSum "n" 1 4 (2.5 - ) )
-   return (a,b)
+mathFloatSumTest :: Monad m => LaTeXT m [Double]
+mathFloatSumTest = wDefaultTeXMathDisplayConf $
+   mapM displayMathExpr_wRResult
+      [ lSetSum "n" (listAsFinSet[1,2,3,4]) (2.5 - )
+      , finRSum "n" 1 4  (2.5 - )
+      , finRSum "j" 1 40 $ cos . (2*pi/40*)
+      ]
 
 
 testResult :: Monad m => Bool -> LaTeXT_ m
