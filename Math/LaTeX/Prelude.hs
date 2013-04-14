@@ -29,7 +29,9 @@ module Math.LaTeX.Prelude ( -- * Data types
                             -- * Rendering
                           , mathExprRender
                           , mathExprCalculate , mathExprCalculate_
-                          , inlineMathExpr , inlineMathExpr_ , inlineRoughValue
+                          , inlineMathExpr , inlineMathExpr_
+                          , inlineMathShow , inlineRoughValue
+                          , (?~?), (?=?)
                           , displayMathExpr , displayMathExpr_
                           , displayMathExpr_wRResult
                           , displayMathCompareSeq , displayMathCompareSeq_
@@ -50,7 +52,9 @@ module Math.LaTeX.Prelude ( -- * Data types
                             -- * The rendering monad
                           , MathematicalLaTeX, MathematicalLaTeX_
                           , MathematicalLaTeXT, MathematicalLaTeXT_
-                          , wDefaultTeXMathDisplayConf
+                          , wDefaultConf_toHaTeX
+                          , fromHaTeX
+                          , nl
                           ) where
 
 import Text.LaTeX.Base
@@ -61,6 +65,7 @@ import qualified Data.Text as T
 
 import Control.Applicative
 import Control.Monad.Reader
+import Control.Monad.State
 import Control.Monad.Identity
 
 import Data.List
@@ -501,8 +506,10 @@ class MathRoughRenderable v where
 instance MathRoughRenderable Double where
   roughMathExpr = prettyFloatApprox
 
--- instance MathRoughRenderable Integer where
---   roughMathExpr = prettyFloatApprox . fromInteger
+instance MathRoughRenderable Integer where
+  roughMathExpr = reRound . prettyFloatApprox . fromInteger
+   where reRound (RoughExpr m) = RoughExpr (pseudoFmap round m)
+         reRound (ExactRoughExpr m) = ExactRoughExpr (pseudoFmap round m)
 
 
 
@@ -524,26 +531,43 @@ mathExprEvalRough = roughMathExpr . mathExprCalculate_
 
 
 
+
+
+
 inlineMathExpr :: Monad m => MathLaTeXEval b arg -> MathematicalLaTeXT m (arg->b)
 inlineMathExpr e = do
-   lift . fromLaTeX . math $ mathExprRender e
+   lift.lift . fromLaTeX . math $ mathExprRender e
    return $ mathExprCalculate e
 
 inlineMathExpr_ :: Monad m => MathExpr b -> MathematicalLaTeXT m b
 inlineMathExpr_ = liftM ($()) . inlineMathExpr
 
+
 displayMathExpr :: Monad m => MathLaTeXEval b arg -> MathematicalLaTeXT m (arg->b)
 displayMathExpr e = do
-   lift . fromLaTeX . mathDisplay . srcNLEnv $ mathExprRender e
+   lift.lift . fromLaTeX . mathDisplay . srcNLEnv $ mathExprRender e
    return $ mathExprCalculate e
         
        
 displayMathExpr_ :: Monad m => MathExpr b -> MathematicalLaTeXT m b
 displayMathExpr_ = liftM ($()) . displayMathExpr
 
+inlineMathShow :: ( Monad m, MathRenderable b )
+                 => b -> MathematicalLaTeXT m b
+inlineMathShow = inlineMathExpr_ . toMathExpr
+
 inlineRoughValue :: ( Monad m, MathRoughRenderable b )
                  => b -> MathematicalLaTeXT m b
 inlineRoughValue = inlineMathExpr_ . getRoughExpression . roughMathExpr
+
+infix 4 ?~?, ?=?
+(?~?) :: ( Monad m, MathRoughRenderable b )
+                 => String -> b -> MathematicalLaTeXT m b
+expln ?~? val = fromString expln >> inlineRoughValue val
+(?=?) :: ( Monad m, MathRenderable b )
+                 => String -> b -> MathematicalLaTeXT m b
+expln ?=? val = fromString expln >> inlineMathShow val
+
 
 displayMathExpr_wRResult :: ( Monad m, MathRoughRenderable b
                             , e ~ MathExpr b, RoughEqable e  )
@@ -558,7 +582,7 @@ displayMathExpr_wRResult e = do
 displayMathCompareSeq :: Monad m => ComparisonsEval x (MathLaTeXEval x arg)
                            -> MathematicalLaTeXT m (arg->Bool)
 displayMathCompareSeq (ComparisonsEval comparisons) = do
-  lift . fromLaTeX . align_ $ [renders mempty]
+  lift.lift . fromLaTeX . align_ $ [renders mempty]
   return result
  where (renders, result) = bifoldr(\(re, q) (ecs,predc)
                                      -> ((`re` ecs mempty), liftA2(&&) q predc) )
@@ -585,7 +609,7 @@ displayMathCompareSeq_ = liftM ($()) . displayMathCompareSeq
 mathDefinition :: Monad m => MathPrimtvId -> MathExpr b
                                 -> MathematicalLaTeXT m(MathExpr b)
 mathDefinition varn e = do
-   lift . fromLaTeX . math $ varn =: mathExprRender e
+   lift.lift . fromLaTeX . math $ varn =: mathExprRender e
    return $ mathPrimitiv (mathExprCalculate_ e) varn
 
 
@@ -597,16 +621,18 @@ srcNLEnv e = raw"\n" <> e <> raw"\n"
           -- TeXMathDisplayConf should eventually contains things
           -- like the default way to render e.g. multiplication
           -- ('\cdot' vs '\times' or what environments to use.
-type TeXMathDisplayConf = ()
+type TeXMathConfiguration = ()
+type TeXMathStateProps = ()
 
 
-type MathematicalLaTeXT m a = ReaderT TeXMathDisplayConf (LaTeXT m) a
+type MathematicalLaTeXT m a = StateT TeXMathStateProps (
+                              ReaderT TeXMathConfiguration (LaTeXT m) ) a
 type MathematicalLaTeXT_ m = MathematicalLaTeXT m ()  -- ReaderT TeXMathDisplayConf (LaTeXT m) ()
 type MathematicalLaTeX a = MathematicalLaTeXT Identity a  -- ReaderT TeXMathDisplayConf (LaTeXT Identity) a
 type MathematicalLaTeX_ = MathematicalLaTeXT Identity () -- ReaderT TeXMathDisplayConf (LaTeXT Identity) ()
 
 instance (Monad m) => IsString (MathematicalLaTeXT m a) where
-  fromString s = lift $ fromString s
+  fromString s = lift . lift $ fromString s
   
 instance (Monad m) => Monoid (MathematicalLaTeXT_ m) where
   mempty = return()
@@ -614,10 +640,18 @@ instance (Monad m) => Monoid (MathematicalLaTeXT_ m) where
      a
      b
 
+fromHaTeX :: Monad m => LaTeXT m a -> MathematicalLaTeXT m a
+fromHaTeX = lift.lift
+
+nl :: Monad m => MathematicalLaTeXT_ m
+nl = lift $ lift lnbk
+
 -- instance (Monad m) => LaTeXC (MathematicalLaTeXT_ m) where
   
 
-wDefaultTeXMathDisplayConf = (`runReaderT`())
+wDefaultConf_toHaTeX :: Monad m => MathematicalLaTeXT m a -> LaTeXT m a
+wDefaultConf_toHaTeX = (`runReaderT`()) 
+               . liftM fst . (`runStateT`())
 
 
 
