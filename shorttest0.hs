@@ -114,6 +114,10 @@ mathFloatSumTest = wDefaultTeXMathDisplayConf $
       [ lSetSum "n" (listAsFinSet[1,2,3,4]) (2.5 - )
       , finRSum "n" 1 4  (2.5 - )
       , finRSum "j" 1 40 $ cos . (2*pi/40*)
+      , 2 * finRSum "i" 1 6 (\i -> i^*2 + i) 
+      , finRSum "i" 1 6 (\i -> i^*2 + i) * 2
+      , finRSum "i" 1 6 (\i -> i^*2 + i) + 2
+      , finRSum "i" 1 6 (\i -> i^*2 + i + 2)
       ]
 
 

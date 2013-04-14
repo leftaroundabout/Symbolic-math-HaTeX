@@ -9,6 +9,21 @@ data Chain link el = Middle el
                    | Ends el link (Chain link el) link el
                    deriving(Eq,Show)
 
+fromLists :: [link] -> [el] -> Chain link el -- both finite; @length ls@ should be @length els - 1@.
+fromLists lns els = fromLs' flns (reverse blns) els (reverse els)
+ where fromLs' (α:llns) (ω:rlns) (a:lels) (z:rels)
+          = Ends a α (fromLs' llns rlns lels rels) ω z
+       fromLs' _ (mln:_) (lel:_) (rel:_) = Couple lel mln rel
+       fromLs' _ _ (mid:_) _ = Middle mid
+       (flns,blns) = splitAt(length lns `quot` 2) lns
+
+toLists :: Chain link el -> ([link], [el])
+toLists chain = let(lnss,elss) = toLs' chain in (lnss[], elss[])
+ where toLs' (Middle el) = (id, (el:))
+       toLs' (Couple lel mln rel) = ((mln:), (lel:).(rel:))
+       toLs' (Ends a α mid ω z)
+         = let (lnss,elss) = toLs' mid in ((α:).lnss.(ω:), (a:).elss.(z:))
+
 leftEnd :: Chain link el -> el
 leftEnd (Middle el) = el
 leftEnd (Couple el _ _) = el
@@ -44,6 +59,11 @@ linkMap f (Middle el) = Middle el
 linkMap f (Couple a μ z) = Couple a (f a μ z) z
 linkMap f (Ends a α m ω z)
     = Ends a (f a α (leftEnd m)) (linkMap f m) (f (rightEnd m) ω z) z
+
+linksZipWith :: (ζ->α->β) -> [ζ] -> Chain α el -> Chain β el
+linksZipWith c lnsZipt chain = fromLists (zipWith c lnsZipt links) elements
+ where (links, elements) = toLists chain
+
 
 instance Bifunctor Chain where
   first = linkMap_

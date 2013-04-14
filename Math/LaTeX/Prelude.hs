@@ -82,10 +82,12 @@ type MathPrimtvId = LaTeX
 data Fixity = Infix Int
             | Infixl Int
             | Infixr Int
+            | RightGreedy Int
 isotropFixity :: Fixity -> Int
 isotropFixity (Infix n) = n
 isotropFixity (Infixl n) = n
 isotropFixity (Infixr n) = n
+isotropFixity (RightGreedy n) = n
 
 data MathEvaluation res arg where
 --   MathPrimitive { mathPrimVal :: res              -- MathEnvd is actually a generalisation 
@@ -196,6 +198,7 @@ mathExprIfx ifx ifxn fxty el@(MathLaTeXEval _ fxtl) er@(MathLaTeXEval _ fxtr)
                          | otherwise -> parenthd lexpr
                   , " ", ifxn, " "
                   , case(fxty,fxtr) of
+                      (_, RightGreedy _) -> plain rexpr
                       (Infixr ε, Infixr κ)
                          | ε<=κ  -> plain rexpr
                       (ε, κ)
@@ -249,7 +252,7 @@ lSetSum :: forall rng res a. Num res
        => MathPrimtvId -> MathLaTeXEval [rng] a
                  -> (MathLaTeXEval rng (rng,a) -> MathLaTeXEval res (rng,a))
                  -> MathLaTeXEval res a
-lSetSum sumVar rngSpec summand = sumExpr `MathLaTeXEval` Infix 6
+lSetSum sumVar rngSpec summand = sumExpr `MathLaTeXEval` RightGreedy 6
  where sumExpr 
         = MathEnvd (                                    (
                      \(Pair rngG summandG) _ -> 
@@ -279,7 +282,7 @@ finRSum :: (Enum rng, Num res) =>
           -> (MathLaTeXEval rng (rng,a) -> MathLaTeXEval res (rng,a))
           -> MathLaTeXEval res a
 finRSum sumVar lBound uBound summand
-  = sumExpr `MathLaTeXEval` Infix 9
+  = sumExpr `MathLaTeXEval` RightGreedy 6
  where sumExpr = MathEnvd ( \(Triple rngLG rngUG summandG) _ ->
                                sum [ fst $ summandG x
                                 | x<-[snd $ rngLG undefined .. snd $ rngUG undefined] ] ) 
@@ -294,9 +297,14 @@ finRSum sumVar lBound uBound summand
 
 
 
+type LaTeXDecoratableInfix = LaTeX -> LaTeXInfix
+type LaTeXInfix = LaTeX -> LaTeX -> LaTeX
+
+makeLaTeXInfixDecoratable :: LaTeXInfix -> LaTeXDecoratableInfix
+makeLaTeXInfixDecoratable ifx décor llexp rlexp = llexp <> décor `ifx` rlexp
 
 newtype ComparisonsEval x expr
-   = ComparisonsEval { runComparisonsEval :: Chain (x->x->Bool, LaTeX->LaTeX->LaTeX) expr }
+   = ComparisonsEval { runComparisonsEval :: Chain (x->x->Bool, LaTeXDecoratableInfix) expr }
 
 instance Functor (ComparisonsEval x) where
   fmap f (ComparisonsEval ev) = ComparisonsEval $ fmap f ev
@@ -317,12 +325,14 @@ instance Functor (ComparisonsEval x) where
                                         
 compareEnd :: (x -> x -> Bool) -> (LaTeX->LaTeX->LaTeX)
     -> expr -> expr -> ComparisonsEval x expr -- arg
-compareEnd cmp rend e = ComparisonsEval . Couple e (cmp,rend)
+compareEnd cmp rend e 
+   = ComparisonsEval . Couple e (cmp, makeLaTeXInfixDecoratable rend)
 -- compareEnd cmp rend e = ExprComparison $ Eventually(e, (cmp, rend))
 
 compareMid :: (x ->x -> Bool) -> (LaTeX->LaTeX->LaTeX)
     -> expr -> ComparisonsEval x expr -> ComparisonsEval x expr -- arg
-compareMid cmp rend e (ComparisonsEval c) = ComparisonsEval $ chainConsl e (cmp,rend) c
+compareMid cmp rend e (ComparisonsEval c) 
+   = ComparisonsEval $ chainConsl e (cmp, makeLaTeXInfixDecoratable rend) c
 -- compareMid cmp rend e (ExprComparison) = ExprComparison cmp rend . ExprToCompare
 
 -- compareEnd_ :: (x->x->Bool) -> (LaTeX->LaTeX->LaTeX) -> expr -> expr -> ComparisonsEval x expr ()
@@ -524,8 +534,9 @@ inlineMathExpr_ = liftM ($()) . inlineMathExpr
 
 displayMathExpr :: Monad m => MathLaTeXEval b arg -> MathematicalLaTeXT m (arg->b)
 displayMathExpr e = do
-   lift . fromLaTeX . mathDisplay $ mathExprRender e
+   lift . fromLaTeX . mathDisplay . srcNLEnv $ mathExprRender e
    return $ mathExprCalculate e
+        
        
 displayMathExpr_ :: Monad m => MathExpr b -> MathematicalLaTeXT m b
 displayMathExpr_ = liftM ($()) . displayMathExpr
@@ -547,16 +558,16 @@ displayMathExpr_wRResult e = do
 displayMathCompareSeq :: Monad m => ComparisonsEval x (MathLaTeXEval x arg)
                            -> MathematicalLaTeXT m (arg->Bool)
 displayMathCompareSeq (ComparisonsEval comparisons) = do
-  lift . fromLaTeX . align_ $ inlineFirst renders
+  lift . fromLaTeX . align_ $ [renders mempty]
   return result
- where inlineFirst (r1:r2:rs) = r1<>r2 : rs
-       inlineFirst rs = rs
-       (renders, result) = bifoldr(\(re, q) (ex:ecs,predc)
-                                          -> (raw"&"`re`ex : ecs, liftA2(&&) q predc) )
-                                  (\e (ecs,predc) -> (mathExprRender e:ecs, predc) )
-                                  ([], const True)
+ where (renders, result) = bifoldr(\(re, q) (ecs,predc)
+                                     -> ((`re` ecs mempty), liftA2(&&) q predc) )
+                                  (\e (ecs,predc) 
+                                     -> (const . ecs $ mathExprRender e, predc) )
+                                  (id, const True)
+            . linksZipWith (first . flip($)) (raw"\n   &" : repeat (raw"\n \\\\ &"))
             $ linkMap (\l (cmp,re) r -> let[l',r']=map mathExprCalculate[l,r]
-                                        in (re, liftA2 cmp l' r'))
+                                        in (re, liftA2 cmp l' r')             )
                   comparisons
                                         
 displayMathCompareSeq_ :: Monad m => ComparisonsEval x (MathExpr x) 
@@ -577,6 +588,10 @@ mathDefinition varn e = do
    lift . fromLaTeX . math $ varn =: mathExprRender e
    return $ mathPrimitiv (mathExprCalculate_ e) varn
 
+
+
+srcNLEnv :: LaTeX -> LaTeX
+srcNLEnv e = raw"\n" <> e <> raw"\n"
                                
                                
           -- TeXMathDisplayConf should eventually contains things
