@@ -39,19 +39,22 @@ theBody = do
 theContents :: Monad m => MathematicalLaTeXT_ m
 theContents = do
    
+   fromHaTeX $ subsection "Arithmetics with infix operators"
+   
    n::Integer <- displayMathExpr_ $
              4 ^* (2 ^* 3) ^* 2 - 10000^7
-   " is "?~? n >> "."
+   " is "?~? n >> ". "
    
-   x::Double <- do
+   _::Double <- do
          "For "
          x <- mathDefinition "x" 19
          " and "
          τ <- mathDefinition tau $ 2*pi
-         ", "
-         displayMathExpr_ $
+         ", "...:"."
+         displayMathExpr_wRResult $
                     2 + 7*(6 - τ) - exp(5 - sqrt(x**2 + 4/pi))
-   " is approximately "?~? x >> ". "
+   
+   fromHaTeX $ subsection "Simple finite sums"
    
    sums::[Double] <- mapM displayMathExpr_wRResult
       [ lSetSum "n" (listAsFinSet[0,1,4,5]) (2.5 - )
@@ -62,6 +65,7 @@ theContents = do
       , finRSum "i" 1 6 (\i -> i^*2 + i) + 2
       ]
    
+   fromHaTeX $ subsection "Checking some simple identities"
    
    testJudge =<< do
       zero <- displayMathExpr_ (
@@ -73,14 +77,14 @@ theContents = do
       nonzero <- displayMathExpr_ (
          asinh.sinh . acosh.(/2).cosh . atanh.tanh  $ 0 )
       case nonzero of
-        0 -> "as well."
-        _ -> fromHaTeX $ textbf " is not."
+        0 -> "as well. "
+        _ -> fromHaTeX $ textbf " is not. "
       
       return $ zero==0 && nonzero/=0
    
    nl
    
-   "A simple equations chain:"
+   "A simple equations chain:"...:"."
    testJudge =<< do
       displayMathCompareSeq_ $
              10 ^* 18
@@ -88,8 +92,9 @@ theContents = do
           =& 10^*(3^*2) * 10^*5 * 10^* 4
           =. (1000000000000000000 :: MathExpr Integer)
 
+   nl
    
-   "Another equations chain, this time using floats:"
+   "Another equations chain, this time using floats:"...:"."
    testJudge =<< do
        let compareChain =
                  10 ^* (-18)
@@ -104,4 +109,7 @@ theContents = do
 
 testJudge :: Monad m => Bool -> MathematicalLaTeXT_ m
 testJudge True = "(Test passed.)"
-testJudge _    = fromHaTeX $ textbf "(Test failed.)"
+testJudge _    = do
+    fromHaTeX $ textbf "Test failed. "
+    "Even true mathematical identities may not show to hold when using floating-point arithmetics."
+

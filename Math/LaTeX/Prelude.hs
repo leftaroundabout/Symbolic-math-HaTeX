@@ -31,7 +31,7 @@ module Math.LaTeX.Prelude ( -- * Data types
                           , mathExprCalculate , mathExprCalculate_
                           , inlineMathExpr , inlineMathExpr_
                           , inlineMathShow , inlineRoughValue
-                          , (?~?), (?=?)
+                          , (?~?), (?=?), (...:)
                           , displayMathExpr , displayMathExpr_
                           , displayMathExpr_wRResult
                           , displayMathCompareSeq , displayMathCompareSeq_
@@ -74,6 +74,7 @@ import Data.Function
 import Data.Ratio
 import Data.Functor.Contravariant
 import Data.Bifunctor
+import Data.Foldable(fold)
 import Data.Bifoldable
 import Data.String
 
@@ -545,7 +546,10 @@ inlineMathExpr_ = liftM ($()) . inlineMathExpr
 
 displayMathExpr :: Monad m => MathLaTeXEval b arg -> MathematicalLaTeXT m (arg->b)
 displayMathExpr e = do
-   lift.lift . fromLaTeX . mathDisplay . srcNLEnv $ mathExprRender e
+   stProps@(TeXMathStateProps {..}) <- get
+   lift.lift . fromLaTeX . mathDisplay . srcNLEnv 
+       $ mathExprRender e <> fold(fmap fromString punctuationNeededAtDisplayEnd)
+   put $ stProps{ punctuationNeededAtDisplayEnd = Nothing }
    return $ mathExprCalculate e
         
        
@@ -582,7 +586,10 @@ displayMathExpr_wRResult e = do
 displayMathCompareSeq :: Monad m => ComparisonsEval x (MathLaTeXEval x arg)
                            -> MathematicalLaTeXT m (arg->Bool)
 displayMathCompareSeq (ComparisonsEval comparisons) = do
-  lift.lift . fromLaTeX . align_ $ [renders mempty]
+  stProps@(TeXMathStateProps {..}) <- get
+  lift.lift . fromLaTeX . align_
+     $ [ renders mempty <> fold(fmap fromString punctuationNeededAtDisplayEnd) ]
+  put $ stProps{ punctuationNeededAtDisplayEnd = Nothing }
   return result
  where (renders, result) = bifoldr(\(re, q) (ecs,predc)
                                      -> ((`re` ecs mempty), liftA2(&&) q predc) )
@@ -622,8 +629,14 @@ srcNLEnv e = raw"\n" <> e <> raw"\n"
           -- like the default way to render e.g. multiplication
           -- ('\cdot' vs '\times' or what environments to use.
 type TeXMathConfiguration = ()
-type TeXMathStateProps = ()
+data TeXMathStateProps = TeXMathStateProps {
+   punctuationNeededAtDisplayEnd :: Maybe String
+ }
 
+texMathGroundState :: TeXMathStateProps
+texMathGroundState = TeXMathStateProps {
+   punctuationNeededAtDisplayEnd = Nothing
+ }
 
 type MathematicalLaTeXT m a = StateT TeXMathStateProps (
                               ReaderT TeXMathConfiguration (LaTeXT m) ) a
@@ -632,7 +645,37 @@ type MathematicalLaTeX a = MathematicalLaTeXT Identity a  -- ReaderT TeXMathDisp
 type MathematicalLaTeX_ = MathematicalLaTeXT Identity () -- ReaderT TeXMathDisplayConf (LaTeXT Identity) ()
 
 instance (Monad m) => IsString (MathematicalLaTeXT m a) where
-  fromString s = lift . lift $ fromString s
+  fromString s = do
+     (TeXMathStateProps {..}) <- get
+     lift . lift . fromString $ case punctuationNeededAtDisplayEnd of
+        Just pnct -> pnct ++ " " ++ s
+        Nothing   -> s
+
+
+infixr 4 ...:
+
+
+-- | Request a punctuation mark to be placed at the end of (or after) the next
+-- object – normally a displayed maths equation – so you can properly end a
+-- sentence with maths, like
+-- 
+-- @
+--   5 + 8 = 13.
+-- @
+-- 
+-- To obtain such a result, use
+-- 
+-- @
+--   do
+--    \"You can properly end a sentence with maths, like\"...:\".\"
+--    displayMathExpr_wRResult $ 5 + 8
+-- @
+(...:) :: Monad m => MathematicalLaTeXT m a -> String -> MathematicalLaTeXT m a
+txt...:punct = do
+   res <- txt
+   modify $ \sps -> sps{ punctuationNeededAtDisplayEnd = Just punct }
+   return res
+
   
 instance (Monad m) => Monoid (MathematicalLaTeXT_ m) where
   mempty = return()
@@ -651,7 +694,7 @@ nl = lift $ lift lnbk
 
 wDefaultConf_toHaTeX :: Monad m => MathematicalLaTeXT m a -> LaTeXT m a
 wDefaultConf_toHaTeX = (`runReaderT`()) 
-               . liftM fst . (`runStateT`())
+               . liftM fst . (`runStateT`texMathGroundState)
 
 
 
