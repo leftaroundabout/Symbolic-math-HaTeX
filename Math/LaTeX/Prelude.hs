@@ -21,7 +21,8 @@
 {-# LANGUAGE RecordWildCards                  #-}
 
 module Math.LaTeX.Prelude ( -- * Data types
-                            MathLaTeXEval
+                            MathPrimtvId
+                          , MathLaTeXEval
                           , MathExpr
                           , ComparisonsEval
                             -- * Adaptions of arithmetic calculations
@@ -37,7 +38,7 @@ module Math.LaTeX.Prelude ( -- * Data types
                           , displayMathCompareSeq , displayMathCompareSeq_
                           , mathExprEvalRough
                             -- * Construction
-                          , mathPrimitiv
+                          , mathPrimitiv , mathDepPrimitiv
                           , mathExprFunction, mathExprFn
                           , mathExprInfix, mathExprIfx
                           , mathDefinition
@@ -72,6 +73,7 @@ import Control.Monad.Identity
 import Data.List
 import Data.Chain
 import Data.Function
+import Data.Functor.FixedLength
 import Data.Ratio
 import Data.Functor.Contravariant
 import Data.Bifunctor
@@ -161,6 +163,10 @@ mathPrimitiv :: b -> LaTeX -> MathLaTeXEval b a
 -- mathPrimitiv v name = MathLaTeXEval (MathPrimitive v name) 10
 mathPrimitiv v name
   = (MathEnvd (\None _->v) (\None -> name) None) `MathLaTeXEval` Infix 10
+
+mathDepPrimitiv :: (a->b) -> LaTeX -> MathLaTeXEval b a
+mathDepPrimitiv dv name
+  = (MathEnvd (\None->dv) (\None -> name) None) `MathLaTeXEval` Infix 10
 
 mathVarEntry :: MathPrimtvId -> (a->b) -> MathLaTeXEval b a
 mathVarEntry name esrc
@@ -671,6 +677,9 @@ infixr 4 ...:
 --    \"You can properly end a sentence with maths, like\"...:\".\"
 --    displayMathExpr_wRResult $ 5 + 8
 -- @
+-- 
+-- This will not affect any result-requests you may also be conducting.
+-- The fixity of this operator is @infixr 4 ...:@.
 (...:) :: Monad m => MathematicalLaTeXT m a -> String -> MathematicalLaTeXT m a
 txt...:punct = do
    res <- txt
@@ -688,7 +697,7 @@ fromHaTeX :: Monad m => LaTeXT m a -> MathematicalLaTeXT m a
 fromHaTeX = lift.lift
 
 nl :: Monad m => MathematicalLaTeXT_ m
-nl = lift $ lift lnbk
+nl = lift.lift $ raw"\n\n"
 
 -- instance (Monad m) => LaTeXC (MathematicalLaTeXT_ m) where
   
@@ -701,16 +710,6 @@ wDefaultConf_toHaTeX = (`runReaderT`())
 
 
 
-
-
--- Some trivial fixed-size-array functors, these model the structural recursion of
--- either primitive math (None), unary functions (Identity), or infix functions (Pair).
-data None a = None
-instance Functor None where { fmap _ None = None }
-data Pair a = Pair a a
-instance Functor Pair where { fmap f (Pair l r) = Pair (f l) (f r) }
-data Triple a = Triple a a a
-instance Functor Triple where { fmap f (Triple l m r) = Triple (f l) (f m) (f r) }
 
 
 coFst :: a -> (a,b)

@@ -13,7 +13,7 @@
 {-# LANGUAGE MultiParamTypeClasses            #-}
 {-# LANGUAGE FlexibleInstances                #-}
 {-# LANGUAGE UndecidableInstances             #-}
--- {-# LANGUAGE OverlappingInstances             #-}
+{-# LANGUAGE OverlappingInstances             #-}
 {-# LANGUAGE PatternGuards                    #-}
 {-# LANGUAGE TypeFamilies                     #-}
 
@@ -37,14 +37,38 @@ import Control.Monad.Identity
 import Data.Void
 
 import Data.List
+import Data.HList
 import Data.Function
+import Data.Functor.FixedLength
 import Data.Ratio
 import Data.Functor.Contravariant
 import Data.String
 
 
 
--- | Type for mathematical expressions that cannot be calculated
--- by this library, but can still be typeset via LaTeX.
+-- | Base type for mathematical expressions that cannot be calculated
+-- by this library, but can still be typeset via LaTeX. Note that
+-- the expression's result type is still well-defined, the 'Void'
+-- represents the unobtainable arguments that would be required
+-- to calculate it.
 type MathHard a = MathLaTeXEval a Void
+
+
+class IsVoid v where
+  absurdV :: v -> a
+  absurdV l = l `seq` undefined
+-- Overlapping instances are safe here since all possible implementations
+-- of this function are equivalent anyway, provided the type does
+-- indeed not have any constructors.
+
+instance IsVoid Void where
+  absurdV = absurd
+
+instance IsVoid (HCons Void l)
+
+instance (IsVoid l) => IsVoid (HCons e l)
+
+
+unknown :: IsVoid arg => MathPrimtvId -> MathLaTeXEval r arg
+unknown = mathDepPrimitiv absurdV
 

@@ -11,13 +11,19 @@
 \arcsin{}{\left(\sin{}{\left(\arccos{}{\left(\cos{}{\left(\arctan{}{\left(\tan{}\:{0}\right)}\right)}\right)}\right)}\right)}
 \] is $0$, \[
 \mathrm{arcsinh}{\left(\sinh{}{\left(\mathrm{arccosh}{\left(\frac{\cosh{}{\left(\mathrm{arctanh}{\left(\tanh{}\:{0}\right)}\right)}}{2}\right)}\right)}\right)}
-\]\textbf{ is not. }(Test passed.)\\A simple equations chain:\begin{align*}{10} ^ {18}
+\]\textbf{ is not. }(Test passed.)
+
+A simple equations chain:\begin{align*}{10} ^ {18}
    &={{10} ^ {9}} \cdot {{10} ^ {9}}
  \\ &={{{10} ^ {{3} ^ {2}}} \cdot {{10} ^ {5}}} \cdot {{10} ^ {4}}
- \\ &=1000000000000000000.\end{align*}(Test passed.)\\Another equations chain, this time using floats:\begin{align*}{10} ^ {-\:{18}}
+ \\ &=1000000000000000000.\end{align*}(Test passed.)
+
+Another equations chain, this time using floats:\begin{align*}{10} ^ {-\:{18}}
    &={{10} ^ {-\:{9}}} \cdot {{10} ^ {-\:{9}}}
  \\ &={{{10} ^ {-{\left({3} ^ {2}\right)}}} \cdot {{10} ^ {-\:{5}}}} \cdot {{10} ^ {-\:{4}}}
- \\ &=\frac{1}{1000000000000000000}.\end{align*}\textbf{Test failed. }Even true mathematical identities may not show to hold when using floating-point arithmetics.\\Equation-chains can also be approximate (``rough''):\begin{align*}{10} ^ {-\:{18}}
+ \\ &=\frac{1}{1000000000000000000}.\end{align*}\textbf{Test failed. }Even true mathematical identities may not show to hold when using floating-point arithmetics.
+
+Equation-chains can also be approximate (``rough''):\begin{align*}{10} ^ {-\:{18}}
    &\approx{}{{10} ^ {-\:{9}}} \cdot {{10} ^ {-\:{9}}}
  \\ &\approx{}{{{10} ^ {-{\left({3} ^ {2}\right)}}} \cdot {{10} ^ {-\:{5}}}} \cdot {{10} ^ {-\:{4}}}
  \\ &\approx{}\frac{1}{999236372934876337}.\end{align*}(Test passed.)\end{document}

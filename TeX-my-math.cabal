@@ -70,8 +70,9 @@ Library
                      , contravariant
                      , bifunctors
                      , mtl
+                     , HList
                      , transformers >= 0.2.2
                      , text
                      , void
   Exposed-modules:   Math.LaTeX.Prelude Math.LaTeX.VoidCalc
-  Other-modules:     Data.List.NonEmpty Data.Chain
+  Other-modules:     Data.List.NonEmpty Data.Chain Data.Functor.FixedLength
