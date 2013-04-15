@@ -72,5 +72,6 @@ Library
                      , mtl
                      , transformers >= 0.2.2
                      , text
-  Exposed-modules:   Math.LaTeX.Prelude
+                     , void
+  Exposed-modules:   Math.LaTeX.Prelude Math.LaTeX.VoidCalc
   Other-modules:     Data.List.NonEmpty Data.Chain
