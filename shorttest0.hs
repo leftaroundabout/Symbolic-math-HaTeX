@@ -103,6 +103,17 @@ theContents = do
               =. (1/1000000000000000000 :: MathExpr Double)
        displayMathCompareSeq_ compareChain
    
+   nl
+   
+   "Equation-chains can also be approximate (``rough''):"...:"."
+   testJudge =<< do
+       let compareChain =
+                 10 ^* (-18)
+              =~& 10^*(-9) * 10^*(-9)
+              =~& 10^*(-3^*2) * 10^*(-5) * 10^*(-4)
+              =~. (1/999236372934876337 :: MathExpr Double)
+       displayMathCompareSeq_ compareChain
+   
    
    
    

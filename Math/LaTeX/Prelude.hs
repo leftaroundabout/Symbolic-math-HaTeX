@@ -47,6 +47,7 @@ module Math.LaTeX.Prelude ( -- * Data types
                             --   therefore not be used to generate LaTeX math.
                           , Equatable(..)
                           , Orderable(..)
+                          , RoughEqable(..)
 --                           , MagnitudeOrd(..)
                           , Powerable(..)
                             -- * The rendering monad
