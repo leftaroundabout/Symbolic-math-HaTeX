@@ -71,6 +71,7 @@ import Control.Monad.State
 import Control.Monad.Identity
 
 import Data.List
+import Data.HList
 import Data.Chain
 import Data.Function
 import Data.Functor.FixedLength
@@ -108,7 +109,7 @@ data MathEvaluation res arg where
   MathEnvd :: Functor list =>
            { mathEnclosingFunc :: list (a -> b) -> c -> d
            , enclosingLaTeX :: list LaTeX -> LaTeX
-           , enclosedMathExpr :: list(MathLaTeXEval b (a,c))
+           , enclosedMathExpr :: list(MathLaTeXEval b (HCons a c))
            } -> MathEvaluation d c
 
 data MathLaTeXEval res arg
@@ -119,7 +120,7 @@ data MathLaTeXEval res arg
 instance Contravariant (MathEvaluation res) where
   contramap f(MathEnvd g wr encld) = MathEnvd g' wr encld'
      where g' l = g l . f
-           encld' = fmap(contramap $ \(a,c) -> (a,f c)) encld
+           encld' = fmap(contramap $ \(HCons a c) -> (HCons a $ f c)) encld
 instance Contravariant (MathLaTeXEval res) where
   contramap f (MathLaTeXEval e fxty) = MathLaTeXEval (contramap f e) fxty
 
@@ -137,10 +138,10 @@ instance PseudoFunctor MathLaTeXEval where
 
 
 
-withArg :: a -> MathLaTeXEval res a -> MathLaTeXEval res ()
+withArg :: a -> MathLaTeXEval res a -> MathExpr res
 withArg = contramap . const
 
-type MathExpr a = MathLaTeXEval a ()
+type MathExpr a = MathLaTeXEval a HNil
 
 
 mathExprRender :: MathLaTeXEval b arg -> LaTeX
@@ -154,10 +155,10 @@ mathExprCalculate (MathLaTeXEval e _) = calculated e
  where calculated :: MathEvaluation d c -> c -> d
        calculated (MathEnvd f _ enclosed) c
             = f (fmap(\(MathLaTeXEval e' _) a
-                    -> calculated e' (a,c) ) $ enclosed) c
+                    -> calculated e' (HCons a c) ) $ enclosed) c
 
-mathExprCalculate_ :: MathLaTeXEval b () -> b
-mathExprCalculate_ x = mathExprCalculate x ()
+mathExprCalculate_ :: MathExpr b -> b
+mathExprCalculate_ x = mathExprCalculate x HNil
 
 mathPrimitiv :: b -> LaTeX -> MathLaTeXEval b a
 -- mathPrimitiv v name = MathLaTeXEval (MathPrimitive v name) 10
@@ -178,7 +179,7 @@ mathExprFunction :: (a->r)
                  -> MathLaTeXEval a c -> MathEvaluation r c
 mathExprFunction f fn e = MathEnvd ( \(Identity q) -> f . q )
                                    ( fn . runIdentity )
-                                   ( Identity $ contramap fst e )
+                                   ( Identity $ contramap hHead e )
    
 mathExprFn :: (a->r) -> MathPrimtvId
                  -> MathLaTeXEval a c -> MathLaTeXEval r c
@@ -196,7 +197,7 @@ mathExprInfix :: (a->a->r)
 mathExprInfix ifx ifxn el er
   = MathEnvd ( \(Pair q p) c -> q c `ifx` p c )
              ( \(Pair q p) -> ifxn q p )
-             ( Pair (contramap fst el) (contramap fst er) )
+             ( Pair (contramap hHead el) (contramap hHead er) )
              
 mathExprIfx :: (a->a->r) -> MathPrimtvId -> Fixity
                  -> MathLaTeXEval a c -> MathLaTeXEval a c ->  MathLaTeXEval r c
@@ -228,8 +229,8 @@ mathExpr_hetFn2 :: (a -> b -> r)
 mathExpr_hetFn2 ifx ifxn el er
   = MathEnvd ( \(Pair q p) c -> fst(q c) `ifx` snd(p c) )
              ( \(Pair q p) -> ifxn q p )
-             ( Pair ( pseudoFmap(,undefined) $ contramap fst el )
-                    ( pseudoFmap(undefined,) $ contramap fst er ) )
+             ( Pair ( pseudoFmap coFst $ contramap hHead el )
+                    ( pseudoFmap coSnd $ contramap hHead er ) )
 
 
 -- mathExprInfix :: (a->b->r) -> MathPrimtvId -> Fixity
@@ -263,7 +264,8 @@ instance (Num res, Show res) => Num (MathLaTeXEval res arg) where
 
 lSetSum :: forall rng res a. Num res 
        => MathPrimtvId -> MathLaTeXEval [rng] a
-                 -> (MathLaTeXEval rng (rng,a) -> MathLaTeXEval res (rng,a))
+                 -> ( MathLaTeXEval rng (HCons rng a) 
+                     -> MathLaTeXEval res (HCons rng a) )
                  -> MathLaTeXEval res a
 lSetSum sumVar rngSpec summand = sumExpr `MathLaTeXEval` RightGreedy 6
  where sumExpr 
@@ -275,24 +277,25 @@ lSetSum sumVar rngSpec summand = sumExpr `MathLaTeXEval` RightGreedy 6
                    ( \(Pair rngV summandV) -> 
                           (TeXCommS "sum" !: braces(sumVar `in_` rngV)) <> summandV 
                                )
-                   ( Pair ( pseudoFmap coSnd $ contramap snd rngSpec )
+                   ( Pair ( pseudoFmap coSnd $ contramap hTail rngSpec )
                           ( pseudoFmap coFst
-                                . summand $ mathVarEntry sumVar fst )
-                                              :: Pair(MathLaTeXEval (res, [rng]) (rng, a) ) )
+                                . summand $ mathVarEntry sumVar hHead )
+                                              :: Pair(MathLaTeXEval (res, [rng]) (HCons rng a) ) )
 
 -- | A list only represents a set properly when there are no duplicate elements,
 -- a precondition which this function doesn't (and can't!) check.
 listAsFinSet :: [MathLaTeXEval r a] -> MathLaTeXEval [r] a
 listAsFinSet ls = listExpr `MathLaTeXEval` Infix 9
- where listExpr = MathEnvd ( const . map($()) )
+ where listExpr = MathEnvd ( const . map($HNil) )
                            ( autoBraces . mconcat . intersperse(raw",") )
-                           ( map (contramap snd) ls )
+                           ( map (contramap hTail) ls )
 
 
 -- | Sum over some range. The usual @ᵢ₌₁Σ³ aᵢ⋅bᵢ@-thing.
 finRSum :: (Enum rng, Num res) =>
       MathPrimtvId -> MathLaTeXEval rng a -> MathLaTeXEval rng a
-          -> (MathLaTeXEval rng (rng,a) -> MathLaTeXEval res (rng,a))
+          -> ( MathLaTeXEval rng (HCons rng a)
+              -> MathLaTeXEval res (HCons rng a) )
           -> MathLaTeXEval res a
 finRSum sumVar lBound uBound summand
   = sumExpr `MathLaTeXEval` RightGreedy 6
@@ -302,10 +305,10 @@ finRSum sumVar lBound uBound summand
                           ( \(Triple rngLV rngUV summandV) ->
                                 (TeXCommS "sum" !: braces(sumVar =: rngLV)
                                                 ^: braces(rngUV)        ) <> summandV )
-                          ( Triple (pseudoFmap coSnd $ contramap snd lBound )
-                                   (pseudoFmap coSnd $ contramap snd uBound )
+                          ( Triple (pseudoFmap coSnd $ contramap hTail lBound )
+                                   (pseudoFmap coSnd $ contramap hTail uBound )
                                    (pseudoFmap coFst . summand
-                                      $ mathVarEntry sumVar fst                     ) )
+                                      $ mathVarEntry sumVar hHead                     ) )
                          
 
 
@@ -321,42 +324,20 @@ newtype ComparisonsEval x expr
 
 instance Functor (ComparisonsEval x) where
   fmap f (ComparisonsEval ev) = ComparisonsEval $ fmap f ev
--- instance Contravariant (ComparisonsEval x expr) where
---   contramap f(ComparisonsEval c) = ComparisonsEval c'
---    where c' = linkMap (\(pr,re)->(\x y arg->pr x y $ f arg, re)) c
-
--- data ComparisonsEval x expr arg
---  = ExprComparison { exprnComparisonChain 
---                       :: NonEmpty(expr, (x->x->arg->Bool, LaTeX->LaTeX->LaTeX))
---                              -- alternating: the middle element of the comparison chain is at the end of the list. The comparator is WRT the element to the right.
---                   , exprnComparisonTerminate :: expr }
--- instance Contravariant (ComparisonsEval x expr) where
---   contramap f (ExprComparison mids r) = ExprComparison
---                   (fmap(\(e,q,b)->(e, \x y arg->q x y$f arg, b)) mids) r
-
--- type Comparisons x expr = ComparisonsEval x expr ()
-                                        
+  
+  
 compareEnd :: (x -> x -> Bool) -> (LaTeX->LaTeX->LaTeX)
     -> expr -> expr -> ComparisonsEval x expr -- arg
 compareEnd cmp rend e 
    = ComparisonsEval . Couple e (cmp, makeLaTeXInfixDecoratable rend)
--- compareEnd cmp rend e = ExprComparison $ Eventually(e, (cmp, rend))
 
 compareMid :: (x ->x -> Bool) -> (LaTeX->LaTeX->LaTeX)
     -> expr -> ComparisonsEval x expr -> ComparisonsEval x expr -- arg
 compareMid cmp rend e (ComparisonsEval c) 
    = ComparisonsEval $ chainConsl e (cmp, makeLaTeXInfixDecoratable rend) c
--- compareMid cmp rend e (ExprComparison) = ExprComparison cmp rend . ExprToCompare
-
--- compareEnd_ :: (x->x->Bool) -> (LaTeX->LaTeX->LaTeX) -> expr -> expr -> ComparisonsEval x expr ()
--- compareEnd_ cmp = compareEnd (\l r ()->cmp l r)
--- compareMid_ :: (x->x->Bool) -> (LaTeX->LaTeX->LaTeX)
---     -> expr -> ComparisonsEval x expr () -> ComparisonsEval x expr ()
--- compareMid_ cmp = compareMid (\l r ()->cmp l r)
 
 leftmostComparedExpr :: ComparisonsEval x expr -> expr
 leftmostComparedExpr (ComparisonsEval e) = leftEnd e
--- leftmostComparedExpr (ExprComparison _ _ l _) = leftmostComparedExpr l
 
 
 infixr 4 =&, =.
@@ -378,20 +359,6 @@ class (Equatable x) => RoughEqable x where
   (=~&) :: x -> ComparisonsEval (EquateExpressionResult x) x
                    -> ComparisonsEval (EquateExpressionResult x) x
 
--- instance (Eq x) => Equatable x where
---   type EquateExpressionResult x = x
---   (=.)  = compareEnd_ (==) (=:)
---   (=&)  = compareMid_ (==) (=:)
---   
--- instance (Ord x) => Orderable x where
---   (<.)  = compareEnd_ (<)  (<:)
---   (<&)  = compareMid_ (<)  (<:)
---   (<=.) = compareEnd_ (<=) (<=:)
---   (<=&) = compareMid_ (<=) (<=:)
---   (>.)  = compareEnd_ (>)  (>:)
---   (>&)  = compareMid_ (>)  (>:)
---   (>=.) = compareEnd_ (>=) (>=:)
---   (>=&) = compareMid_ (>=) (>=:)
 
 
 exprnCompareEnd :: (x->x-> Bool) -> (LaTeX->LaTeX->LaTeX)
@@ -548,7 +515,7 @@ inlineMathExpr e = do
    return $ mathExprCalculate e
 
 inlineMathExpr_ :: Monad m => MathExpr b -> MathematicalLaTeXT m b
-inlineMathExpr_ = liftM ($()) . inlineMathExpr
+inlineMathExpr_ = liftM ($HNil) . inlineMathExpr
 
 
 displayMathExpr :: Monad m => MathLaTeXEval b arg -> MathematicalLaTeXT m (arg->b)
@@ -561,7 +528,7 @@ displayMathExpr e = do
         
        
 displayMathExpr_ :: Monad m => MathExpr b -> MathematicalLaTeXT m b
-displayMathExpr_ = liftM ($()) . displayMathExpr
+displayMathExpr_ = liftM ($HNil) . displayMathExpr
 
 inlineMathShow :: ( Monad m, MathRenderable b )
                  => b -> MathematicalLaTeXT m b
@@ -584,7 +551,7 @@ displayMathExpr_wRResult :: ( Monad m, MathRoughRenderable b
                             , e ~ MathExpr b, RoughEqable e  )
                    => e -> MathematicalLaTeXT m b
 displayMathExpr_wRResult e = do
-   let res = mathExprCalculate e ()
+   let res = mathExprCalculate e HNil
    displayMathCompareSeq_ $ case roughMathExpr res of
       RoughExpr r     -> e =~. r
       ExactRoughExpr r -> e =. r
@@ -610,7 +577,7 @@ displayMathCompareSeq (ComparisonsEval comparisons) = do
                                         
 displayMathCompareSeq_ :: Monad m => ComparisonsEval x (MathExpr x) 
                                                       -> MathematicalLaTeXT m Bool
-displayMathCompareSeq_ = liftM ($()) . displayMathCompareSeq
+displayMathCompareSeq_ = liftM ($HNil) . displayMathCompareSeq
 --        go (ComparisonsEval (Middle x)) = (([r],True), (q, q))
 --         where (q,r) = mathExprRender_ x
 --        go (ComparisonsEval (Couple x ν )) = (([r],True), (q, q))
