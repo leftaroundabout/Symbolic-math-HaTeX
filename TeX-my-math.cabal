@@ -74,5 +74,8 @@ Library
                      , transformers >= 0.2.2
                      , text
                      , void
-  Exposed-modules:   Math.LaTeX.Prelude Math.LaTeX.VoidCalc
-  Other-modules:     Data.List.NonEmpty Data.Chain Data.Functor.FixedLength
+  Exposed-modules:   Math.LaTeX.Prelude
+                     Math.LaTeX.VoidCalc
+  Other-modules:     Data.List.NonEmpty
+                     Data.Chain Data.Functor.FixedLength
+                     Data.HList.BasedUpon

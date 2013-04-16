@@ -72,6 +72,7 @@ import Control.Monad.Identity
 
 import Data.List
 import Data.HList
+import Data.HList.BasedUpon
 import Data.Chain
 import Data.Function
 import Data.Functor.FixedLength
@@ -262,10 +263,12 @@ instance (Num res, Show res) => Num (MathLaTeXEval res arg) where
 
 
 
-lSetSum :: forall rng res a. Num res 
+lSetSum :: forall rng res a sumVarDep svdStack .
+              ( Num res
+              , BasedUpon sumVarDep svdStack, sumVarDep ~ HCons rng a )
        => MathPrimtvId -> MathLaTeXEval [rng] a
-                 -> ( MathLaTeXEval rng (HCons rng a) 
-                     -> MathLaTeXEval res (HCons rng a) )
+                 -> ( MathLaTeXEval rng svdStack
+                     -> MathLaTeXEval res sumVarDep )
                  -> MathLaTeXEval res a
 lSetSum sumVar rngSpec summand = sumExpr `MathLaTeXEval` RightGreedy 6
  where sumExpr 
@@ -277,9 +280,11 @@ lSetSum sumVar rngSpec summand = sumExpr `MathLaTeXEval` RightGreedy 6
                    ( \(Pair rngV summandV) -> 
                           (TeXCommS "sum" !: braces(sumVar `in_` rngV)) <> summandV 
                                )
-                   ( Pair ( pseudoFmap coSnd $ contramap hTail rngSpec )
+                   ( Pair ( pseudoFmap coSnd 
+                             $ contramap hTail rngSpec )
                           ( pseudoFmap coFst
-                                . summand $ mathVarEntry sumVar hHead )
+                                . summand $ mathVarEntry sumVar
+                                                         (hHead.(basement :: svdStack->sumVarDep)) )
                                               :: Pair(MathLaTeXEval (res, [rng]) (HCons rng a) ) )
 
 -- | A list only represents a set properly when there are no duplicate elements,
@@ -292,10 +297,12 @@ listAsFinSet ls = listExpr `MathLaTeXEval` Infix 9
 
 
 -- | Sum over some range. The usual @ᵢ₌₁Σ³ aᵢ⋅bᵢ@-thing.
-finRSum :: (Enum rng, Num res) =>
+finRSum :: forall rng res a sumVarDep svdStack .
+              ( Enum rng, Num res
+              , BasedUpon sumVarDep svdStack, sumVarDep ~ HCons rng a ) =>
       MathPrimtvId -> MathLaTeXEval rng a -> MathLaTeXEval rng a
-          -> ( MathLaTeXEval rng (HCons rng a)
-              -> MathLaTeXEval res (HCons rng a) )
+          -> ( MathLaTeXEval rng svdStack
+              -> MathLaTeXEval res sumVarDep )
           -> MathLaTeXEval res a
 finRSum sumVar lBound uBound summand
   = sumExpr `MathLaTeXEval` RightGreedy 6
@@ -308,7 +315,7 @@ finRSum sumVar lBound uBound summand
                           ( Triple (pseudoFmap coSnd $ contramap hTail lBound )
                                    (pseudoFmap coSnd $ contramap hTail uBound )
                                    (pseudoFmap coFst . summand
-                                      $ mathVarEntry sumVar hHead                     ) )
+                                      $ mathVarEntry sumVar (hHead.(basement :: svdStack->sumVarDep))                     ) )
                          
 
 
