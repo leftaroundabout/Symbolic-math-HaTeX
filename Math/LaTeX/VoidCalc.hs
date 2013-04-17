@@ -69,6 +69,7 @@ instance IsVoid (HCons Void l)
 instance (IsVoid l) => IsVoid (HCons e l)
 
 
+-- | A variable nothing is known about, safe for its supposed return type.
 unknown :: IsVoid arg => MathPrimtvId -> MathLaTeXEval r arg
 unknown = mathDepPrimitiv absurdV
 

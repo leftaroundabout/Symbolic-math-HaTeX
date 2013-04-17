@@ -17,6 +17,7 @@
 -- {-# LANGUAGE OverlappingInstances             #-}
 {-# LANGUAGE PatternGuards                    #-}
 {-# LANGUAGE TypeFamilies                     #-}
+{-# LANGUAGE RankNTypes                       #-}
 {-# LANGUAGE TupleSections                    #-}
 {-# LANGUAGE RecordWildCards                  #-}
 
@@ -26,7 +27,9 @@ module Math.LaTeX.Prelude ( -- * Data types
                           , MathExpr
                           , ComparisonsEval
                             -- * Adaptions of arithmetic calculations
-                          , finRSum, lSetSum, listAsFinSet
+                          , finRSum , polyFinRSum
+                          , lSetSum , polyLSetSum
+                          , listAsFinSet
                             -- * Rendering
                           , mathExprRender
                           , mathExprCalculate , mathExprCalculate_
@@ -174,6 +177,11 @@ mathVarEntry :: MathPrimtvId -> (a->b) -> MathLaTeXEval b a
 mathVarEntry name esrc
    = MathEnvd (\None -> esrc) (\None -> name) None `MathLaTeXEval` Infix 10
 
+polyMathVarEntry :: 
+      MathPrimtvId -> (a'->b) -> (forall a. BasedUpon a' a => MathLaTeXEval b a)
+polyMathVarEntry name esrc
+   = MathEnvd (\None -> esrc . basement) (\None -> name) None `MathLaTeXEval` Infix 10
+
 
 mathExprFunction :: (a->r)
                  -> (MathPrimtvId -> MathPrimtvId)
@@ -262,7 +270,8 @@ instance (Num res, Show res) => Num (MathLaTeXEval res arg) where
 -- instance (Enum r, Show r) => Enum (MathExpr
 
 
-
+-- | Sum, for values taken from some set (represented by a list type),
+-- the output of some function.
 lSetSum :: forall rng res a sumVarDep svdStack .
               ( Num res
               , BasedUpon sumVarDep svdStack, sumVarDep ~ HCons rng a )
@@ -285,6 +294,35 @@ lSetSum sumVar rngSpec summand = sumExpr `MathLaTeXEval` RightGreedy 6
                           ( pseudoFmap coFst
                                 . summand $ mathVarEntry sumVar
                                                          (hHead.(basement :: svdStack->sumVarDep)) )
+                                              :: Pair(MathLaTeXEval (res, [rng]) (HCons rng a) ) )
+
+polyLSetSum :: forall rng res a sumVarDep .
+              ( Num res
+              , sumVarDep ~ HCons rng a )
+       => MathPrimtvId -> MathLaTeXEval [rng] a
+                 -> ( ( forall svdStack . BasedUpon sumVarDep svdStack
+                         => MathLaTeXEval rng svdStack                 )
+                     -> MathLaTeXEval res sumVarDep )
+                 -> MathLaTeXEval res a
+polyLSetSum sumVar rngSpec summand = sumExpr `MathLaTeXEval` RightGreedy 6
+ where sumExpr 
+        = MathEnvd (                                    (
+                     \(Pair rngG summandG) _ -> 
+                         sum [ fst $ summandG x
+                          | x<-snd $ rngG undefined ]
+                                              ) :: Pair(rng -> (res, [rng])) -> a -> res )
+                   ( \(Pair rngV summandV) -> 
+                          (TeXCommS "sum" !: braces(sumVar `in_` rngV)) <> summandV 
+                               )
+                   ( Pair ( pseudoFmap coSnd 
+                             $ contramap hTail rngSpec )
+                          ( pseudoFmap coFst
+                                $ summand 
+                                  ( polyMathVarEntry sumVar 
+                                      ( hHead :: sumVarDep -> rng )
+                                    :: forall svdStack' . BasedUpon sumVarDep svdStack'
+                                                         => MathLaTeXEval rng svdStack'
+                                                        ) )
                                               :: Pair(MathLaTeXEval (res, [rng]) (HCons rng a) ) )
 
 -- | A list only represents a set properly when there are no duplicate elements,
@@ -316,6 +354,36 @@ finRSum sumVar lBound uBound summand
                                    (pseudoFmap coSnd $ contramap hTail uBound )
                                    (pseudoFmap coFst . summand
                                       $ mathVarEntry sumVar (hHead.(basement :: svdStack->sumVarDep))                     ) )
+ 
+-- | Just as 'finRSum', but as a Rank3-function. This allows the summation-variable to
+-- be used in multiple different closures, i.e. in different nesting-depths of local-sums
+-- (recall that variables are type-parameterised on the entire closure).
+-- However, rank>1-polymorphism cannot in general be type-infered, so you may need
+-- to provide explicit signatures, which will tend to be less than beautiful. Often,
+-- the simpler 'finRSum' will also work and should be preferred.
+polyFinRSum :: forall rng res a sumVarDep svdStack .
+              ( Enum rng, Num res
+              , sumVarDep ~ HCons rng a ) =>
+      MathPrimtvId -> MathLaTeXEval rng a -> MathLaTeXEval rng a
+          -> ( (forall svdStack. BasedUpon sumVarDep svdStack
+                 => MathLaTeXEval rng svdStack) -> MathLaTeXEval res sumVarDep )
+          -> MathLaTeXEval res a
+polyFinRSum sumVar lBound uBound summand
+  = sumExpr `MathLaTeXEval` RightGreedy 6
+ where sumExpr = MathEnvd ( \(Triple rngLG rngUG summandG) _ ->
+                               sum [ fst $ summandG x
+                                | x<-[snd $ rngLG undefined .. snd $ rngUG undefined] ] ) 
+                          ( \(Triple rngLV rngUV summandV) ->
+                                (TeXCommS "sum" !: braces(sumVar =: rngLV)
+                                                ^: braces(rngUV)        ) <> summandV )
+                          ( Triple (pseudoFmap coSnd $ contramap hTail lBound )
+                                   (pseudoFmap coSnd $ contramap hTail uBound )
+                                   (pseudoFmap coFst $ summand
+                                        ( polyMathVarEntry sumVar 
+                                                           ( hHead :: sumVarDep -> rng )
+                                       :: forall svdStack' . BasedUpon sumVarDep svdStack'
+                                                     => MathLaTeXEval rng svdStack'
+                                      ) ) )
                          
 
 

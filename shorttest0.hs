@@ -64,6 +64,8 @@ theContents = do
       , finRSum "i" 1 6 (\i -> i^*2 + i) * 2
       , finRSum "i" 1 6 (\i -> i^*2 + i) + 2
       , finRSum "i" 1 6 $ finRSum "j" 1 6 . (*)
+      , polyFinRSum "i" 1 6 $ \i -> i * finRSum "j" 1 6 id
+      , polyFinRSum "i" 1 6 $ \i -> finRSum "j" 1 i (i*)
       ]
    
    fromHaTeX $ subsection "Checking some simple identities"
