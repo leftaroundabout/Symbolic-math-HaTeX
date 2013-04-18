@@ -54,7 +54,7 @@ theContents = do
          displayMathExpr_wRResult $
                     2 + 7*(6 - τ) - exp(5 - sqrt(x**2 + 4/pi))
    
-   fromHaTeX $ subsection "Simple finite sums"
+   fromHaTeX $ subsection "Simple finite sums / products"
    
    sums::[Double] <- mapM displayMathExpr_wRResult
       [ lSetSum "n" (listAsFinSet[0,1,4,5]) (2.5 - )
@@ -66,6 +66,7 @@ theContents = do
       , finRSum "i" 1 6 $ finRSum "j" 1 6 . (*)
       , polyFinRSum "i" 1 6 $ \i -> i * finRSum "j" 1 6 id
       , polyFinRSum "i" 1 6 $ \i -> finRSum "j" 1 i (i*)
+      , polyFinRSum "i" 1 6 $ \i -> finRProd "j" 1 i (i*)
       ]
    
    fromHaTeX $ subsection "Checking some simple identities"
@@ -114,7 +115,7 @@ theContents = do
                  10 ^* (-18)
               =~& 10^*(-9) * 10^*(-9)
               =~& 10^*(-3^*2) * 10^*(-5) * 10^*(-4)
-              =~. (1/999236372934876337 :: MathExpr Double)
+              =~. (1/999998765432100000 :: MathExpr Double)
        displayMathCompareSeq_ compareChain
    
    

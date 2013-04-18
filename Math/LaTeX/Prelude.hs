@@ -26,9 +26,16 @@ module Math.LaTeX.Prelude ( -- * Data types
                           , MathLaTeXEval
                           , MathExpr
                           , ComparisonsEval
-                            -- * Adaptions of arithmetic calculations
+                            -- * Arithmetic calculations
+                            -- ** Sums
                           , finRSum , polyFinRSum
                           , lSetSum , polyLSetSum
+                            -- ** Products
+                          , finRProd , polyFinRProd
+                          , lSetProd , polyLSetProd
+                            -- ** Generic folds
+                          , finRFold_bigSymb , polyFinRFold_bigSymb
+                          , lSetFold_bigSymb , polyLSetFold_bigSymb
                           , listAsFinSet
                             -- * Rendering
                           , mathExprRender
@@ -46,9 +53,7 @@ module Math.LaTeX.Prelude ( -- * Data types
                           , mathExprInfix, mathExprIfx
                           , mathDefinition
                           , prettyFloatApprox
-                            -- * Additional classes, for generic operations where
-                            --   the standard classes include fixed types and can
-                            --   therefore not be used to generate LaTeX math.
+                            -- * Equivalency-relation classes
                           , Equatable(..)
                           , Orderable(..)
                           , RoughEqable(..)
@@ -270,24 +275,25 @@ instance (Num res, Show res) => Num (MathLaTeXEval res arg) where
 -- instance (Enum r, Show r) => Enum (MathExpr
 
 
--- | Sum, for values taken from some set (represented by a list type),
+-- | Gather, for values taken from some set (represented by a list type),
 -- the output of some function.
-lSetSum :: forall rng res a sumVarDep svdStack .
-              ( Num res
+lSetFold_bigSymb :: forall rng res a sumVarDep svdStack .
+              ( Monoid res
               , BasedUpon sumVarDep svdStack, sumVarDep ~ HCons rng a )
-       => MathPrimtvId -> MathLaTeXEval [rng] a
+       => MathPrimtvId -> LaTeX
+        -> MathLaTeXEval [rng] a
                  -> ( MathLaTeXEval rng svdStack
                      -> MathLaTeXEval res sumVarDep )
                  -> MathLaTeXEval res a
-lSetSum sumVar rngSpec summand = sumExpr `MathLaTeXEval` RightGreedy 6
+lSetFold_bigSymb sumVar folderVis rngSpec summand = sumExpr `MathLaTeXEval` RightGreedy 6
  where sumExpr 
         = MathEnvd (                                    (
                      \(Pair rngG summandG) _ -> 
-                         sum [ fst $ summandG x
+                         mconcat [ fst $ summandG x
                           | x<-snd $ rngG undefined ]
                                               ) :: Pair(rng -> (res, [rng])) -> a -> res )
                    ( \(Pair rngV summandV) -> 
-                          (TeXCommS "sum" !: braces(sumVar `in_` rngV)) <> summandV 
+                          (folderVis !: braces(sumVar `in_` rngV)) <> summandV 
                                )
                    ( Pair ( pseudoFmap coSnd 
                              $ contramap hTail rngSpec )
@@ -296,23 +302,24 @@ lSetSum sumVar rngSpec summand = sumExpr `MathLaTeXEval` RightGreedy 6
                                                          (hHead.(basement :: svdStack->sumVarDep)) )
                                               :: Pair(MathLaTeXEval (res, [rng]) (HCons rng a) ) )
 
-polyLSetSum :: forall rng res a sumVarDep .
-              ( Num res
+polyLSetFold_bigSymb :: forall rng res a sumVarDep .
+              ( Monoid res
               , sumVarDep ~ HCons rng a )
-       => MathPrimtvId -> MathLaTeXEval [rng] a
+       => MathPrimtvId -> LaTeX
+        -> MathLaTeXEval [rng] a
                  -> ( ( forall svdStack . BasedUpon sumVarDep svdStack
                          => MathLaTeXEval rng svdStack                 )
                      -> MathLaTeXEval res sumVarDep )
                  -> MathLaTeXEval res a
-polyLSetSum sumVar rngSpec summand = sumExpr `MathLaTeXEval` RightGreedy 6
+polyLSetFold_bigSymb sumVar folderVis rngSpec summand = sumExpr `MathLaTeXEval` RightGreedy 6
  where sumExpr 
         = MathEnvd (                                    (
                      \(Pair rngG summandG) _ -> 
-                         sum [ fst $ summandG x
+                         mconcat [ fst $ summandG x
                           | x<-snd $ rngG undefined ]
                                               ) :: Pair(rng -> (res, [rng])) -> a -> res )
                    ( \(Pair rngV summandV) -> 
-                          (TeXCommS "sum" !: braces(sumVar `in_` rngV)) <> summandV 
+                          (folderVis !: braces(sumVar `in_` rngV)) <> summandV 
                                )
                    ( Pair ( pseudoFmap coSnd 
                              $ contramap hTail rngSpec )
@@ -334,47 +341,49 @@ listAsFinSet ls = listExpr `MathLaTeXEval` Infix 9
                            ( map (contramap hTail) ls )
 
 
--- | Sum over some range. The usual @ᵢ₌₁Σ³ aᵢ⋅bᵢ@-thing.
-finRSum :: forall rng res a sumVarDep svdStack .
-              ( Enum rng, Num res
+-- | Gather the results over some range. The usual @ᵢ₌₁Σ³ aᵢ⋅bᵢ@-thing.
+finRFold_bigSymb :: forall rng res a sumVarDep svdStack .
+              ( Enum rng, Monoid res
               , BasedUpon sumVarDep svdStack, sumVarDep ~ HCons rng a ) =>
-      MathPrimtvId -> MathLaTeXEval rng a -> MathLaTeXEval rng a
+      MathPrimtvId -> LaTeX
+        -> MathLaTeXEval rng a -> MathLaTeXEval rng a
           -> ( MathLaTeXEval rng svdStack
               -> MathLaTeXEval res sumVarDep )
           -> MathLaTeXEval res a
-finRSum sumVar lBound uBound summand
+finRFold_bigSymb sumVar folderVis lBound uBound summand
   = sumExpr `MathLaTeXEval` RightGreedy 6
  where sumExpr = MathEnvd ( \(Triple rngLG rngUG summandG) _ ->
-                               sum [ fst $ summandG x
+                               mconcat [ fst $ summandG x
                                 | x<-[snd $ rngLG undefined .. snd $ rngUG undefined] ] ) 
                           ( \(Triple rngLV rngUV summandV) ->
-                                (TeXCommS "sum" !: braces(sumVar =: rngLV)
+                                (folderVis !: braces(sumVar =: rngLV)
                                                 ^: braces(rngUV)        ) <> summandV )
                           ( Triple (pseudoFmap coSnd $ contramap hTail lBound )
                                    (pseudoFmap coSnd $ contramap hTail uBound )
                                    (pseudoFmap coFst . summand
                                       $ mathVarEntry sumVar (hHead.(basement :: svdStack->sumVarDep))                     ) )
  
--- | Just as 'finRSum', but as a Rank3-function. This allows the summation-variable to
+-- | Just as 'finRFold_bigSymb', but as a Rank3-function. This allows the summation-variable to
 -- be used in multiple different closures, i.e. in different nesting-depths of local-sums
 -- (recall that variables are type-parameterised on the entire closure).
 -- However, rank>1-polymorphism cannot in general be type-infered, so you may need
 -- to provide explicit signatures, which will tend to be less than beautiful. Often,
--- the simpler 'finRSum' will also work and should be preferred.
-polyFinRSum :: forall rng res a sumVarDep svdStack .
-              ( Enum rng, Num res
+-- the simpler 'finRFold_bigSymb' will also work and should be preferred.
+polyFinRFold_bigSymb :: forall rng res a sumVarDep svdStack .
+              ( Enum rng, Monoid res
               , sumVarDep ~ HCons rng a ) =>
-      MathPrimtvId -> MathLaTeXEval rng a -> MathLaTeXEval rng a
+      MathPrimtvId -> LaTeX
+        -> MathLaTeXEval rng a -> MathLaTeXEval rng a
           -> ( (forall svdStack. BasedUpon sumVarDep svdStack
                  => MathLaTeXEval rng svdStack) -> MathLaTeXEval res sumVarDep )
           -> MathLaTeXEval res a
-polyFinRSum sumVar lBound uBound summand
+polyFinRFold_bigSymb sumVar folderVis lBound uBound summand
   = sumExpr `MathLaTeXEval` RightGreedy 6
  where sumExpr = MathEnvd ( \(Triple rngLG rngUG summandG) _ ->
-                               sum [ fst $ summandG x
+                               mconcat [ fst $ summandG x
                                 | x<-[snd $ rngLG undefined .. snd $ rngUG undefined] ] ) 
                           ( \(Triple rngLV rngUV summandV) ->
-                                (TeXCommS "sum" !: braces(sumVar =: rngLV)
+                                (folderVis !: braces(sumVar =: rngLV)
                                                 ^: braces(rngUV)        ) <> summandV )
                           ( Triple (pseudoFmap coSnd $ contramap hTail lBound )
                                    (pseudoFmap coSnd $ contramap hTail uBound )
@@ -385,6 +394,67 @@ polyFinRSum sumVar lBound uBound summand
                                                      => MathLaTeXEval rng svdStack'
                                       ) ) )
                          
+
+-- | Like all the specific sum and product functions, 'lSetSum' is merely
+-- the obvious instantiation of its specific generic fold correspondent,
+-- in this case 'lSetFold_bigSymb'.
+lSetSum, lSetProd :: forall rng res a sumVarDep svdStack .
+              ( Num res
+              , BasedUpon sumVarDep svdStack, sumVarDep ~ HCons rng a )
+       => MathPrimtvId -> MathLaTeXEval [rng] a
+                 -> ( MathLaTeXEval rng svdStack
+                     -> MathLaTeXEval res sumVarDep )
+                 -> MathLaTeXEval res a
+lSetSum sv rngLG = pseudoFmap getSum
+                    . lSetFold_bigSymb sv (TeXCommS "sum") rngLG
+                    . (pseudoFmap Sum .)
+lSetProd sv rngLG = pseudoFmap getProduct
+                    . lSetFold_bigSymb sv (TeXCommS "prod") rngLG
+                    . (pseudoFmap Product .)
+ 
+polyLSetSum, polyLSetProd :: forall rng res a sumVarDep .
+              ( Num res
+              , sumVarDep ~ HCons rng a )
+       => MathPrimtvId -> MathLaTeXEval [rng] a
+                 -> ( ( forall svdStack . BasedUpon sumVarDep svdStack
+                         => MathLaTeXEval rng svdStack                 )
+                     -> MathLaTeXEval res sumVarDep )
+                 -> MathLaTeXEval res a
+polyLSetSum sv rngLG = pseudoFmap getSum
+                    . polyLSetFold_bigSymb sv (TeXCommS "sum") rngLG
+                    . (pseudoFmap Sum .)
+polyLSetProd sv rngLG = pseudoFmap getProduct
+                    . polyLSetFold_bigSymb sv (TeXCommS "prod") rngLG
+                    . (pseudoFmap Product .)
+ 
+finRSum, finRProd :: forall rng res a sumVarDep svdStack .
+              ( Enum rng, Num res
+              , BasedUpon sumVarDep svdStack, sumVarDep ~ HCons rng a ) =>
+      MathPrimtvId -> MathLaTeXEval rng a -> MathLaTeXEval rng a
+          -> ( MathLaTeXEval rng svdStack
+              -> MathLaTeXEval res sumVarDep )
+          -> MathLaTeXEval res a
+finRSum sv lBG uBG = pseudoFmap getSum
+                    . finRFold_bigSymb sv (TeXCommS "sum") lBG uBG
+                    . (pseudoFmap Sum .)
+finRProd sv lBG uBG = pseudoFmap getProduct
+                    . finRFold_bigSymb sv (TeXCommS "prod") lBG uBG
+                    . (pseudoFmap Product .)
+
+polyFinRSum, polyFinRProd :: forall rng res a sumVarDep svdStack .
+              ( Enum rng, Num res
+              , sumVarDep ~ HCons rng a ) =>
+      MathPrimtvId -> MathLaTeXEval rng a -> MathLaTeXEval rng a
+          -> ( (forall svdStack. BasedUpon sumVarDep svdStack
+                 => MathLaTeXEval rng svdStack) -> MathLaTeXEval res sumVarDep )
+          -> MathLaTeXEval res a
+polyFinRSum sv lBG uBG = pseudoFmap getSum
+                    . polyFinRFold_bigSymb sv (TeXCommS "sum") lBG uBG
+                    . (pseudoFmap Sum .)
+polyFinRProd sv lBG uBG = pseudoFmap getProduct
+                    . polyFinRFold_bigSymb sv (TeXCommS "prod") lBG uBG
+                    . (pseudoFmap Product .)
+
 
 
 
@@ -566,7 +636,7 @@ instance MathRoughRenderable Integer where
 prettyFloatApprox :: Double -> RoughExpr Double
 prettyFloatApprox x
     | (mantissa, 'e':expon) <- break(=='e') s
-    , m<-read $ take 7 mantissa, expn<-read expon
+    , m<-read $ take 5 mantissa, expn<-read expon
     , (ExactRoughExpr mR) <- prettyFloatApprox m
                 = RoughExpr $ mR * 10 ^* fromInteger expn
     | otherwise = ExactRoughExpr . mathPrimitiv x $ fromString s
