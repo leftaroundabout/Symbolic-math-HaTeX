@@ -79,3 +79,4 @@ Library
   Other-modules:     Data.List.NonEmpty
                      Data.Chain Data.Functor.FixedLength
                      Data.HList.BasedUpon
+                     Data.Complex.Class

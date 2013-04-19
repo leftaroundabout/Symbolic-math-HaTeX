@@ -21,51 +21,52 @@
 {-# LANGUAGE TupleSections                    #-}
 {-# LANGUAGE RecordWildCards                  #-}
 
-module Math.LaTeX.Prelude ( -- * Data types
-                            MathPrimtvId
-                          , MathLaTeXEval
-                          , MathExpr
-                          , ComparisonsEval
-                            -- * Arithmetic calculations
-                            -- ** Sums
-                          , finRSum , polyFinRSum
-                          , lSetSum , polyLSetSum
-                            -- ** Products
-                          , finRProd , polyFinRProd
-                          , lSetProd , polyLSetProd
-                            -- ** Generic folds
-                          , finRFold_bigSymb , polyFinRFold_bigSymb
-                          , lSetFold_bigSymb , polyLSetFold_bigSymb
-                          , listAsFinSet
-                            -- * Rendering
-                          , mathExprRender
-                          , mathExprCalculate , mathExprCalculate_
-                          , inlineMathExpr , inlineMathExpr_
-                          , inlineMathShow , inlineRoughValue
-                          , (?~?), (?=?), (...:)
-                          , displayMathExpr , displayMathExpr_
-                          , displayMathExpr_wRResult
-                          , displayMathCompareSeq , displayMathCompareSeq_
-                          , mathExprEvalRough
-                            -- * Construction
-                          , mathPrimitiv , mathDepPrimitiv
-                          , mathExprFunction, mathExprFn
-                          , mathExprInfix, mathExprIfx
-                          , mathDefinition
-                          , prettyFloatApprox
-                            -- * Equivalency-relation classes
-                          , Equatable(..)
-                          , Orderable(..)
-                          , RoughEqable(..)
+module Math.LaTeX.Prelude (
+    -- * Data types
+    MathPrimtvId
+  , MathLaTeXEval
+  , MathExpr
+  , ComparisonsEval
+    -- * Arithmetic calculations
+    -- ** Sums
+  , finRSum , polyFinRSum
+  , lSetSum , polyLSetSum
+    -- ** Products
+  , finRProd , polyFinRProd
+  , lSetProd , polyLSetProd
+    -- ** Generic folds
+  , finRFold_bigSymb , polyFinRFold_bigSymb
+  , lSetFold_bigSymb , polyLSetFold_bigSymb
+  , listAsFinSet
+    -- * Rendering
+  , mathExprRender
+  , mathExprCalculate , mathExprCalculate_
+  , inlineMathExpr , inlineMathExpr_
+  , inlineMathShow , inlineRoughValue
+  , (?~?), (?=?), (...:)
+  , displayMathExpr , displayMathExpr_
+  , displayMathExpr_wRResult
+  , displayMathCompareSeq , displayMathCompareSeq_
+  , mathExprEvalRough
+    -- * Construction
+  , mathPrimitiv , mathDepPrimitiv
+  , mathExprFunction, mathExprFn
+  , mathExprInfix, mathExprIfx
+  , mathDefinition
+  , prettyFloatApprox
+    -- * Equivalency-relation classes
+  , Equatable(..)
+  , Orderable(..)
+  , RoughEqable(..)
 --                           , MagnitudeOrd(..)
-                          , Powerable(..)
-                            -- * The rendering monad
-                          , MathematicalLaTeX, MathematicalLaTeX_
-                          , MathematicalLaTeXT, MathematicalLaTeXT_
-                          , wDefaultConf_toHaTeX
-                          , fromHaTeX
-                          , nl
-                          ) where
+  , Powerable(..)
+    -- * The rendering monad
+  , MathematicalLaTeX, MathematicalLaTeX_
+  , MathematicalLaTeXT, MathematicalLaTeXT_
+  , wDefaultConf_toHaTeX
+  , fromHaTeX
+  , nl
+  ) where
 
 import Text.LaTeX.Base
 import Text.LaTeX.Base.Class
@@ -78,17 +79,21 @@ import Control.Monad.Reader
 import Control.Monad.State
 import Control.Monad.Identity
 
+import Data.Foldable(fold)
+import Data.Bifoldable
+import Data.Function
+import Data.Functor.Contravariant
+import Data.Bifunctor
+
 import Data.List
 import Data.HList
 import Data.HList.BasedUpon
 import Data.Chain
-import Data.Function
 import Data.Functor.FixedLength
+
 import Data.Ratio
-import Data.Functor.Contravariant
-import Data.Bifunctor
-import Data.Foldable(fold)
-import Data.Bifoldable
+import Data.Complex(Complex(..))
+import Data.Complex.Class
 import Data.String
 
 
@@ -260,7 +265,7 @@ mathExpr_hetFn2 ifx ifxn el er
 --         | otherwise             = 
                                    
 
-instance (Num res, Show res) => Num (MathLaTeXEval res arg) where
+instance (Num res) => Num (MathLaTeXEval res arg) where
   fromInteger n = mathPrimitiv (fromInteger n) (rendertex n)
   
   (+) = mathExprIfx (+) "+" $ Infixl 6
@@ -564,7 +569,7 @@ instance (Powerable res, Show res) => Powerable (MathLaTeXEval res arg) where
   (^*) = mathExprIfx (^*) (raw"^") $ Infixr 8
 
 
-instance (Fractional res, Show res) => Fractional (MathLaTeXEval res arg) where
+instance (Fractional res) => Fractional (MathLaTeXEval res arg) where
   fromRational e = (`MathLaTeXEval`Infix 9) $ mathExprInfix (/)
            (\n d -> TeXComm "tfrac" $ map FixArg [n,d] )
            (fromIntegral $ numerator e) (fromIntegral $ denominator e)
@@ -575,7 +580,7 @@ instance (Fractional res, Show res) => Fractional (MathLaTeXEval res arg) where
   recip = (`MathLaTeXEval`Infix 9) . mathExprFunction recip
            (TeXComm "frac1" . (:[]) . FixArg)
 
-instance (Floating res, Show res) => Floating (MathLaTeXEval res arg) where
+instance (Floating res) => Floating (MathLaTeXEval res arg) where
   pi = mathPrimitiv pi pi_
   
   sqrt = (`MathLaTeXEval`Infix 9) . mathExprFunction sqrt
@@ -605,6 +610,26 @@ instance (Floating res, Show res) => Floating (MathLaTeXEval res arg) where
   
 
 
+instance (ComplexC r, RealFloat(RealAxis r))
+             => ComplexC(MathLaTeXEval r arg) where
+  type RealAxis(MathLaTeXEval r arg) = MathLaTeXEval (RealAxis r) arg
+  
+  imagUnit = mathPrimitiv imagUnit "i"
+  
+  realAsComplex = pseudoFmap realAsComplex
+  imagAsComplex = (imagUnit *) . pseudoFmap realAsComplex
+  
+  conjugate = (`MathLaTeXEval` Infix 10) .
+                  mathExprFunction conjugate (TeXComm "overline" . (:[]) . FixArg . braces)
+  realPart = mathExprFn realPart $ TeXCommS "Re"
+  imagPart = mathExprFn imagPart $ TeXCommS "Im"
+
+  magnitude = (`MathLaTeXEval`Infix 9) . mathExprFunction magnitude
+           (autoBrackets "|" "|")
+  phase     = mathExprFn phase $ TeXCommS "arg"
+  
+
+
 class MathRenderable v where
   toMathExpr :: v -> MathExpr v
 
@@ -630,6 +655,16 @@ instance MathRoughRenderable Integer where
   roughMathExpr = reRound . prettyFloatApprox . fromInteger
    where reRound (RoughExpr m) = RoughExpr (pseudoFmap round m)
          reRound (ExactRoughExpr m) = ExactRoughExpr (pseudoFmap round m)
+
+instance (RealFloat r, MathRoughRenderable r) => MathRoughRenderable (Complex r) where
+  roughMathExpr (a :+ b) 
+    | RoughExpr a'' <- a' = RoughExpr $ a'' +| getRoughExpression b'
+    | ExactRoughExpr a'' <- a' = case b' of
+                                  RoughExpr b'' -> RoughExpr $ a'' +| b''
+                                  ExactRoughExpr b''
+                                           -> ExactRoughExpr $ a'' +| b''
+   where a' = roughMathExpr a
+         b' = roughMathExpr b
 
 
 
