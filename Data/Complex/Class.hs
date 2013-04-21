@@ -32,6 +32,7 @@ import qualified Data.Complex
 import Data.Complex(Complex(..))
 
 
+infixl 6 +|
 
 -- | Minimal complete definition: '(+|)'
 -- or both 'realAsComplex' and 'imagAsComplex', and
@@ -45,6 +46,10 @@ class (Floating c, Floating (RealAxis c)) => ComplexC c where
   
   -- | @a +| b ≡ a + i⋅b@, i.e. build a complex number out of
   -- real and imaginary part.
+  -- 
+  -- @
+  -- infixl 6 +|
+  -- @
   (+|) :: RealAxis c -> RealAxis c -> c
   a +| b = realAsComplex a + imagAsComplex b
   

@@ -57,8 +57,10 @@ theContents = do
          displayMathExpr_wRResult $
                     2 + 7*(6 - τ) - exp(5 - sqrt(x**2 + 4/pi))
    
-   _::Complex Double <- displayMathExpr_wRResult $
-          exp (log 2 + imagUnit*pi/4)
+   _::[Complex Double] <- mapM displayMathExpr_wRResult [
+          2 +| (-1)
+        , - exp (log 2 + imagUnit*pi/4)
+        ]
    
    fromHaTeX $ subsection "Simple finite sums / products"
    
@@ -66,9 +68,11 @@ theContents = do
       [ lSetSum "n" (listAsFinSet[0,1,4,5]) (2.5 - )
       , finRSum "n" 1 4  (2.5 - )
       , finRSum "j" 1 40 $ cos . (2*pi/40*)
+      , realPart (finRSum "j" 1 40 $ cis . (2*pi/40*)
+                    :: MathExpr (Complex Double) )
       , 2 * finRSum "i" 1 6 (\i -> i^*2 + i) 
       , finRSum "i" 1 6 (\i -> i^*2 + i) * 2
-      , finRSum "i" 1 6 (\i -> i^*2 + i) + 2
+      , finRSum "i" 1 6 (\i -> i^*2 + i * 2)
       , finRSum "i" 1 6 $ finRSum "j" 1 6 . (*)
       , polyFinRSum "i" 1 6 $ \i -> i * finRSum "j" 1 6 id
       , polyFinRSum "i" 1 6 $ \i -> finRSum "j" 1 i (i*)
@@ -91,7 +95,6 @@ theContents = do
         _ -> fromHaTeX $ textbf " is not. "
       
       return $ zero==0 && nonzero/=0
-   
    nl
    
    "A simple equations chain:"...:"."
@@ -101,36 +104,42 @@ theContents = do
           =& 10^*9 * 10^*9
           =& 10^*(3^*2) * 10^*5 * 10^* 4
           =. (1000000000000000000 :: MathExpr Integer)
-
    nl
    
    "Another equations chain, this time using floats:"...:"."
    testJudge =<< do
-       let compareChain =
+       displayMathCompareSeq_ $
                  10 ^* (-18)
               =& 10^*(-9) * 10^*(-9)
               =& 10^*(-3^*2) * 10^*(-5) * 10^*(-4)
               =. (1/1000000000000000000 :: MathExpr Double)
-       displayMathCompareSeq_ compareChain
-   
    nl
    
    "Equation-chains can also be approximate (``rough''):"...:"."
    testJudge =<< do
-       let compareChain =
+       displayMathCompareSeq_ $
                  10 ^* (-18)
               =~& 10^*(-9) * 10^*(-9)
               =~& 10^*(-3^*2) * 10^*(-5) * 10^*(-4)
               =~. (1/999998765432100000 :: MathExpr Double)
-       displayMathCompareSeq_ compareChain
+   nl
    
+   "Complex exponential identities."
+   fromHaTeX
+     $ " (Writing only rough-equalities to avoid problems with the floating-point comparisons, as at the moment only " <> verb"double" <> " can be used as the underlying data type for the complex arithmetics.)"
+   testJudge =<< do
+       displayMathCompareSeq_ $
+                  exp (3/4 * imagUnit * pi)
+              =~& exp (11/4 *imagUnit * pi)
+              =~. (-sqrt 2 +| sqrt 2   :: MathExpr (Complex Double)
+                                   )/2
    
    
    
 
 testJudge :: Monad m => Bool -> MathematicalLaTeXT_ m
 testJudge True = "(Test passed.)"
-testJudge _    = do
-    fromHaTeX $ textbf "Test failed. "
-    "Even true mathematical identities may not show to hold when using floating-point arithmetics."
+testJudge _    = "(" <> failMsg <> ".)" where
+ failMsg = fromHaTeX $ do textbf "Test failed"
+                          footnote "Even true mathematical identities may not show to hold when using floating-point arithmetics."
 

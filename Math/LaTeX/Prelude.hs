@@ -272,13 +272,92 @@ instance (Num res) => Num (MathLaTeXEval res arg) where
   
   (+) = mathExprIfx (+) "+" $ Infixl 6
   (-) = mathExprIfx (-) "-" $ Infixl 6
-  negate = mathExprFn negate ("-")
+  negate q@(MathLaTeXEval _ fxty) = case fxty of
+      (RightGreedy n) -> MathLaTeXEval res . Infixl $ min 6 n
+      y | isotropFixity y > 6 -> res `MathLaTeXEval` Infixl 6
+        | otherwise           -> mathExprFunction negate
+                                   (\inr -> "-"<>autoParens(braces inr)<>"") q
+                                  `MathLaTeXEval` Infixl 6
+   where res =  mathExprFunction negate (("-"<>).braces) q
   (*) = mathExprIfx (*) (commS"cdot") $ Infixl 7
   
   signum = mathExprFn abs (mathrm"sgn")
   abs = (`MathLaTeXEval`Infix 9) . mathExprFunction abs
            (autoBrackets "|" "|")
 
+ 
+ 
+
+infixr 8 ^*
+class Num x => Powerable x where
+  (^*) :: x -> x -> x
+instance Powerable Int where { (^*) = (^) }
+instance Powerable Double where { (^*) = (**) }
+instance Powerable Float where { (^*) = (**) }
+instance Powerable Integer where { (^*) = (^) }
+instance (Powerable res, Show res) => Powerable (MathLaTeXEval res arg) where
+  (^*) = mathExprIfx (^*) (raw"^") $ Infixr 8
+
+
+instance (Fractional res) => Fractional (MathLaTeXEval res arg) where
+  fromRational e = (`MathLaTeXEval`Infix 9) $ mathExprInfix (/)
+           (\n d -> TeXComm "tfrac" $ map FixArg [n,d] )
+           (fromIntegral $ numerator e) (fromIntegral $ denominator e)
+  
+  a/b = (`MathLaTeXEval`Infix 9) $ mathExprInfix (/)
+           (\n d -> TeXComm "frac" $ map FixArg [n,d] ) a b
+  
+  recip = (`MathLaTeXEval`Infix 9) . mathExprFunction recip
+           (TeXComm "frac1" . (:[]) . FixArg)
+
+instance (Floating res) => Floating (MathLaTeXEval res arg) where
+  pi = mathPrimitiv pi pi_
+  
+  sqrt = (`MathLaTeXEval`Infix 9) . mathExprFunction sqrt
+              (TeXComm "sqrt" .(:[]). FixArg)
+           
+  exp = (`MathLaTeXEval`Infix 8) . mathExprFunction exp ("e" ^:)
+--   b**x = (`MathLaTeXEval`Infixr 8) $ mathExprInfix (**)
+  (**) = mathExprIfx (**) (raw"^") $ Infixr 8
+--            (\β ξ -> T.concat [ "{", β, "}^{", ξ, "}"] ) b x
+           
+  log = mathExprFn log ln
+  logBase b t = (`MathLaTeXEval`Infix 9) $ mathExprInfix logBase
+           (\β τ -> tlog !: β <> autoParens τ ) b t
+  
+  sin = mathExprFn sin tsin
+  cos = mathExprFn cos tcos
+  tan = mathExprFn tan ttan
+  asin = mathExprFn asin arcsin
+  acos = mathExprFn acos arccos
+  atan = mathExprFn atan arctan
+  sinh = mathExprFn sinh tsinh
+  cosh = mathExprFn cosh tcosh
+  tanh = mathExprFn tanh ttanh
+  asinh = mathExprFn asinh $ mathrm "arcsinh"
+  acosh = mathExprFn acosh $ mathrm "arccosh"
+  atanh = mathExprFn atanh $ mathrm "arctanh"
+  
+
+
+instance (ComplexC r, RealFloat(RealAxis r))
+             => ComplexC(MathLaTeXEval r arg) where
+  type RealAxis(MathLaTeXEval r arg) = MathLaTeXEval (RealAxis r) arg
+  
+  imagUnit = mathPrimitiv imagUnit "i"
+  
+  realAsComplex = pseudoFmap realAsComplex
+  imagAsComplex = (imagUnit *) . pseudoFmap realAsComplex
+  
+  conjugate = (`MathLaTeXEval` Infix 10) .
+                  mathExprFunction conjugate (TeXComm "overline" . (:[]) . FixArg . braces)
+  realPart = mathExprFn realPart $ TeXCommS "Re"
+  imagPart = mathExprFn imagPart $ TeXCommS "Im"
+
+  magnitude = (`MathLaTeXEval`Infix 9) . mathExprFunction magnitude
+           (autoBrackets "|" "|")
+  phase     = mathExprFn phase $ TeXCommS "arg"
+ 
 -- instance (Enum r, Show r) => Enum (MathExpr
 
 
@@ -564,7 +643,7 @@ instance (RealFloat r) => PlainRoughEqable (Complex r) where
          (rb,φb) = polar b
          φΔ = case φa - φb of
                δ | δ<pi       -> δ
-                 | otherwise  -> pi - δ
+                 | otherwise  -> 2*pi - δ
 
 
 instance (PlainRoughEqable x, e~MathLaTeXEval x arg, Equatable e)
@@ -573,76 +652,7 @@ instance (PlainRoughEqable x, e~MathLaTeXEval x arg, Equatable e)
   (=~&) = exprnCompareMid (≈) (between $ comm0 "approx" :: LaTeXC l => l->l->l)
 
 
-infixr 8 ^*
-class Num x => Powerable x where
-  (^*) :: x -> x -> x
-instance Powerable Int where { (^*) = (^) }
-instance Powerable Double where { (^*) = (**) }
-instance Powerable Float where { (^*) = (**) }
-instance Powerable Integer where { (^*) = (^) }
-instance (Powerable res, Show res) => Powerable (MathLaTeXEval res arg) where
-  (^*) = mathExprIfx (^*) (raw"^") $ Infixr 8
-
-
-instance (Fractional res) => Fractional (MathLaTeXEval res arg) where
-  fromRational e = (`MathLaTeXEval`Infix 9) $ mathExprInfix (/)
-           (\n d -> TeXComm "tfrac" $ map FixArg [n,d] )
-           (fromIntegral $ numerator e) (fromIntegral $ denominator e)
-  
-  a/b = (`MathLaTeXEval`Infix 9) $ mathExprInfix (/)
-           (\n d -> TeXComm "frac" $ map FixArg [n,d] ) a b
-  
-  recip = (`MathLaTeXEval`Infix 9) . mathExprFunction recip
-           (TeXComm "frac1" . (:[]) . FixArg)
-
-instance (Floating res) => Floating (MathLaTeXEval res arg) where
-  pi = mathPrimitiv pi pi_
-  
-  sqrt = (`MathLaTeXEval`Infix 9) . mathExprFunction sqrt
-              (TeXComm "sqrt" .(:[]). FixArg)
-           
-  exp = (`MathLaTeXEval`Infix 8) . mathExprFunction exp ("e" ^:)
---   b**x = (`MathLaTeXEval`Infixr 8) $ mathExprInfix (**)
-  (**) = mathExprIfx (**) (raw"^") $ Infixr 8
---            (\β ξ -> T.concat [ "{", β, "}^{", ξ, "}"] ) b x
-           
-  log = mathExprFn log ln
-  logBase b t = (`MathLaTeXEval`Infix 9) $ mathExprInfix logBase
-           (\β τ -> tlog !: β <> autoParens τ ) b t
-  
-  sin = mathExprFn sin tsin
-  cos = mathExprFn cos tcos
-  tan = mathExprFn tan ttan
-  asin = mathExprFn asin arcsin
-  acos = mathExprFn acos arccos
-  atan = mathExprFn atan arctan
-  sinh = mathExprFn sinh tsinh
-  cosh = mathExprFn cosh tcosh
-  tanh = mathExprFn tanh ttanh
-  asinh = mathExprFn asinh $ mathrm "arcsinh"
-  acosh = mathExprFn acosh $ mathrm "arccosh"
-  atanh = mathExprFn atanh $ mathrm "arctanh"
-  
-
-
-instance (ComplexC r, RealFloat(RealAxis r))
-             => ComplexC(MathLaTeXEval r arg) where
-  type RealAxis(MathLaTeXEval r arg) = MathLaTeXEval (RealAxis r) arg
-  
-  imagUnit = mathPrimitiv imagUnit "i"
-  
-  realAsComplex = pseudoFmap realAsComplex
-  imagAsComplex = (imagUnit *) . pseudoFmap realAsComplex
-  
-  conjugate = (`MathLaTeXEval` Infix 10) .
-                  mathExprFunction conjugate (TeXComm "overline" . (:[]) . FixArg . braces)
-  realPart = mathExprFn realPart $ TeXCommS "Re"
-  imagPart = mathExprFn imagPart $ TeXCommS "Im"
-
-  magnitude = (`MathLaTeXEval`Infix 9) . mathExprFunction magnitude
-           (autoBrackets "|" "|")
-  phase     = mathExprFn phase $ TeXCommS "arg"
-  
+ 
 
 
 class MathRenderable v where
@@ -655,6 +665,16 @@ instance MathRenderable Int where
 data RoughExpr v
   = RoughExpr { getRoughExpression :: MathExpr v }
   | ExactRoughExpr { getRoughExpression :: MathExpr v }
+
+fmapRoughExpr :: (MathExpr v -> MathExpr w) -> RoughExpr v -> RoughExpr w
+fmapRoughExpr f (RoughExpr q) = RoughExpr $ f q
+fmapRoughExpr f (ExactRoughExpr q) = ExactRoughExpr $ f q
+
+liftA2RoughExpr :: (MathExpr v -> MathExpr w -> MathExpr x)
+                      -> RoughExpr v -> RoughExpr w -> RoughExpr x
+liftA2RoughExpr f (RoughExpr q) (RoughExpr p) = RoughExpr $ f q p
+liftA2RoughExpr f (RoughExpr q) (ExactRoughExpr p) = RoughExpr $ f q p
+liftA2RoughExpr f (ExactRoughExpr q) p = fmapRoughExpr (f q) p
 
 class MathRoughRenderable v where
   roughMathExpr :: v -> RoughExpr v
@@ -672,14 +692,15 @@ instance MathRoughRenderable Integer where
          reRound (ExactRoughExpr m) = ExactRoughExpr (pseudoFmap round m)
 
 instance (RealFloat r, MathRoughRenderable r) => MathRoughRenderable (Complex r) where
-  roughMathExpr (a :+ b) 
-    | RoughExpr a'' <- a' = RoughExpr $ a'' +| getRoughExpression b'
-    | ExactRoughExpr a'' <- a' = case b' of
-                                  RoughExpr b'' -> RoughExpr $ a'' +| b''
-                                  ExactRoughExpr b''
-                                           -> ExactRoughExpr $ a'' +| b''
-   where a' = roughMathExpr a
-         b' = roughMathExpr b
+  roughMathExpr (a:+0) = fmapRoughExpr realAsComplex $ roughMathExpr a
+  roughMathExpr (0:+b) = fmapRoughExpr ((*imagUnit) . realAsComplex) $ roughMathExpr b
+  roughMathExpr (a:+1) = fmapRoughExpr ((+imagUnit) . realAsComplex) $ roughMathExpr a
+  roughMathExpr (a:+(-1)) = fmapRoughExpr ((subtract imagUnit) . realAsComplex) $ roughMathExpr a
+  roughMathExpr (a:+b) = rr $ \a' b' -> if b>0 then a' + b'*imagUnit
+                                               else a' - b'*imagUnit
+   where rr rc = (liftA2RoughExpr (flip on realAsComplex rc)
+                            `on`roughMathExpr) a $ abs b
+         
 
 
 
