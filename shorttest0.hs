@@ -8,6 +8,9 @@ import Text.LaTeX
 import Text.LaTeX.Packages.Inputenc
 import Text.LaTeX.Packages.AMSMath
 
+import Data.Complex(Complex(..))
+import Data.Complex.Class
+
 -- Document structure copied from Daniel Diaz' 'Examples/simple.hs'.
 
 
@@ -53,6 +56,9 @@ theContents = do
          ", "...:"."
          displayMathExpr_wRResult $
                     2 + 7*(6 - τ) - exp(5 - sqrt(x**2 + 4/pi))
+   
+   _::Complex Double <- displayMathExpr_wRResult $
+          exp (log 2 + imagUnit*pi/4)
    
    fromHaTeX $ subsection "Simple finite sums / products"
    

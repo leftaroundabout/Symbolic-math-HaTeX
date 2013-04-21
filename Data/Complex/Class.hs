@@ -21,7 +21,7 @@
 {-# LANGUAGE TypeFamilies           #-}
 {-# LANGUAGE FlexibleInstances      #-}
 {-# LANGUAGE UndecidableInstances #-}
--- {-# LANGUAGE FlexibleContexts       #-}
+{-# LANGUAGE FlexibleContexts       #-}
 {-# LANGUAGE PatternGuards          #-}
 
 

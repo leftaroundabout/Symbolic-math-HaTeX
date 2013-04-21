@@ -14,7 +14,7 @@
 {-# LANGUAGE MultiParamTypeClasses            #-}
 {-# LANGUAGE FlexibleInstances                #-}
 {-# LANGUAGE UndecidableInstances             #-}
--- {-# LANGUAGE OverlappingInstances             #-}
+{-# LANGUAGE OverlappingInstances             #-}
 {-# LANGUAGE PatternGuards                    #-}
 {-# LANGUAGE TypeFamilies                     #-}
 {-# LANGUAGE RankNTypes                       #-}
@@ -95,6 +95,8 @@ import Data.Ratio
 import Data.Complex(Complex(..))
 import Data.Complex.Class
 import Data.String
+import Data.Maybe(maybe)
+import Data.Char(isDigit)
 
 
 
@@ -549,11 +551,24 @@ instance (Ord x) => Orderable(MathLaTeXEval x arg) where
   (>=&) = exprnCompareMid (>=) (>=:)
 
 
-(≈) :: (RealFloat x) => x -> x -> Bool
-a≈b = r>0.99 && r<1.01
- where r = a/b
+class PlainRoughEqable x where
+  (≈) :: x -> x -> Bool
 
-instance (RealFloat x, e~MathLaTeXEval x arg, Equatable e) => RoughEqable e where
+instance (RealFloat x) => PlainRoughEqable x where
+  a≈b = r>0.99 && r<1.01
+   where r = a/b
+ 
+instance (RealFloat r) => PlainRoughEqable (Complex r) where
+  a≈b = ra≈rb && φΔ<0.01
+   where (ra,φa) = polar a
+         (rb,φb) = polar b
+         φΔ = case φa - φb of
+               δ | δ<pi       -> δ
+                 | otherwise  -> pi - δ
+
+
+instance (PlainRoughEqable x, e~MathLaTeXEval x arg, Equatable e)
+             => RoughEqable e where
   (=~.) = exprnCompareEnd (≈) (between $ comm0 "approx" :: LaTeXC l => l->l->l)
   (=~&) = exprnCompareMid (≈) (between $ comm0 "approx" :: LaTeXC l => l->l->l)
 
@@ -671,14 +686,24 @@ instance (RealFloat r, MathRoughRenderable r) => MathRoughRenderable (Complex r)
 prettyFloatApprox :: Double -> RoughExpr Double
 prettyFloatApprox x
     | (mantissa, 'e':expon) <- break(=='e') s
-    , m<-read $ take 5 mantissa, expn<-read expon
+    , m<-read $ strRound 5 mantissa, expn<-read expon
     , (ExactRoughExpr mR) <- prettyFloatApprox m
                 = RoughExpr $ mR * 10 ^* fromInteger expn
+    | (intgPart, fractPt) <- break(=='.') s
+    , length fractPt > 5
+          = RoughExpr . mathPrimitiv x . fromString $ intgPart ++ strRound 4 fractPt
     | otherwise = ExactRoughExpr . mathPrimitiv x $ fromString s
  where s = remTrailing0 $ show x
        remTrailing0 = reverse . r0 . reverse
         where r0 ('0':'.':n) = n
               r0 n = n
+       strRound n es = maybe safe (reverse . (`bckCarry` reverse safe)) o
+        where (safe, o) = second (find isDigit) $ splitAt n es
+              bckCarry dg ('.':rr) = '.' : bckCarry dg rr
+              bckCarry dg sff
+               | dg<'4'  = sff
+              bckCarry _ ('9':rr) = '0' : bckCarry '6' rr
+              bckCarry _ (q:rr)   = succ q : rr
   
 mathExprEvalRough :: MathRoughRenderable v
       => MathExpr v -> RoughExpr v
