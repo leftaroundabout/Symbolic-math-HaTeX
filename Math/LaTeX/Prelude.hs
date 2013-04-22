@@ -98,6 +98,9 @@ import Data.String
 import Data.Maybe(maybe)
 import Data.Char(isDigit)
 
+import Prelude hiding((^))
+import qualified Prelude
+
 
 
 
@@ -288,15 +291,15 @@ instance (Num res) => Num (MathLaTeXEval res arg) where
  
  
 
-infixr 8 ^*
+infixr 8 ^
 class Num x => Powerable x where
-  (^*) :: x -> x -> x
-instance Powerable Int where { (^*) = (^) }
-instance Powerable Double where { (^*) = (**) }
-instance Powerable Float where { (^*) = (**) }
-instance Powerable Integer where { (^*) = (^) }
+  (^) :: x -> x -> x
+instance Powerable Int where { (^) = (Prelude.^) }
+instance Powerable Double where { (^) = (**) }
+instance Powerable Float where { (^) = (**) }
+instance Powerable Integer where { (^) = (Prelude.^) }
 instance (Powerable res, Show res) => Powerable (MathLaTeXEval res arg) where
-  (^*) = mathExprIfx (^*) (raw"^") $ Infixr 8
+  (^) = mathExprIfx (^) (raw"^") $ Infixr 8
 
 
 instance (Fractional res) => Fractional (MathLaTeXEval res arg) where
@@ -709,7 +712,7 @@ prettyFloatApprox x
     | (mantissa, 'e':expon) <- break(=='e') s
     , m<-read $ strRound 5 mantissa, expn<-read expon
     , (ExactRoughExpr mR) <- prettyFloatApprox m
-                = RoughExpr $ mR * 10 ^* fromInteger expn
+                = RoughExpr $ mR * 10 ^ fromInteger expn
     | (intgPart, fractPt) <- break(=='.') s
     , length fractPt > 5
           = RoughExpr . mathPrimitiv x . fromString $ intgPart ++ strRound 4 fractPt

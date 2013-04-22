@@ -11,6 +11,9 @@ import Text.LaTeX.Packages.AMSMath
 import Data.Complex(Complex(..))
 import Data.Complex.Class
 
+import Prelude hiding((^))
+import qualified Prelude
+
 -- Document structure copied from Daniel Diaz' 'Examples/simple.hs'.
 
 
@@ -45,7 +48,7 @@ theContents = do
    fromHaTeX $ subsection "Arithmetics with infix operators"
    
    n::Integer <- displayMathExpr_ $
-             4 ^* (2 ^* 3) ^* 2 - 10000^7
+             4 ^ (2 ^ 3) ^ 2 - 10000 Prelude.^ 7
    " is "?~? n >> ". "
    
    _::Double <- do
@@ -70,9 +73,9 @@ theContents = do
       , finRSum "j" 1 40 $ cos . (2*pi/40*)
       , realPart (finRSum "j" 1 40 $ cis . (2*pi/40*)
                     :: MathExpr (Complex Double) )
-      , 2 * finRSum "i" 1 6 (\i -> i^*2 + i) 
-      , finRSum "i" 1 6 (\i -> i^*2 + i) * 2
-      , finRSum "i" 1 6 (\i -> i^*2 + i * 2)
+      , 2 * finRSum "i" 1 6 (\i -> i^2 + i) 
+      , finRSum "i" 1 6 (\i -> i^2 + i) * 2
+      , finRSum "i" 1 6 (\i -> i^2 + i * 2)
       , finRSum "i" 1 6 $ finRSum "j" 1 6 . (*)
       , polyFinRSum "i" 1 6 $ \i -> i * finRSum "j" 1 6 id
       , polyFinRSum "i" 1 6 $ \i -> finRSum "j" 1 i (i*)
@@ -100,27 +103,27 @@ theContents = do
    "A simple equations chain:"...:"."
    testJudge =<< do
       displayMathCompareSeq_ $
-             10 ^* 18
-          =& 10^*9 * 10^*9
-          =& 10^*(3^*2) * 10^*5 * 10^* 4
+             10 ^ 18
+          =& 10^9 * 10^9
+          =& 10^(3^2) * 10^5 * 10^ 4
           =. (1000000000000000000 :: MathExpr Integer)
    nl
    
    "Another equations chain, this time using floats:"...:"."
    testJudge =<< do
        displayMathCompareSeq_ $
-                 10 ^* (-18)
-              =& 10^*(-9) * 10^*(-9)
-              =& 10^*(-3^*2) * 10^*(-5) * 10^*(-4)
+                 10 ^ (-18)
+              =& 10^(-9) * 10^(-9)
+              =& 10^(-3^2) * 10^(-5) * 10^(-4)
               =. (1/1000000000000000000 :: MathExpr Double)
    nl
    
    "Equation-chains can also be approximate (``rough''):"...:"."
    testJudge =<< do
        displayMathCompareSeq_ $
-                 10 ^* (-18)
-              =~& 10^*(-9) * 10^*(-9)
-              =~& 10^*(-3^*2) * 10^*(-5) * 10^*(-4)
+                 10 ^ (-18)
+              =~& 10^(-9) * 10^(-9)
+              =~& 10^(-3^2) * 10^(-5) * 10^(-4)
               =~. (1/999998765432100000 :: MathExpr Double)
    nl
    
