@@ -171,8 +171,9 @@ exprnCompareEnd cmp rend a b
                           rComb a b
    where rComb α β = α'`rend`β'
           where [α',β'] = zipWith parenth [a,b] [α,β]
-                parenth c γ | isotropFixity(mathLaTeXexprnFixity c)>4  = γ
-                            | otherwise            = braces $ autoParens γ
+                parenth (MathLaTeXEval _ c) γ 
+                     | isotropFixity c > 4  = γ
+                     | otherwise            = braces $ autoParens γ
 exprnCompareMid :: (x->x-> Bool) -> (LaTeX->LaTeX->LaTeX)
     -> MathLaTeXEval x arg -> ComparisonsEval x (MathLaTeXEval x arg)
     -> ComparisonsEval x (MathLaTeXEval x arg)
@@ -181,8 +182,9 @@ exprnCompareMid cmp rend a b
                           rComb a b
    where rComb α β = α'`rend`β'
           where [α',β'] = zipWith parenth [a,leftmostComparedExpr b] [α,β]
-                parenth c γ | isotropFixity(mathLaTeXexprnFixity c)>4  = γ
-                            | otherwise            = braces $ autoParens γ
+                parenth (MathLaTeXEval _ c) γ
+                     | isotropFixity c > 4  = γ
+                     | otherwise            = braces $ autoParens γ
 
 instance (Eq x) => Equatable(MathLaTeXEval x arg) where
   type EquateExpressionResult(MathLaTeXEval x arg) = x
@@ -438,10 +440,6 @@ nl = lift.lift $ raw"\n\n"
 
 -- instance (Monad m) => LaTeXC (MathematicalLaTeXT_ m) where
   
-
-wDefaultConf_toHaTeX :: Monad m => MathematicalLaTeXT m a -> LaTeXT m a
-wDefaultConf_toHaTeX = (`runReaderT`()) 
-               . liftM fst . (`runStateT`texMathGroundState)
 
 
 

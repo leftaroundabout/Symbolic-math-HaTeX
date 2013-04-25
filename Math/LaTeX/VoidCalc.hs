@@ -88,7 +88,7 @@ muteFunction fn e = MathEnvd ( \(Identity _) -> absurdV )
  
 muteFn :: IsVoid arg => LaTeX -> MathLaTeXEval r arg -> MathLaTeXEval r arg
 muteFn fn e@(MathLaTeXEval _ fxty)
-   = MathLaTeXEval (muteFunction funnamer e) $ Infix 9
+   = mathCompound_wFixity (muteFunction funnamer e) $ Infix 9
  where funnamer incl
          | isotropFixity fxty <= 9   = fn <> braces (AMS.autoParens incl)
          | otherwise                 = fn <> commS":" <> braces incl

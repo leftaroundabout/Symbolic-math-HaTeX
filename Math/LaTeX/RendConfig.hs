@@ -13,6 +13,8 @@
 module Math.LaTeX.RendConfig where
 
 
+import Text.LaTeX.Base
+import Text.LaTeX.Base.Class
 
 import Control.Applicative
 import Control.Monad.Reader
@@ -22,4 +24,19 @@ import Data.List
 import Data.Function
 import Data.String
 
-type TeXMathConfiguration = ()
+
+data MathSymbolTranslations = MathSymbolTranslations
+  { defMultiplicationSymbol
+  , numeralMultiplicationSymbol
+  , atomVarMultiplicationSymbol  :: LaTeX
+  }
+
+
+type TeXMathConfiguration = MathSymbolTranslations
+
+mathLaTeXExprDefaultConfig :: TeXMathConfiguration
+mathLaTeXExprDefaultConfig = MathSymbolTranslations
+      { defMultiplicationSymbol     = commS"cdot"
+      , numeralMultiplicationSymbol = commS"times"
+      , atomVarMultiplicationSymbol = commS","
+      }

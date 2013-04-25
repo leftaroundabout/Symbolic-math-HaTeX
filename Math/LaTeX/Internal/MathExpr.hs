@@ -53,15 +53,8 @@ import qualified Prelude
 
 
 type MathPrimtvId = LaTeX
-data Fixity = Infix Int
-            | Infixl Int
-            | Infixr Int
-            | RightGreedy Int
-isotropFixity :: Fixity -> Int
-isotropFixity (Infix n) = n
-isotropFixity (Infixl n) = n
-isotropFixity (Infixr n) = n
-isotropFixity (RightGreedy n) = n
+ 
+            
 
 data MathEvaluation res arg where
   MathEnvd :: Functor list =>
@@ -70,10 +63,35 @@ data MathEvaluation res arg where
            , enclosedMathExpr :: list(MathLaTeXEval b (HCons a c))
            } -> MathEvaluation d c
 
+data MathExprKind
+  = MathExprNumLiteral
+  | MathExprAtomVariable
+  | MathExprCompound Fixity
+data Fixity = Infix Int
+            | Infixl Int
+            | Infixr Int
+            | RightGreedy Int
+
 data MathLaTeXEval res arg
-      = MathLaTeXEval { mathLaTeXevaluation :: MathEvaluation res arg 
-                      , mathLaTeXexprnFixity :: Fixity
-                      }
+   = MathLaTeXEval { mathLaTeXevaluation :: MathEvaluation res arg 
+                   , mathLaTeXexprnKind :: MathExprKind
+                   }
+
+mathCompound_wFixity :: MathEvaluation r a -> Fixity -> MathLaTeXEval r a
+mathCompound_wFixity e = MathLaTeXEval e . MathExprCompound
+
+mathLaTeXexprnFixity :: MathLaTeXEval r a -> Fixity
+mathLaTeXexprnFixity = xqFixity . mathLaTeXexprnKind
+ where xqFixity MathExprNumLiteral = Infix 9
+       xqFixity MathExprAtomVariable = Infix 9
+       xqFixity (MathExprCompound f) = f
+
+isotropFixity :: MathExprKind -> Int
+isotropFixity = isotropise . mathLaTeXexprnFixity . MathLaTeXEval undefined
+ where isotropise (Infix n) = n
+       isotropise (Infixl n) = n
+       isotropise (Infixr n) = n
+       isotropise (RightGreedy n) = n
 
 instance Contravariant (MathEvaluation res) where
   contramap f(MathEnvd g wr encld) = MathEnvd g' wr encld'
@@ -121,20 +139,20 @@ mathExprCalculate_ x = mathExprCalculate x HNil
 mathPrimitiv :: b -> LaTeX -> MathLaTeXEval b a
 -- mathPrimitiv v name = MathLaTeXEval (MathPrimitive v name) 10
 mathPrimitiv v name
-  = (MathEnvd (\None _->v) (\None -> name) None) `MathLaTeXEval` Infix 10
+  = (MathEnvd (\None _->v) (\None -> name) None) `mathCompound_wFixity` Infix 10
 
 mathDepPrimitiv :: (a->b) -> LaTeX -> MathLaTeXEval b a
 mathDepPrimitiv dv name
-  = (MathEnvd (\None->dv) (\None -> name) None) `MathLaTeXEval` Infix 10
+  = (MathEnvd (\None->dv) (\None -> name) None) `mathCompound_wFixity` Infix 10
 
 mathVarEntry :: MathPrimtvId -> (a->b) -> MathLaTeXEval b a
 mathVarEntry name esrc
-   = MathEnvd (\None -> esrc) (\None -> name) None `MathLaTeXEval` Infix 10
+   = MathEnvd (\None -> esrc) (\None -> name) None `mathCompound_wFixity` Infix 10
 
 polyMathVarEntry :: 
       MathPrimtvId -> (a'->b) -> (forall a. BasedUpon a' a => MathLaTeXEval b a)
 polyMathVarEntry name esrc
-   = MathEnvd (\None -> esrc . basement) (\None -> name) None `MathLaTeXEval` Infix 10
+   = MathEnvd (\None -> esrc . basement) (\None -> name) None `mathCompound_wFixity` Infix 10
 
 
 mathExprFunction :: (a->r)
@@ -147,7 +165,7 @@ mathExprFunction f fn e = MathEnvd ( \(Identity q) -> f . q )
 mathExprFn :: (a->r) -> MathPrimtvId
                  -> MathLaTeXEval a c -> MathLaTeXEval r c
 mathExprFn f fn e@(MathLaTeXEval _ fxty)
-   = MathLaTeXEval (mathExprFunction f funnamer e) $ Infix 9
+   = mathCompound_wFixity (mathExprFunction f funnamer e) $ Infix 9
  where funnamer incl
          | isotropFixity fxty <= 9   = fn <> braces (autoParens incl)
          | otherwise                 = fn <> commS":" <> braces incl
@@ -165,21 +183,22 @@ mathExprInfix ifx ifxn el er
 mathExprIfx :: (a->a->r) -> MathPrimtvId -> Fixity
                  -> MathLaTeXEval a c -> MathLaTeXEval a c ->  MathLaTeXEval r c
 mathExprIfx ifx ifxn fxty el@(MathLaTeXEval _ fxtl) er@(MathLaTeXEval _ fxtr)
-    = MathLaTeXEval (mathExprInfix ifx ifxNamer el er) fxty
+    = MathLaTeXEval (mathExprInfix ifx ifxNamer el er) $ MathExprCompound fxty
  where ifxNamer lexpr rexpr = mconcat
                   [ case(fxty,fxtl) of
-                      (Infixl ε, Infixl κ)
+                      ( Infixl ε, MathExprCompound (Infixl κ) )
                          | ε<=κ  -> plain lexpr
                       (ε, κ)
-                         | isotropFixity ε<isotropFixity κ   -> plain lexpr
+                         | isotropFixity (MathExprCompound ε)
+                             < isotropFixity κ   -> plain lexpr
                          | otherwise -> parenthd lexpr
                   , " ", ifxn, " "
                   , case(fxty,fxtr) of
-                      (_, RightGreedy _) -> plain rexpr
-                      (Infixr ε, Infixr κ)
+                      (_, MathExprCompound (RightGreedy _)) -> plain rexpr
+                      (Infixr ε, MathExprCompound (Infixr κ) )
                          | ε<=κ  -> plain rexpr
                       (ε, κ)
-                         | isotropFixity ε<isotropFixity κ   -> plain rexpr
+                         | isotropFixity (MathExprCompound ε)<isotropFixity κ   -> plain rexpr
                          | otherwise -> parenthd rexpr
                   ]
        plain expr = braces expr
@@ -215,16 +234,17 @@ instance (Num res) => Num (MathLaTeXEval res arg) where
   (+) = mathExprIfx (+) "+" $ Infixl 6
   (-) = mathExprIfx (-) "-" $ Infixl 6
   negate q@(MathLaTeXEval _ fxty) = case fxty of
-      (RightGreedy n) -> MathLaTeXEval res . Infixl $ min 6 n
-      y | isotropFixity y > 6 -> res `MathLaTeXEval` Infixl 6
+      (MathExprCompound (RightGreedy n)) 
+                              -> mathCompound_wFixity res . Infixl $ min 6 n
+      y | isotropFixity y > 6 -> res `mathCompound_wFixity` Infixl 6
         | otherwise           -> mathExprFunction negate
                                    (\inr -> "-"<>autoParens(braces inr)<>"") q
-                                  `MathLaTeXEval` Infixl 6
+                                  `mathCompound_wFixity` Infixl 6
    where res =  mathExprFunction negate (("-"<>).braces) q
   (*) = mathExprIfx (*) (commS"cdot") $ Infixl 7
   
   signum = mathExprFn abs (mathrm"sgn")
-  abs = (`MathLaTeXEval`Infix 9) . mathExprFunction abs
+  abs = (`mathCompound_wFixity`Infix 9) . mathExprFunction abs
            (autoBrackets "|" "|")
 
  
@@ -242,29 +262,29 @@ instance (Powerable res, Show res) => Powerable (MathLaTeXEval res arg) where
 
 
 instance (Fractional res) => Fractional (MathLaTeXEval res arg) where
-  fromRational e = (`MathLaTeXEval`Infix 9) $ mathExprInfix (/)
+  fromRational e = (`mathCompound_wFixity`Infix 9) $ mathExprInfix (/)
            (\n d -> TeXComm "tfrac" $ map FixArg [n,d] )
            (fromIntegral $ numerator e) (fromIntegral $ denominator e)
   
-  a/b = (`MathLaTeXEval`Infix 9) $ mathExprInfix (/)
+  a/b = (`mathCompound_wFixity`Infix 9) $ mathExprInfix (/)
            (\n d -> TeXComm "frac" $ map FixArg [n,d] ) a b
   
-  recip = (`MathLaTeXEval`Infix 9) . mathExprFunction recip
+  recip = (`mathCompound_wFixity`Infix 9) . mathExprFunction recip
            (TeXComm "frac1" . (:[]) . FixArg)
 
 instance (Floating res) => Floating (MathLaTeXEval res arg) where
   pi = mathPrimitiv pi pi_
   
-  sqrt = (`MathLaTeXEval`Infix 9) . mathExprFunction sqrt
+  sqrt = (`mathCompound_wFixity`Infix 9) . mathExprFunction sqrt
               (TeXComm "sqrt" .(:[]). FixArg)
            
-  exp = (`MathLaTeXEval`Infix 8) . mathExprFunction exp ("e" ^:)
---   b**x = (`MathLaTeXEval`Infixr 8) $ mathExprInfix (**)
+  exp = (`mathCompound_wFixity`Infix 8) . mathExprFunction exp ("e" ^:)
+--   b**x = (`mathCompound_wFixity`Infixr 8) $ mathExprInfix (**)
   (**) = mathExprIfx (**) (raw"^") $ Infixr 8
 --            (\β ξ -> T.concat [ "{", β, "}^{", ξ, "}"] ) b x
            
   log = mathExprFn log ln
-  logBase b t = (`MathLaTeXEval`Infix 9) $ mathExprInfix logBase
+  logBase b t = (`mathCompound_wFixity`Infix 9) $ mathExprInfix logBase
            (\β τ -> tlog !: β <> autoParens τ ) b t
   
   sin = mathExprFn sin tsin
@@ -291,12 +311,12 @@ instance (ComplexC r, RealFloat(RealAxis r))
   realAsComplex = pseudoFmap realAsComplex
   imagAsComplex = (imagUnit *) . pseudoFmap realAsComplex
   
-  conjugate = (`MathLaTeXEval` Infix 10) .
+  conjugate = (`mathCompound_wFixity` Infix 10) .
                   mathExprFunction conjugate (TeXComm "overline" . (:[]) . FixArg . braces)
   realPart = mathExprFn realPart $ TeXCommS "Re"
   imagPart = mathExprFn imagPart $ TeXCommS "Im"
 
-  magnitude = (`MathLaTeXEval`Infix 9) . mathExprFunction magnitude
+  magnitude = (`mathCompound_wFixity`Infix 9) . mathExprFunction magnitude
            (autoBrackets "|" "|")
   phase     = mathExprFn phase $ TeXCommS "arg"
  
@@ -313,7 +333,7 @@ lSetFold_bigSymb :: forall rng res a sumVarDep svdStack .
                  -> ( MathLaTeXEval rng svdStack
                      -> MathLaTeXEval res sumVarDep )
                  -> MathLaTeXEval res a
-lSetFold_bigSymb sumVar folderVis rngSpec summand = sumExpr `MathLaTeXEval` RightGreedy 6
+lSetFold_bigSymb sumVar folderVis rngSpec summand = sumExpr `mathCompound_wFixity` RightGreedy 6
  where sumExpr 
         = MathEnvd (                                    (
                      \(Pair rngG summandG) _ -> 
@@ -339,7 +359,7 @@ polyLSetFold_bigSymb :: forall rng res a sumVarDep .
                          => MathLaTeXEval rng svdStack                 )
                      -> MathLaTeXEval res sumVarDep )
                  -> MathLaTeXEval res a
-polyLSetFold_bigSymb sumVar folderVis rngSpec summand = sumExpr `MathLaTeXEval` RightGreedy 6
+polyLSetFold_bigSymb sumVar folderVis rngSpec summand = sumExpr `mathCompound_wFixity` RightGreedy 6
  where sumExpr 
         = MathEnvd (                                    (
                      \(Pair rngG summandG) _ -> 
@@ -363,7 +383,7 @@ polyLSetFold_bigSymb sumVar folderVis rngSpec summand = sumExpr `MathLaTeXEval` 
 -- | A list only represents a set properly when there are no duplicate elements,
 -- a precondition which this function doesn't (and can't!) check.
 listAsFinSet :: [MathLaTeXEval r a] -> MathLaTeXEval [r] a
-listAsFinSet ls = listExpr `MathLaTeXEval` Infix 9
+listAsFinSet ls = listExpr `mathCompound_wFixity` Infix 9
  where listExpr = MathEnvd ( const . map($HNil) )
                            ( autoBraces . mconcat . intersperse(raw",") )
                            ( map (contramap hTail) ls )
@@ -379,7 +399,7 @@ limsFold_bigSymb :: forall rng res a sumVarDep svdStack .
               -> MathLaTeXEval res sumVarDep )
           -> MathLaTeXEval res a
 limsFold_bigSymb sumVar folderVis lBound uBound summand
-  = sumExpr `MathLaTeXEval` RightGreedy 6
+  = sumExpr `mathCompound_wFixity` RightGreedy 6
  where sumExpr = MathEnvd ( \(Triple rngLG rngUG summandG) _ ->
                                mconcat [ fst $ summandG x
                                 | x<-[snd $ rngLG undefined .. snd $ rngUG undefined] ] ) 
@@ -406,7 +426,7 @@ polyLimsFold_bigSymb :: forall rng res a sumVarDep svdStack .
                  => MathLaTeXEval rng svdStack) -> MathLaTeXEval res sumVarDep )
           -> MathLaTeXEval res a
 polyLimsFold_bigSymb sumVar folderVis lBound uBound summand
-  = sumExpr `MathLaTeXEval` RightGreedy 6
+  = sumExpr `mathCompound_wFixity` RightGreedy 6
  where sumExpr = MathEnvd ( \(Triple rngLG rngUG summandG) _ ->
                                mconcat [ fst $ summandG x
                                 | x<-[snd $ rngLG undefined .. snd $ rngUG undefined] ] ) 

@@ -16,6 +16,7 @@
 
 module Math.LaTeX.Internal.RendMonad(
            module Control.Monad.State
+         , wDefaultConf_toHaTeX
          , MathematicalLaTeX
          , MathematicalLaTeX_
          , MathematicalLaTeXT
@@ -67,3 +68,8 @@ instance (Monad m) => IsString (MathematicalLaTeXT m a) where
 srcNLEnv :: LaTeX -> LaTeX
 srcNLEnv e = raw"\n" <> e <> raw"\n"
                                
+
+
+wDefaultConf_toHaTeX :: Monad m => MathematicalLaTeXT m a -> LaTeXT m a
+wDefaultConf_toHaTeX = (`runReaderT` mathLaTeXExprDefaultConfig)
+               . liftM fst . (`runStateT`texMathGroundState)
