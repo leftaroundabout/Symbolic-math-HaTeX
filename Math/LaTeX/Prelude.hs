@@ -29,13 +29,13 @@ module Math.LaTeX.Prelude (
   , ComparisonsEval
     -- * Arithmetic calculations
     -- ** Sums
-  , finRSum , polyFinRSum
+  , limsSum , polyLimsSum
   , lSetSum , polyLSetSum
     -- ** Products
-  , finRProd , polyFinRProd
+  , limsProd , polyLimsProd
   , lSetProd , polyLSetProd
     -- ** Generic folds
-  , finRFold_bigSymb , polyFinRFold_bigSymb
+  , limsFold_bigSymb , polyLimsFold_bigSymb
   , lSetFold_bigSymb , polyLSetFold_bigSymb
   , listAsFinSet
     -- * Rendering
@@ -70,6 +70,8 @@ module Math.LaTeX.Prelude (
 
 
 import Math.LaTeX.Internal.MathExpr
+import Math.LaTeX.RendConfig
+import Math.LaTeX.Internal.RendMonad
 
 import Text.LaTeX.Base
 import Text.LaTeX.Base.Class
@@ -390,35 +392,8 @@ mathDefinition varn e = do
 
 
 
-srcNLEnv :: LaTeX -> LaTeX
-srcNLEnv e = raw"\n" <> e <> raw"\n"
                                
-                               
-          -- TeXMathDisplayConf should eventually contains things
-          -- like the default way to render e.g. multiplication
-          -- ('\cdot' vs '\times' or what environments to use.
-type TeXMathConfiguration = ()
-data TeXMathStateProps = TeXMathStateProps {
-   punctuationNeededAtDisplayEnd :: Maybe String
- }
 
-texMathGroundState :: TeXMathStateProps
-texMathGroundState = TeXMathStateProps {
-   punctuationNeededAtDisplayEnd = Nothing
- }
-
-type MathematicalLaTeXT m a = StateT TeXMathStateProps (
-                              ReaderT TeXMathConfiguration (LaTeXT m) ) a
-type MathematicalLaTeXT_ m = MathematicalLaTeXT m ()  -- ReaderT TeXMathDisplayConf (LaTeXT m) ()
-type MathematicalLaTeX a = MathematicalLaTeXT Identity a  -- ReaderT TeXMathDisplayConf (LaTeXT Identity) a
-type MathematicalLaTeX_ = MathematicalLaTeXT Identity () -- ReaderT TeXMathDisplayConf (LaTeXT Identity) ()
-
-instance (Monad m) => IsString (MathematicalLaTeXT m a) where
-  fromString s = do
-     (TeXMathStateProps {..}) <- get
-     lift . lift . fromString $ case punctuationNeededAtDisplayEnd of
-        Just pnct -> pnct ++ " " ++ s
-        Nothing   -> s
 
 
 infixr 4 ...:

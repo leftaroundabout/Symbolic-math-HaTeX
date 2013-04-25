@@ -16,21 +16,25 @@
 {-# LANGUAGE OverlappingInstances             #-}
 {-# LANGUAGE PatternGuards                    #-}
 {-# LANGUAGE TypeFamilies                     #-}
+{-# LANGUAGE RecordWildCards                  #-}
 
 
 module Math.LaTeX.VoidCalc where
 
 
 import Math.LaTeX.Prelude
+import Math.LaTeX.Internal.MathExpr
+import Math.LaTeX.Internal.RendMonad
 
 
 import Text.LaTeX.Base
 import Text.LaTeX.Base.Class
 import Text.LaTeX.Base.Syntax
-import Text.LaTeX.Packages.AMSMath
+import qualified Text.LaTeX.Packages.AMSMath as AMS
 import qualified Data.Text as T
 
 import Control.Applicative
+import Control.Monad
 import Control.Monad.Reader
 import Control.Monad.Identity
 
@@ -38,11 +42,14 @@ import Data.Void
 
 import Data.List
 import Data.HList
+import Data.Foldable
 import Data.Function
 import Data.Functor.FixedLength
 import Data.Ratio
 import Data.Functor.Contravariant
 import Data.String
+
+import Data.Complex(Complex(..))
 
 
 
@@ -73,3 +80,48 @@ instance (IsVoid l) => IsVoid (HCons e l)
 unknown :: IsVoid arg => MathPrimtvId -> MathLaTeXEval r arg
 unknown = mathDepPrimitiv absurdV
 
+muteFunction :: IsVoid arg
+     => (LaTeX -> LaTeX) -> MathLaTeXEval r arg -> MathEvaluation r arg
+muteFunction fn e = MathEnvd ( \(Identity _) -> absurdV )
+                             ( fn . runIdentity )
+                             ( Identity $ contramap hHead e )
+ 
+muteFn :: IsVoid arg => LaTeX -> MathLaTeXEval r arg -> MathLaTeXEval r arg
+muteFn fn e@(MathLaTeXEval _ fxty)
+   = MathLaTeXEval (muteFunction funnamer e) $ Infix 9
+ where funnamer incl
+         | isotropFixity fxty <= 9   = fn <> braces (AMS.autoParens incl)
+         | otherwise                 = fn <> commS":" <> braces incl
+
+
+type NaiveInfReal = Double
+type PseudoReal = Double
+type PseudoComplex = Complex Double
+
+class InfReal r where
+  infty :: r
+
+instance InfReal NaiveInfReal where
+  infty = 1/0
+
+instance (InfReal r) => InfReal(MathLaTeXEval r arg) where
+  infty = mathPrimitiv infty AMS.infty
+  
+
+inline :: Monad m => MathHard b -> MathematicalLaTeXT m ()
+inline = liftM (const ()) . inlineMathExpr
+
+display :: Monad m => MathHard b -> MathematicalLaTeXT m ()
+display = liftM (const ()) . displayMathExpr
+
+inlinePrTypeAs, displayPrTypeAs :: Monad m => b -> MathHard b -> MathematicalLaTeXT m ()
+inlinePrTypeAs = const inline; displayPrTypeAs = const display
+
+inlineIntegerExpr, displayIntegerExpr :: Monad m => MathHard Integer -> MathematicalLaTeXT m ()
+displayIntegerExpr = display; inlineIntegerExpr = inline
+
+inlineRealExpr, displayRealExpr :: Monad m => MathHard PseudoReal -> MathematicalLaTeXT m ()
+displayRealExpr = display; inlineRealExpr = inline
+
+inlineComplexExpr, displayComplexExpr :: Monad m => MathHard PseudoComplex -> MathematicalLaTeXT m ()
+displayComplexExpr = display; inlineComplexExpr = inline

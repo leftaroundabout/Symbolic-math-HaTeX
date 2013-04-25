@@ -3,10 +3,11 @@
 
 
 import Math.LaTeX.Prelude
+import Math.LaTeX.VoidCalc
 
 import Text.LaTeX
 import Text.LaTeX.Packages.Inputenc
-import Text.LaTeX.Packages.AMSMath
+import qualified Text.LaTeX.Packages.AMSMath as AMS
 
 import Data.Complex(Complex(..))
 import Data.Complex.Class
@@ -29,7 +30,7 @@ thePreamble :: Monad m => LaTeXT_ m
 thePreamble = do
    documentclass [] article
    usepackage [utf8] inputenc
-   usepackage [] amsmath
+   usepackage [] AMS.amsmath
    author "Justus Sagemüller"
    title "Simple example"
 
@@ -55,10 +56,10 @@ theContents = do
          "For "
          x <- mathDefinition "x" 19
          " and "
-         τ <- mathDefinition tau $ 2*pi
+         tau <- mathDefinition AMS.tau $ 2*pi
          ", "...:"."
          displayMathExpr_wRResult $
-                    2 + 7*(6 - τ) - exp(5 - sqrt(x**2 + 4/pi))
+                    2 + 7*(6 - tau) - exp(5 - sqrt(x**2 + 4/pi))
    
    _::[Complex Double] <- mapM displayMathExpr_wRResult [
           2 +| (-1)
@@ -69,18 +70,22 @@ theContents = do
    
    sums::[Double] <- mapM displayMathExpr_wRResult
       [ lSetSum "n" (listAsFinSet[0,1,4,5]) (2.5 - )
-      , finRSum "n" 1 4  (2.5 - )
-      , finRSum "j" 1 40 $ cos . (2*pi/40*)
-      , realPart (finRSum "j" 1 40 $ cis . (2*pi/40*)
+      , limsSum "n" 1 4  (2.5 - )
+      , limsSum "j" 1 40 $ cos . (2*pi/40*)
+      , realPart (limsSum "j" 1 40 $ cis . (2*pi/40*)
                     :: MathExpr (Complex Double) )
-      , 2 * finRSum "i" 1 6 (\i -> i^2 + i) 
-      , finRSum "i" 1 6 (\i -> i^2 + i) * 2
-      , finRSum "i" 1 6 (\i -> i^2 + i * 2)
-      , finRSum "i" 1 6 $ finRSum "j" 1 6 . (*)
-      , polyFinRSum "i" 1 6 $ \i -> i * finRSum "j" 1 6 id
-      , polyFinRSum "i" 1 6 $ \i -> finRSum "j" 1 i (i*)
-      , polyFinRSum "i" 1 6 $ \i -> finRProd "j" 1 i (i*)
+      , 2 * limsSum "i" 1 6 (\i -> i^2 + i) 
+      , limsSum "i" 1 6 (\i -> i^2 + i) * 2
+      , limsSum "i" 1 6 (\i -> i^2 + i * 2)
+      , limsSum "i" 1 6 $ limsSum "j" 1 6 . (*)
+      , polyLimsSum "i" 1 6 $ \i -> i * limsSum "j" 1 6 id
+      , polyLimsSum "i" 1 6 $ \i -> limsSum "j" 1 i (i*)
+      , polyLimsSum "i" 1 6 $ \i -> limsProd "j" 1 i (i*)
       ]
+   
+   "Sums may also be only well-defined in an analytical sense, e.g. range to infinity, like"...:"."
+   displayRealExpr .
+       limsSum "j" 1 infty $ (1/) . (^2)
    
    fromHaTeX $ subsection "Checking some simple identities"
    

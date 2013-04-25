@@ -370,7 +370,7 @@ listAsFinSet ls = listExpr `MathLaTeXEval` Infix 9
 
 
 -- | Gather the results over some range. The usual @ᵢ₌₁Σ³ aᵢ⋅bᵢ@-thing.
-finRFold_bigSymb :: forall rng res a sumVarDep svdStack .
+limsFold_bigSymb :: forall rng res a sumVarDep svdStack .
               ( Enum rng, Monoid res
               , BasedUpon sumVarDep svdStack, sumVarDep ~ HCons rng a ) =>
       MathPrimtvId -> LaTeX
@@ -378,7 +378,7 @@ finRFold_bigSymb :: forall rng res a sumVarDep svdStack .
           -> ( MathLaTeXEval rng svdStack
               -> MathLaTeXEval res sumVarDep )
           -> MathLaTeXEval res a
-finRFold_bigSymb sumVar folderVis lBound uBound summand
+limsFold_bigSymb sumVar folderVis lBound uBound summand
   = sumExpr `MathLaTeXEval` RightGreedy 6
  where sumExpr = MathEnvd ( \(Triple rngLG rngUG summandG) _ ->
                                mconcat [ fst $ summandG x
@@ -391,13 +391,13 @@ finRFold_bigSymb sumVar folderVis lBound uBound summand
                                    (pseudoFmap coFst . summand
                                       $ mathVarEntry sumVar (hHead.(basement :: svdStack->sumVarDep))                     ) )
  
--- | Just as 'finRFold_bigSymb', but as a Rank3-function. This allows the summation-variable to
+-- | Just as 'limsFold_bigSymb', but as a Rank3-function. This allows the summation-variable to
 -- be used in multiple different closures, i.e. in different nesting-depths of local-sums
 -- (recall that variables are type-parameterised on the entire closure).
 -- However, rank>1-polymorphism cannot in general be type-infered, so you may need
 -- to provide explicit signatures, which will tend to be less than beautiful. Often,
--- the simpler 'finRFold_bigSymb' will also work and should be preferred.
-polyFinRFold_bigSymb :: forall rng res a sumVarDep svdStack .
+-- the simpler 'limsFold_bigSymb' will also work and should be preferred.
+polyLimsFold_bigSymb :: forall rng res a sumVarDep svdStack .
               ( Enum rng, Monoid res
               , sumVarDep ~ HCons rng a ) =>
       MathPrimtvId -> LaTeX
@@ -405,7 +405,7 @@ polyFinRFold_bigSymb :: forall rng res a sumVarDep svdStack .
           -> ( (forall svdStack. BasedUpon sumVarDep svdStack
                  => MathLaTeXEval rng svdStack) -> MathLaTeXEval res sumVarDep )
           -> MathLaTeXEval res a
-polyFinRFold_bigSymb sumVar folderVis lBound uBound summand
+polyLimsFold_bigSymb sumVar folderVis lBound uBound summand
   = sumExpr `MathLaTeXEval` RightGreedy 6
  where sumExpr = MathEnvd ( \(Triple rngLG rngUG summandG) _ ->
                                mconcat [ fst $ summandG x
@@ -455,32 +455,32 @@ polyLSetProd sv rngLG = pseudoFmap getProduct
                     . polyLSetFold_bigSymb sv (TeXCommS "prod") rngLG
                     . (pseudoFmap Product .)
  
-finRSum, finRProd :: forall rng res a sumVarDep svdStack .
+limsSum, limsProd :: forall rng res a sumVarDep svdStack .
               ( Enum rng, Num res
               , BasedUpon sumVarDep svdStack, sumVarDep ~ HCons rng a ) =>
       MathPrimtvId -> MathLaTeXEval rng a -> MathLaTeXEval rng a
           -> ( MathLaTeXEval rng svdStack
               -> MathLaTeXEval res sumVarDep )
           -> MathLaTeXEval res a
-finRSum sv lBG uBG = pseudoFmap getSum
-                    . finRFold_bigSymb sv (TeXCommS "sum") lBG uBG
+limsSum sv lBG uBG = pseudoFmap getSum
+                    . limsFold_bigSymb sv (TeXCommS "sum") lBG uBG
                     . (pseudoFmap Sum .)
-finRProd sv lBG uBG = pseudoFmap getProduct
-                    . finRFold_bigSymb sv (TeXCommS "prod") lBG uBG
+limsProd sv lBG uBG = pseudoFmap getProduct
+                    . limsFold_bigSymb sv (TeXCommS "prod") lBG uBG
                     . (pseudoFmap Product .)
 
-polyFinRSum, polyFinRProd :: forall rng res a sumVarDep svdStack .
+polyLimsSum, polyLimsProd :: forall rng res a sumVarDep svdStack .
               ( Enum rng, Num res
               , sumVarDep ~ HCons rng a ) =>
       MathPrimtvId -> MathLaTeXEval rng a -> MathLaTeXEval rng a
           -> ( (forall svdStack. BasedUpon sumVarDep svdStack
                  => MathLaTeXEval rng svdStack) -> MathLaTeXEval res sumVarDep )
           -> MathLaTeXEval res a
-polyFinRSum sv lBG uBG = pseudoFmap getSum
-                    . polyFinRFold_bigSymb sv (TeXCommS "sum") lBG uBG
+polyLimsSum sv lBG uBG = pseudoFmap getSum
+                    . polyLimsFold_bigSymb sv (TeXCommS "sum") lBG uBG
                     . (pseudoFmap Sum .)
-polyFinRProd sv lBG uBG = pseudoFmap getProduct
-                    . polyFinRFold_bigSymb sv (TeXCommS "prod") lBG uBG
+polyLimsProd sv lBG uBG = pseudoFmap getProduct
+                    . polyLimsFold_bigSymb sv (TeXCommS "prod") lBG uBG
                     . (pseudoFmap Product .)
 
 

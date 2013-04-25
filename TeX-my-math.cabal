@@ -76,7 +76,10 @@ Library
                      , void
   Exposed-modules:   Math.LaTeX.Prelude
                      Math.LaTeX.VoidCalc
-  Other-modules:     Data.List.NonEmpty
+                     Math.LaTeX.RendConfig
+  Other-modules:     Math.LaTeX.Internal.MathExpr
+                     Math.LaTeX.Internal.RendMonad
+                     Data.List.NonEmpty
                      Data.Chain Data.Functor.FixedLength
                      Data.HList.BasedUpon
                      Data.Complex.Class
