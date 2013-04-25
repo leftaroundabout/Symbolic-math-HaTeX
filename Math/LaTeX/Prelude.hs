@@ -310,7 +310,8 @@ mathExprEvalRough = roughMathExpr . mathExprCalculate_
 
 inlineMathExpr :: Monad m => MathLaTeXEval b arg -> MathematicalLaTeXT m (arg->b)
 inlineMathExpr e = do
-   lift.lift . fromLaTeX . math $ mathExprRender e
+   rendCfg <- ask
+   lift.lift . fromLaTeX . math $ runReader (mathExprRender e) rendCfg
    return $ mathExprCalculate e
 
 inlineMathExpr_ :: Monad m => MathExpr b -> MathematicalLaTeXT m b
@@ -319,9 +320,11 @@ inlineMathExpr_ = liftM ($HNil) . inlineMathExpr
 
 displayMathExpr :: Monad m => MathLaTeXEval b arg -> MathematicalLaTeXT m (arg->b)
 displayMathExpr e = do
+   rendCfg <- ask
    stProps@(TeXMathStateProps {..}) <- get
    lift.lift . fromLaTeX . mathDisplay . srcNLEnv 
-       $ mathExprRender e <> fold(fmap fromString punctuationNeededAtDisplayEnd)
+       $ runReader (mathExprRender e) rendCfg
+           <> fold(fmap fromString punctuationNeededAtDisplayEnd)
    put $ stProps{ punctuationNeededAtDisplayEnd = Nothing }
    return $ mathExprCalculate e
         
@@ -359,21 +362,24 @@ displayMathExpr_wRResult e = do
 displayMathCompareSeq :: Monad m => ComparisonsEval x (MathLaTeXEval x arg)
                            -> MathematicalLaTeXT m (arg->Bool)
 displayMathCompareSeq (ComparisonsEval comparisons) = do
+  rendCfg <- ask
   stProps@(TeXMathStateProps {..}) <- get
+  let (renders, result) 
+         = bifoldr(\(re, q) (ecs,predc)
+                    -> ((`re` ecs mempty), liftA2(&&) q predc) )
+                  (\e (ecs,predc) 
+                    -> (const . ecs $ runReader (mathExprRender e) rendCfg, predc) )
+                  (id, const True)
+            . linksZipWith (first . flip($)) (raw"\n   &" : repeat (raw"\n \\\\ &"))
+            $ linkMap (\l (cmp,re) r 
+                        -> let [l',r'] = map mathExprCalculate [l,r]
+                           in (re, liftA2 cmp l' r')                 )
+                  comparisons
   lift.lift . fromLaTeX . align_
      $ [ renders mempty <> fold(fmap fromString punctuationNeededAtDisplayEnd) ]
   put $ stProps{ punctuationNeededAtDisplayEnd = Nothing }
   return result
- where (renders, result) = bifoldr(\(re, q) (ecs,predc)
-                                     -> ((`re` ecs mempty), liftA2(&&) q predc) )
-                                  (\e (ecs,predc) 
-                                     -> (const . ecs $ mathExprRender e, predc) )
-                                  (id, const True)
-            . linksZipWith (first . flip($)) (raw"\n   &" : repeat (raw"\n \\\\ &"))
-            $ linkMap (\l (cmp,re) r -> let[l',r']=map mathExprCalculate[l,r]
-                                        in (re, liftA2 cmp l' r')             )
-                  comparisons
-                                        
+                                       
 displayMathCompareSeq_ :: Monad m => ComparisonsEval x (MathExpr x) 
                                                       -> MathematicalLaTeXT m Bool
 displayMathCompareSeq_ = liftM ($HNil) . displayMathCompareSeq
@@ -389,7 +395,8 @@ displayMathCompareSeq_ = liftM ($HNil) . displayMathCompareSeq
 mathDefinition :: Monad m => MathPrimtvId -> MathExpr b
                                 -> MathematicalLaTeXT m(MathExpr b)
 mathDefinition varn e = do
-   lift.lift . fromLaTeX . math $ varn =: mathExprRender e
+   rendCfg <- ask
+   lift.lift . fromLaTeX . math $ varn =: runReader (mathExprRender e) rendCfg
    return $ mathPrimitiv (mathExprCalculate_ e) varn
 
 

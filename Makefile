@@ -5,7 +5,7 @@ RUNHS = runhaskell
 TeXC = bin/pdflatex_halt-on-error.sh
 
 libTeXMyMath = dist/build/HSTeX-my-math-0.1.o
-libTeXMyMath_src = Math/LaTeX/*.hs
+libTeXMyMath_src = Math/LaTeX/*.hs Math/LaTeX/Internal/*.hs
 
 
 shorttest0/shorttest0.pdf : shorttest0.hs $(libTeXMyMath)

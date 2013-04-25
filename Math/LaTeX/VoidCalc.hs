@@ -83,7 +83,7 @@ unknown = mathDepPrimitiv absurdV
 muteFunction :: IsVoid arg
      => (LaTeX -> LaTeX) -> MathLaTeXEval r arg -> MathEvaluation r arg
 muteFunction fn e = MathEnvd ( \(Identity _) -> absurdV )
-                             ( fn . runIdentity )
+                             ( return . fn . runIdentity )
                              ( Identity $ contramap hHead e )
  
 muteFn :: IsVoid arg => LaTeX -> MathLaTeXEval r arg -> MathLaTeXEval r arg
