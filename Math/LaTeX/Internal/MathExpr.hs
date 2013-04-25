@@ -185,29 +185,38 @@ mathExprInfix ifx ifxn el er
              ( \(Pair q p) -> ifxn q p )
              ( Pair (contramap hHead el) (contramap hHead er) )
              
-mathExprIfx :: (a->a->r) -> MathPrimtvId -> Fixity
-                 -> MathLaTeXEval a c -> MathLaTeXEval a c ->  MathLaTeXEval r c
-mathExprIfx ifx ifxn fxty el@(MathLaTeXEval _ fxtl) er@(MathLaTeXEval _ fxtr)
+symChoiceIfx :: (ea ~ MathLaTeXEval a c, er ~ MathLaTeXEval r c)
+      => (a->a->r) -> (MathSymbolTranslations -> LaTeX) -> Fixity 
+        -> ea -> ea -> er
+symChoiceIfx ifx ifxc fxty el@(MathLaTeXEval _ fxtl) er@(MathLaTeXEval _ fxtr)
     = MathLaTeXEval (mathExprInfix ifx ifxNamer el er) $ MathExprCompound fxty
- where ifxNamer lexpr rexpr = return $ mconcat
-                  [ case(fxty,fxtl) of
-                      ( Infixl ε, MathExprCompound (Infixl κ) )
-                         | ε<=κ  -> plain lexpr
-                      (ε, κ)
-                         | isotropFixity (MathExprCompound ε)
-                             < isotropFixity κ   -> plain lexpr
-                         | otherwise -> parenthd lexpr
-                  , " ", ifxn, " "
-                  , case(fxty,fxtr) of
-                      (_, MathExprCompound (RightGreedy _)) -> plain rexpr
-                      (Infixr ε, MathExprCompound (Infixr κ) )
-                         | ε<=κ  -> plain rexpr
-                      (ε, κ)
-                         | isotropFixity (MathExprCompound ε)<isotropFixity κ   -> plain rexpr
-                         | otherwise -> parenthd rexpr
-                  ]
+ where ifxNamer lexpr rexpr = do
+          symbsCfg <- askMathSymbolTranslations
+          return $ mconcat
+             [ case(fxty,fxtl) of
+                 ( Infixl ε, MathExprCompound (Infixl κ) )
+                    | ε<=κ  -> plain lexpr
+                 (ε, κ)
+                    | isotropFixity (MathExprCompound ε)
+                        < isotropFixity κ   -> plain lexpr
+                    | otherwise -> parenthd lexpr
+             , " ", ifxc symbsCfg, " "
+             , case(fxty,fxtr) of
+                 (_, MathExprCompound (RightGreedy _)) -> plain rexpr
+                 (Infixr ε, MathExprCompound (Infixr κ) )
+                    | ε<=κ  -> plain rexpr
+                 (ε, κ)
+                    | isotropFixity (MathExprCompound ε)<isotropFixity κ   -> plain rexpr
+                    | otherwise -> parenthd rexpr
+             ]
        plain expr = braces expr
        parenthd = braces . autoParens
+ 
+mathExprIfx :: (ea ~ MathLaTeXEval a c, er ~ MathLaTeXEval r c)
+      => (a->a->r) -> LaTeX -> Fixity 
+          -> ea -> ea -> er
+mathExprIfx i s = symChoiceIfx i $ const s
+ 
        
 
 mathExpr_hetFn2 :: (a -> b -> r)
@@ -246,14 +255,22 @@ instance (Num res) => Num (MathLaTeXEval res arg) where
                                    (\inr -> return $ "-"<>autoParens(braces inr)<>"") q
                                   `mathCompound_wFixity` Infixl 6
    where res =  mathExprFunction negate (return . ("-"<>).braces) q
-  (*) = mathExprIfx (*) (commS"cdot") $ Infixl 7
+         
+  (*) = defaultMult
   
   signum = mathExprFn abs (mathrm"sgn")
   abs = (`mathCompound_wFixity`Infix 9) . mathExprFunction abs
            (return . autoBrackets "|" "|")
 
+
+defaultMult, atomVarMult, numLiteralMult
+  :: (Num res, e ~ MathLaTeXEval res arg) => e -> e -> e
+defaultMult = symChoiceIfx (*) defMultiplicationSymbol $ Infixl 7       
+numLiteralMult = symChoiceIfx (*) numeralMultiplicationSymbol $ Infixl 7       
+atomVarMult = symChoiceIfx (*) atomVarMultiplicationSymbol $ Infixl 7       
  
- 
+
+
 
 infixr 8 ^
 class Num x => Powerable x where

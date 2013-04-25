@@ -8,6 +8,7 @@
 -- Portability : requires GHC>6 extensions
 -- 
 
+{-# LANGUAGE FlexibleContexts         #-}
 
 
 module Math.LaTeX.RendConfig where
@@ -25,6 +26,7 @@ import Data.Function
 import Data.String
 
 
+
 data MathSymbolTranslations = MathSymbolTranslations
   { defMultiplicationSymbol
   , numeralMultiplicationSymbol
@@ -40,3 +42,8 @@ mathLaTeXExprDefaultConfig = MathSymbolTranslations
       , numeralMultiplicationSymbol = commS"times"
       , atomVarMultiplicationSymbol = commS","
       }
+
+
+askMathSymbolTranslations :: MonadReader TeXMathConfiguration m
+           => m MathSymbolTranslations
+askMathSymbolTranslations = ask
