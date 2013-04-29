@@ -287,8 +287,8 @@ prettyFloatApprox x
                 = RoughExpr $ mR * 10 ^ fromInteger expn
     | (intgPart, fractPt) <- break(=='.') s
     , length fractPt > 5
-          = RoughExpr . mathPrimitiv x . fromString $ intgPart ++ strRound 4 fractPt
-    | otherwise = ExactRoughExpr . mathPrimitiv x $ fromString s
+          = RoughExpr . mathNumPrimitiv x . fromString $ intgPart ++ strRound 4 fractPt
+    | otherwise = ExactRoughExpr . mathNumPrimitiv x $ fromString s
  where s = remTrailing0 $ show x
        remTrailing0 = reverse . r0 . reverse
         where r0 ('0':'.':n) = n

@@ -271,7 +271,7 @@ mathExpr_hetFn2 ifx ifxn el er
                                    
 
 instance (Num res) => Num (MathLaTeXEval res arg) where
-  fromInteger n = mathPrimitiv (fromInteger n) (rendertex n)
+  fromInteger n = mathNumPrimitiv (fromInteger n) (rendertex n)
   
   (+) = mathExprIfx (+) "+" $ Infixl 6
   (-) = mathExprIfx (-) "-" $ Infixl 6
@@ -297,9 +297,10 @@ numLiteralMult = symChoiceIfx (*) (\_ _ -> reader numeralMultiplicationSymbol) $
 atomVarMult    = symChoiceIfx (*) (\_ _ -> reader atomVarMultiplicationSymbol) $ Infixl 7
 autoMult       = symChoiceIfx (*) ((reader.) . acs) $ Infixl 7       
  where acs MathExprAtomSymbol MathExprAtomSymbol = atomVarMultiplicationSymbol
-       acs MathExprNumLiteral   _                    = numeralMultiplicationSymbol
-       acs _                    MathExprNumLiteral   = numeralMultiplicationSymbol
-       acs _                    _                    = defMultiplicationSymbol
+       acs MathExprNumLiteral MathExprAtomSymbol = atomVarMultiplicationSymbol
+       acs MathExprNumLiteral _                  = numeralMultiplicationSymbol
+       acs _                  MathExprNumLiteral = numeralMultiplicationSymbol
+       acs _                  _                  = defMultiplicationSymbol
  
 
 
