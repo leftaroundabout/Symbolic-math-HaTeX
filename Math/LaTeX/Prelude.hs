@@ -181,10 +181,12 @@ exprnCompareMid cmp rend a b = compareMid cmp rComb a b
    where rComb α β = do
             MathLaTeXInfixAddenda{..} <- askMathLaTeXInfixAddenda
             let rend' a = rend $ a<>comparisonLineBreaker
-            mathCompound_wFixity(Infixr 4) $ (rend'`on`parenth) α β
-         parenth (MathLaTeX k c)
-          | isotropFixityOf k > 4  = c
-          | otherwise            = braces $ autoParens c
+            realise rend' α β
+         realise r' (MathLaTeX knL lExpr) (MathLaTeX _ rExpr) = do
+            mathCompound_wFixity(Infixr 4) $ r'
+               ( if isotropFixityOf knL > 4
+                  then noRedBraces lExpr
+                  else autoParens  lExpr ) rExpr
 
 instance (Eq x) => Equatable(MathLaTeXEval x arg) where
   type EquateExpressionResult(MathLaTeXEval x arg) = x
