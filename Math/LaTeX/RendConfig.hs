@@ -33,17 +33,32 @@ data MathSymbolTranslations = MathSymbolTranslations
   , atomVarMultiplicationSymbol  :: LaTeX
   }
 
+data MathLaTeXInfixAddenda = MathLaTeXInfixAddenda
+  { comparisonLineBreaker :: LaTeX
+  }
 
-type TeXMathConfiguration = MathSymbolTranslations
+
+data TeXMathConfiguration = TeXMathConfiguration
+  { mathSymbolTranslations :: MathSymbolTranslations
+  , mathLaTeXInfixAddenda :: MathLaTeXInfixAddenda
+  }
 
 mathLaTeXExprDefaultConfig :: TeXMathConfiguration
-mathLaTeXExprDefaultConfig = MathSymbolTranslations
+mathLaTeXExprDefaultConfig = TeXMathConfiguration
+  { mathSymbolTranslations = MathSymbolTranslations
       { defMultiplicationSymbol     = commS"cdot"
       , numeralMultiplicationSymbol = commS"times"
       , atomVarMultiplicationSymbol = commS","
       }
-
+  , mathLaTeXInfixAddenda = MathLaTeXInfixAddenda
+      { comparisonLineBreaker = mempty
+      }
+  }
 
 askMathSymbolTranslations :: MonadReader TeXMathConfiguration m
            => m MathSymbolTranslations
-askMathSymbolTranslations = ask
+askMathSymbolTranslations = liftM mathSymbolTranslations ask
+
+askMathLaTeXInfixAddenda :: MonadReader TeXMathConfiguration m
+           => m MathLaTeXInfixAddenda
+askMathLaTeXInfixAddenda = liftM mathLaTeXInfixAddenda ask

@@ -115,28 +115,28 @@ import Prelude hiding((^))
 
 
 
-type LaTeXDecoratableInfix = LaTeX -> LaTeXInfix
-type LaTeXInfix = LaTeX -> LaTeX -> LaTeX
-
-makeLaTeXInfixDecoratable :: LaTeXInfix -> LaTeXDecoratableInfix
-makeLaTeXInfixDecoratable ifx décor llexp rlexp = llexp <> décor `ifx` rlexp
+-- type DecoratableInfix = LaTeX -> MathLaTeXInfix 
+-- 
+-- makeInfixDecoratable :: MathLaTeXInfix -> DecoratableInfix
+-- makeInfixDecoratable ifx décor (MathLaTeX lknd llexp) rlexp
+--    = llexp <> décor `ifx` rlexp
 
 newtype ComparisonsEval x expr
-   = ComparisonsEval { runComparisonsEval :: Chain (x->x->Bool, LaTeXDecoratableInfix) expr }
+   = ComparisonsEval { runComparisonsEval :: Chain (x->x->Bool, MathLaTeXInfix) expr }
 
 instance Functor (ComparisonsEval x) where
   fmap f (ComparisonsEval ev) = ComparisonsEval $ fmap f ev
   
   
-compareEnd :: (x -> x -> Bool) -> (LaTeX->LaTeX->LaTeX)
+compareEnd :: (x -> x -> Bool) -> MathLaTeXInfix
     -> expr -> expr -> ComparisonsEval x expr -- arg
 compareEnd cmp rend e 
-   = ComparisonsEval . Couple e (cmp, makeLaTeXInfixDecoratable rend)
+   = ComparisonsEval . Couple e (cmp, rend)
 
-compareMid :: (x ->x -> Bool) -> (LaTeX->LaTeX->LaTeX)
+compareMid :: (x ->x -> Bool) -> MathLaTeXInfix
     -> expr -> ComparisonsEval x expr -> ComparisonsEval x expr -- arg
 compareMid cmp rend e (ComparisonsEval c) 
-   = ComparisonsEval $ chainConsl e (cmp, makeLaTeXInfixDecoratable rend) c
+   = ComparisonsEval $ chainConsl e (cmp, rend) c
 
 leftmostComparedExpr :: ComparisonsEval x expr -> expr
 leftmostComparedExpr (ComparisonsEval e) = leftEnd e
@@ -166,25 +166,25 @@ class (Equatable x) => RoughEqable x where
 exprnCompareEnd :: (x->x-> Bool) -> (LaTeX->LaTeX->LaTeX)
     -> MathLaTeXEval x arg -> MathLaTeXEval x arg
     -> ComparisonsEval x (MathLaTeXEval x arg)
-exprnCompareEnd cmp rend a b
-           = compareEnd cmp -- (\a b arg -> (cmp`on`(`mathExprEval`arg)) a b)
-                          rComb a b
-   where rComb α β = α'`rend`β'
-          where [α',β'] = zipWith parenth [a,b] [α,β]
-                parenth (MathLaTeXEval _ c) γ 
-                     | isotropFixity c > 4  = γ
-                     | otherwise            = braces $ autoParens γ
+exprnCompareEnd cmp rend = compareEnd cmp rComb
+   where rComb α β = do
+            MathLaTeXInfixAddenda{..} <- askMathLaTeXInfixAddenda
+            let rend' a = rend $ a<>comparisonLineBreaker
+            mathCompound_wFixity(Infixr 4) $ (rend'`on`parenth) α β
+         parenth (MathLaTeX k c)
+          | isotropFixityOf k > 4  = c
+          | otherwise            = autoParens c
 exprnCompareMid :: (x->x-> Bool) -> (LaTeX->LaTeX->LaTeX)
     -> MathLaTeXEval x arg -> ComparisonsEval x (MathLaTeXEval x arg)
     -> ComparisonsEval x (MathLaTeXEval x arg)
-exprnCompareMid cmp rend a b
-           = compareMid cmp -- (\a b arg -> (cmp`on`(`mathExprEval`arg)) a b)
-                          rComb a b
-   where rComb α β = α'`rend`β'
-          where [α',β'] = zipWith parenth [a,leftmostComparedExpr b] [α,β]
-                parenth (MathLaTeXEval _ c) γ
-                     | isotropFixity c > 4  = γ
-                     | otherwise            = braces $ autoParens γ
+exprnCompareMid cmp rend a b = compareMid cmp rComb a b
+   where rComb α β = do
+            MathLaTeXInfixAddenda{..} <- askMathLaTeXInfixAddenda
+            let rend' a = rend $ a<>comparisonLineBreaker
+            mathCompound_wFixity(Infixr 4) $ (rend'`on`parenth) α β
+         parenth (MathLaTeX k c)
+          | isotropFixityOf k > 4  = c
+          | otherwise            = braces $ autoParens c
 
 instance (Eq x) => Equatable(MathLaTeXEval x arg) where
   type EquateExpressionResult(MathLaTeXEval x arg) = x
@@ -311,7 +311,8 @@ mathExprEvalRough = roughMathExpr . mathExprCalculate_
 inlineMathExpr :: Monad m => MathLaTeXEval b arg -> MathematicalLaTeXT m (arg->b)
 inlineMathExpr e = do
    rendCfg <- ask
-   lift.lift . fromLaTeX . math $ runReader (mathExprRender e) rendCfg
+   lift.lift . fromLaTeX . math . rendrdExpression 
+                  $ mathExprRender e `runReader` rendCfg
    return $ mathExprCalculate e
 
 inlineMathExpr_ :: Monad m => MathExpr b -> MathematicalLaTeXT m b
@@ -322,8 +323,8 @@ displayMathExpr :: Monad m => MathLaTeXEval b arg -> MathematicalLaTeXT m (arg->
 displayMathExpr e = do
    rendCfg <- ask
    stProps@(TeXMathStateProps {..}) <- get
-   lift.lift . fromLaTeX . mathDisplay . srcNLEnv 
-       $ runReader (mathExprRender e) rendCfg
+   lift.lift . fromLaTeX . mathDisplay . srcNLEnv
+       $  rendrdExpression (mathExprRender e `runReader` rendCfg)
            <> fold(fmap fromString punctuationNeededAtDisplayEnd)
    put $ stProps{ punctuationNeededAtDisplayEnd = Nothing }
    return $ mathExprCalculate e
@@ -363,20 +364,27 @@ displayMathCompareSeq :: Monad m => ComparisonsEval x (MathLaTeXEval x arg)
                            -> MathematicalLaTeXT m (arg->Bool)
 displayMathCompareSeq (ComparisonsEval comparisons) = do
   rendCfg <- ask
+  let otInfixAddenda = mathLaTeXInfixAddenda rendCfg
   stProps@(TeXMathStateProps {..}) <- get
-  let (renders, result) 
-         = bifoldr(\(re, q) (ecs,predc)
-                    -> ((`re` ecs mempty), liftA2(&&) q predc) )
-                  (\e (ecs,predc) 
-                    -> (const . ecs $ runReader (mathExprRender e) rendCfg, predc) )
-                  (id, const True)
-            . linksZipWith (first . flip($)) (raw"\n   &" : repeat (raw"\n \\\\ &"))
-            $ linkMap (\l (cmp,re) r 
+  let (result, renders) 
+         = bifoldr(\(qLink, reLink) (predc, ecs)
+                    -> (liftA2(&&) qLink predc, (`reLink` ecs undefined)) )
+                  (\expression (predc, ecs) 
+                    -> ( predc
+                       , const . ecs $ runReader (mathExprRender expression) rendCfg ) )
+                  (const True, id)
+           . linksZipWith
+                (\lineBkr -> second $ \re l r -> runReader (re l r) $
+                     rendCfg{mathLaTeXInfixAddenda
+                               = otInfixAddenda{comparisonLineBreaker=lineBkr} } )
+                (raw"\n   &" : repeat (raw"\n \\\\ &") )
+           $ linkMap (\l (cmp,re) r
                         -> let [l',r'] = map mathExprCalculate [l,r]
-                           in (re, liftA2 cmp l' r')                 )
+                           in (liftA2 cmp l' r', re)                 )
                   comparisons
   lift.lift . fromLaTeX . align_
-     $ [ renders mempty <> fold(fmap fromString punctuationNeededAtDisplayEnd) ]
+     $ [ rendrdExpression(renders undefined)
+       <> fold(fmap fromString punctuationNeededAtDisplayEnd) ]
   put $ stProps{ punctuationNeededAtDisplayEnd = Nothing }
   return result
                                        
@@ -396,7 +404,8 @@ mathDefinition :: Monad m => MathPrimtvId -> MathExpr b
                                 -> MathematicalLaTeXT m(MathExpr b)
 mathDefinition varn e = do
    rendCfg <- ask
-   lift.lift . fromLaTeX . math $ varn =: runReader (mathExprRender e) rendCfg
+   lift.lift . fromLaTeX . math $ 
+         varn =: rendrdExpression (mathExprRender e `runReader` rendCfg)
    return $ mathPrimitiv (mathExprCalculate_ e) varn
 
 

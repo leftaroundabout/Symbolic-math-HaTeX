@@ -81,17 +81,16 @@ unknown :: IsVoid arg => MathPrimtvId -> MathLaTeXEval r arg
 unknown = mathDepPrimitiv absurdV
 
 muteFunction :: IsVoid arg
-     => (LaTeX -> LaTeX) -> MathLaTeXEval r arg -> MathEvaluation r arg
+     => (MathLaTeX -> RendConfReadMathLaTeX) -> MathLaTeXEval r arg -> MathLaTeXEval r arg
 muteFunction fn e = MathEnvd ( \(Identity _) -> absurdV )
-                             ( return . fn . runIdentity )
+                             ( fn . runIdentity )
                              ( Identity $ contramap hHead e )
  
 muteFn :: IsVoid arg => LaTeX -> MathLaTeXEval r arg -> MathLaTeXEval r arg
-muteFn fn e@(MathLaTeXEval _ fxty)
-   = mathCompound_wFixity (muteFunction funnamer e) $ Infix 9
- where funnamer incl
-         | isotropFixity fxty <= 9   = fn <> braces (AMS.autoParens incl)
-         | otherwise                 = fn <> commS":" <> braces incl
+muteFn fn = muteFunction $ mathCompound_wFixity(Infix 9) . funnamer
+ where funnamer (MathLaTeX eKind incl)
+         | isotropFixityOf eKind <= 9  = fn <> (AMS.autoParens incl)
+         | otherwise                 = fn <> commS":" <> noRedBraces incl
 
 
 type NaiveInfReal = Double
