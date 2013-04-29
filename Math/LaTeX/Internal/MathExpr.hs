@@ -81,10 +81,11 @@ data MathExprKind
       -- ^ \"Tight\" symbols, like /x/, but possibly with e.g. subscripts, hat etc..
   | MathExprNumLiteral
   | MathExprCompound Fixity
-data Fixity = Infix Int
-            | Infixl Int
-            | Infixr Int
-            | RightGreedy Int
+data Fixity = Infix Int   -- ^ For non-associative operators with no generally agreed evaluation direction.
+            | InfixA Int  -- ^ For associative operators, i.e. the order doesn't matter and parens can thus be omitted if both operands have the same fixity.
+            | Infixl Int  -- ^ For left-associative ops; chaining such from the right will yield parens but not from the left.
+            | Infixr Int  -- ^ Right-associative.
+            | RightGreedy Int -- ^ Expressions like sums or integrals, which only extend to the right with their given fixity, but never to the left.
 
 -- data MathLaTeXEval res arg
 --    = MathLaTeXEval { mathLaTeXevaluation :: MathEvaluation res arg 
@@ -113,12 +114,13 @@ isotropFixity :: Fixity -> Int
 isotropFixity (Infix n) = n
 isotropFixity (Infixl n) = n
 isotropFixity (Infixr n) = n
+isotropFixity (InfixA n) = n
 isotropFixity (RightGreedy n) = n
    
 autoParensWhenFxtyLT :: Int -> MathLaTeX -> MathLaTeX
 autoParensWhenFxtyLT n e@(MathLaTeX knd expr)
- | n > isotropFixityOf knd  = MathLaTeX (MathExprCompound $ Infix 9) $ autoParens expr
- | otherwise              = e
+ | isotropFixityOf knd < n  = MathLaTeX (MathExprCompound $ Infix 9) $ autoParens expr
+ | otherwise                = e
 
 instance Contravariant (MathLaTeXEval res) where
   contramap f(MathEnvd g wr encld) = MathEnvd g' wr encld'
@@ -212,39 +214,64 @@ mathExprInfix ifx ifxn el er
              ( \(Pair q p) -> ifxn q p )
              ( Pair (contramap hHead el) (contramap hHead er) )
              
-symChoiceIfx :: (ea ~ MathLaTeXEval a c, er ~ MathLaTeXEval r c)
-      => (a->a->r) -> (MathExprKind -> MathExprKind 
+symChoiceIfx :: (a->a->r) -> (MathExprKind -> MathExprKind 
                           -> Reader MathSymbolTranslations LaTeX) 
             -> Fixity
-        -> ea -> ea -> er
-symChoiceIfx ifx ifxc fxty el er
-    = mathExprInfix ifx ifxNamer el er
+            -> MathLaTeXEval a c -> MathLaTeXEval a c -> MathLaTeXEval r c
+symChoiceIfx ifx ifxc fxty = mathExprInfix ifx ifxNamer
  where ifxNamer :: MathLaTeXInfix
        ifxNamer (MathLaTeX knL lexpr) (MathLaTeX knR rexpr) = do
           symbsCfg <- askMathSymbolTranslations
           mathCompound_wFixity fxty $ mconcat
              [ case(fxty,knL) of
+                 ( InfixA ε, MathExprCompound (InfixA κ) )
+                    | ε<=κ  -> lexpr
+                 ( InfixA ε, MathExprCompound (Infixl κ) )
+                    | ε<=κ  -> lexpr
+                 ( Infixl ε, MathExprCompound (InfixA κ) )
+                    | ε<=κ  -> lexpr
                  ( Infixl ε, MathExprCompound (Infixl κ) )
-                    | ε<=κ  -> noRedBraces lexpr
+                    | ε<=κ  -> lexpr
                  (ε, κ)
-                    | isotropFixity ε < isotropFixityOf κ   -> noRedBraces lexpr
-                    | otherwise -> parenthd lexpr
+                    | isotropFixity ε < isotropFixityOf κ   -> lexpr
+                    | otherwise -> autoParens lexpr
              , " ", runReader (ifxc knL knR) symbsCfg , " "
              , case(fxty,knR) of
-                 (_, MathExprCompound (RightGreedy _)) -> noRedBraces rexpr
-                 (Infixr ε, MathExprCompound (Infixr κ) )
-                    | ε<=κ  -> noRedBraces rexpr
+                 (_, MathExprCompound (RightGreedy _)) -> rexpr
+                 ( InfixA ε, MathExprCompound (InfixA κ) )
+                    | ε<=κ  -> rexpr
+                 ( InfixA ε, MathExprCompound (Infixr κ) )
+                    | ε<=κ  -> rexpr
+                 ( Infixr ε, MathExprCompound (InfixA κ) )
+                    | ε<=κ  -> rexpr
+                 ( Infixr ε, MathExprCompound (Infixr κ) )
+                    | ε<=κ  -> rexpr
                  (ε, κ)
-                    | isotropFixity ε<isotropFixityOf κ   -> noRedBraces rexpr
-                    | otherwise -> parenthd rexpr
+                    | isotropFixity ε<isotropFixityOf κ   -> rexpr
+                    | otherwise -> autoParens rexpr
              ]
-       parenthd = braces . autoParens
  
 mathExprIfx :: (ea ~ MathLaTeXEval a c, er ~ MathLaTeXEval r c)
       => (a->a->r) -> LaTeX -> Fixity 
           -> ea -> ea -> er
 mathExprIfx i s = symChoiceIfx i $ \_ _ -> return s
  
+
+data SubOrSupScrt = Subscript | Superscript
+
+subOrSupScrtIfx :: (a->a->r) -> SubOrSupScrt 
+      -> MathLaTeXEval a c -> MathLaTeXEval a c -> MathLaTeXEval r c
+subOrSupScrtIfx ifx sscKind = mathExprInfix ifx ifxNamer
+ where ifxNamer :: MathLaTeXInfix
+       ifxNamer (MathLaTeX knL lexpr) (MathLaTeX knR rexpr)
+        = mathCompound_wFixity (Infixr 8) $ mconcat
+             [ if isotropFixityOf knL > 8 then lexpr
+                                          else autoParens lexpr
+             , raw $ case sscKind of Subscript -> "_"
+                                     Superscript -> "^"
+             , noRedBraces rexpr
+             ]
+
        
 
 mathExpr_hetFn2 :: (a -> b -> r)
@@ -257,23 +284,12 @@ mathExpr_hetFn2 ifx ifxn el er
                     ( pseudoFmap coSnd $ contramap hHead er ) )
 
 
--- mathExprInfix :: (a->b->r) -> MathPrimtvId -> Fixity
---     -> MathLaTeXEval c a -> MathLaTeXEval c b -> MathLaTeXEval c r
--- mathExprInfix ifx ifxn fxty (MathLaTeXEval a fxta) (MathLaTeXEval b fxtb)
---    = MathLaTeXEval resExprn fxty 
---  where resexprn
---          = MathEnvd ( \q c -> q $ c c )
---                     ( "" )
---                     ( \inc -> `T.concat`[ fn, "\\left(", inc, "\\right" ] )
---        ifxRender
---         | fxty < min fxta fxtb  = 
---         | otherwise             = 
                                    
 
 instance (Num res) => Num (MathLaTeXEval res arg) where
   fromInteger n = mathNumPrimitiv (fromInteger n) (rendertex n)
   
-  (+) = mathExprIfx (+) "+" $ Infixl 6
+  (+) = mathExprIfx (+) "+" $ InfixA 6
   (-) = mathExprIfx (-) "-" $ Infixl 6
   negate = mathExprFunction negate $
                \(MathLaTeX nKnd inr) -> mathCompound_wFixity (Infixl 6) $
@@ -292,10 +308,10 @@ instance (Num res) => Num (MathLaTeXEval res arg) where
 
 autoMult, defaultMult, atomVarMult, numLiteralMult
   :: (Num res, e ~ MathLaTeXEval res arg) => e -> e -> e
-defaultMult    = symChoiceIfx (*) (\_ _ -> reader defMultiplicationSymbol    ) $ Infixl 7
-numLiteralMult = symChoiceIfx (*) (\_ _ -> reader numeralMultiplicationSymbol) $ Infixl 7
-atomVarMult    = symChoiceIfx (*) (\_ _ -> reader atomVarMultiplicationSymbol) $ Infixl 7
-autoMult       = symChoiceIfx (*) ((reader.) . acs) $ Infixl 7       
+defaultMult    = symChoiceIfx (*) (\_ _ -> reader defMultiplicationSymbol    ) $ InfixA 7
+numLiteralMult = symChoiceIfx (*) (\_ _ -> reader numeralMultiplicationSymbol) $ InfixA 7
+atomVarMult    = symChoiceIfx (*) (\_ _ -> reader atomVarMultiplicationSymbol) $ InfixA 7
+autoMult       = symChoiceIfx (*) ((reader.) . acs) $ InfixA 7       
  where acs MathExprAtomSymbol MathExprAtomSymbol = atomVarMultiplicationSymbol
        acs MathExprNumLiteral MathExprAtomSymbol = atomVarMultiplicationSymbol
        acs MathExprNumLiteral _                  = numeralMultiplicationSymbol
@@ -313,7 +329,7 @@ instance Powerable Double where { (^) = (**) }
 instance Powerable Float where { (^) = (**) }
 instance Powerable Integer where { (^) = (Prelude.^) }
 instance (Powerable res, Show res) => Powerable (MathLaTeXEval res arg) where
-  (^) = mathExprIfx (^) (raw"^") $ Infixr 8
+  (^) = subOrSupScrtIfx (^) Superscript
 
 
 instance (Fractional res) => Fractional (MathLaTeXEval res arg) where
@@ -348,7 +364,7 @@ instance (Floating res) => Floating (MathLaTeXEval res arg) where
   exp = (mathPrimitiv (exp 1) "e" **)
 --    (`mathCompound_wFixity`Infix 8) mathExprFunction exp (return . ("e"^:))
            
-  (**) = mathExprIfx (**) (raw"^") $ Infixr 8
+  (**) = subOrSupScrtIfx (**) Superscript
            
   log = mathExprFn log ln
   logBase = mathExprInfix logBase lbR
@@ -414,7 +430,7 @@ lSetFold_bigSymb fxty sumVar folderVis rngSpec summand
                      | x<-snd $ rngG undefined ]
                                          ) :: Pair(rng -> (res, [rng])) -> a -> res )
               ( \(Pair rngV summandV) -> mathCompound_wFixity fxty $
-                     (folderVis !: braces(sumVar `in_` rendrdExpression
+                     (folderVis !: noRedBraces(sumVar `in_` rendrdExpression
                                                          (autoParensWhenFxtyLT 4 rngV )) )
                                       <> rendrdExpression (autoParensWhenFxtyLT 
                                                                (isotropFixity fxty) summandV)
@@ -442,7 +458,7 @@ polyLSetFold_bigSymb fxty sumVar folderVis rngSpec summand
                       | x<-snd $ rngG undefined ]
                                           ) :: Pair(rng -> (res, [rng])) -> a -> res )
                ( \(Pair rngV summandV) -> mathCompound_wFixity fxty $
-                      (folderVis !: braces(sumVar `in_` rendrdExpression
+                      (folderVis !: noRedBraces(sumVar `in_` rendrdExpression
                                                      (autoParensWhenFxtyLT 4 rngV )) )
                                   <> rendrdExpression (autoParensWhenFxtyLT 
                                                           (isotropFixity fxty) summandV)
@@ -482,7 +498,7 @@ limsFold_bigSymb fxty sumVar folderVis lBound uBound summand
                  mconcat [ fst $ summandG x
                   | x<-[snd $ rngLG undefined .. snd $ rngUG undefined] ] ) 
             ( \(Triple rngLV rngUV summandV) -> mathCompound_wFixity fxty $
-                  (folderVis !: braces(sumVar =: rendrdExpression
+                  (folderVis !: noRedBraces(sumVar =: rendrdExpression
                                                    (autoParensWhenFxtyLT 4 rngLV))
                                   ^: noRedBraces(rendrdExpression rngUV)        ) 
                        <> rendrdExpression (autoParensWhenFxtyLT (isotropFixity fxty) summandV ) )
@@ -510,7 +526,7 @@ polyLimsFold_bigSymb fxty sumVar folderVis lBound uBound summand
                  mconcat [ fst $ summandG x
                   | x<-[snd $ rngLG undefined .. snd $ rngUG undefined] ] ) 
             ( \(Triple rngLV rngUV summandV) -> mathCompound_wFixity fxty $
-                  (folderVis !: braces(sumVar =: rendrdExpression
+                  (folderVis !: noRedBraces(sumVar =: rendrdExpression
                                                        (autoParensWhenFxtyLT 4 rngLV))
                                   ^: noRedBraces(rendrdExpression rngUV)        ) 
                        <> rendrdExpression (autoParensWhenFxtyLT (isotropFixity fxty) summandV ) )
@@ -538,7 +554,7 @@ lSetSum sv rngLG = pseudoFmap getSum
                     . lSetFold_bigSymb (RightGreedy 6) sv (TeXCommS "sum") rngLG
                     . (pseudoFmap Sum .)
 lSetProd sv rngLG = pseudoFmap getProduct
-                    . lSetFold_bigSymb (RightGreedy 6) sv (TeXCommS "prod") rngLG
+                    . lSetFold_bigSymb (RightGreedy 7) sv (TeXCommS "prod") rngLG
                     . (pseudoFmap Product .)
  
 polyLSetSum, polyLSetProd :: forall rng res a sumVarDep .
@@ -553,7 +569,7 @@ polyLSetSum sv rngLG = pseudoFmap getSum
                     . polyLSetFold_bigSymb (RightGreedy 6) sv (TeXCommS "sum") rngLG
                     . (pseudoFmap Sum .)
 polyLSetProd sv rngLG = pseudoFmap getProduct
-                    . polyLSetFold_bigSymb (RightGreedy 6) sv (TeXCommS "prod") rngLG
+                    . polyLSetFold_bigSymb (RightGreedy 7) sv (TeXCommS "prod") rngLG
                     . (pseudoFmap Product .)
  
 limsSum, limsProd :: forall rng res a sumVarDep svdStack .
@@ -564,7 +580,7 @@ limsSum, limsProd :: forall rng res a sumVarDep svdStack .
               -> MathLaTeXEval res sumVarDep )
           -> MathLaTeXEval res a
 limsSum sv lBG uBG = pseudoFmap getSum
-                    . limsFold_bigSymb (RightGreedy 7) sv (TeXCommS "sum") lBG uBG
+                    . limsFold_bigSymb (RightGreedy 6) sv (TeXCommS "sum") lBG uBG
                     . (pseudoFmap Sum .)
 limsProd sv lBG uBG = pseudoFmap getProduct
                     . limsFold_bigSymb (RightGreedy 7) sv (TeXCommS "prod") lBG uBG
@@ -578,7 +594,7 @@ polyLimsSum, polyLimsProd :: forall rng res a sumVarDep svdStack .
                  => MathLaTeXEval rng svdStack) -> MathLaTeXEval res sumVarDep )
           -> MathLaTeXEval res a
 polyLimsSum sv lBG uBG = pseudoFmap getSum
-                    . polyLimsFold_bigSymb (RightGreedy 7) sv (TeXCommS "sum") lBG uBG
+                    . polyLimsFold_bigSymb (RightGreedy 6) sv (TeXCommS "sum") lBG uBG
                     . (pseudoFmap Sum .)
 polyLimsProd sv lBG uBG = pseudoFmap getProduct
                     . polyLimsFold_bigSymb (RightGreedy 7) sv (TeXCommS "prod") lBG uBG
