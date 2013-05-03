@@ -76,11 +76,14 @@ data MathLaTeXEval res arg where
            , enclosedMathExpr :: list(MathLaTeXEval b (HCons a c))
            } -> MathLaTeXEval d c
 
+
 data MathExprKind
   = MathExprAtomSymbol
       -- ^ \"Tight\" symbols, like /x/, but possibly with e.g. subscripts, hat etc..
   | MathExprNumLiteral
-  | MathExprCompound Fixity
+  | MathExprCompound
+         { fixity :: Fixity
+         , heightEstimate :: Maybe BracketSize }
 data Fixity = Infix Int   -- ^ For non-associative operators with no generally agreed evaluation direction.
             | InfixA Int  -- ^ For associative operators, i.e. the order doesn't matter and parens can thus be omitted if both operands have the same fixity.
             | Infixl Int  -- ^ For left-associative ops; chaining such from the right will yield parens but not from the left.
@@ -92,12 +95,17 @@ data Fixity = Infix Int   -- ^ For non-associative operators with no generally a
 --                    , mathLaTeXexprnKind :: MathExprKind
 --                    }
 
-onMathCompoundLaTeX :: Fixity -> (LaTeX->LaTeX) -> MathLaTeX->MathLaTeX
-onMathCompoundLaTeX fxty f (MathLaTeX _ inr)
-     = MathLaTeX (MathExprCompound fxty) $ f inr
+onMathCompoundLaTeX :: Fixity -> Maybe BracketSize
+                          -> (LaTeX->LaTeX) -> MathLaTeX->MathLaTeX
+onMathCompoundLaTeX fxty bSz f (MathLaTeX _ inr)
+     = MathLaTeX (MathExprCompound fxty bSz) $ f inr
 
 mathCompound_wFixity :: Fixity -> LaTeX -> RendConfReadMathLaTeX
-mathCompound_wFixity fxty = return . MathLaTeX (MathExprCompound fxty)
+mathCompound_wFixity fxty = mathCompoundLaTeX fxty Nothing
+
+mathCompoundLaTeX :: Fixity -> Maybe BracketSize -> LaTeX -> RendConfReadMathLaTeX
+mathCompoundLaTeX fxty bSz = return . MathLaTeX (MathExprCompound fxty bSz)
+
 
 -- mathLaTeXexprnFixity :: MathLaTeXEval r a -> Fixity
 -- mathLaTeXexprnFixity = xqFixity . mathLaTeXexprnKind
@@ -108,7 +116,7 @@ mathCompound_wFixity fxty = return . MathLaTeX (MathExprCompound fxty)
 isotropFixityOf :: MathExprKind -> Int
 isotropFixityOf MathExprNumLiteral = 10
 isotropFixityOf MathExprAtomSymbol = 10
-isotropFixityOf (MathExprCompound fq)= isotropFixity fq
+isotropFixityOf (MathExprCompound fq _)= isotropFixity fq
 
 isotropFixity :: Fixity -> Int
 isotropFixity (Infix n) = n
@@ -119,8 +127,12 @@ isotropFixity (RightGreedy n) = n
    
 autoParensWhenFxtyLT :: Int -> MathLaTeX -> MathLaTeX
 autoParensWhenFxtyLT n e@(MathLaTeX knd expr)
- | isotropFixityOf knd < n  = MathLaTeX (MathExprCompound $ Infix 9) $ autoParens expr
+ | isotropFixityOf knd < n  = MathLaTeX (MathExprCompound (Infix 9) Nothing) $ autoParens expr
  | otherwise                = e
+
+bracketSizeSuggestion :: MathLaTeX -> Maybe BracketSize
+bracketSizeSuggestion (MathLaTeX (MathExprCompound _ bkSz) _) = bkSz
+bracketSizeSuggestion _ = Just defaultBracketSize
 
 instance Contravariant (MathLaTeXEval res) where
   contramap f(MathEnvd g wr encld) = MathEnvd g' wr encld'
@@ -213,48 +225,57 @@ mathExprInfix ifx ifxn el er
   = MathEnvd ( \(Pair q p) c -> q c `ifx` p c )
              ( \(Pair q p) -> ifxn q p )
              ( Pair (contramap hHead el) (contramap hHead er) )
+
+type Height_InfixPropagation = Maybe BracketSize -> Maybe BracketSize 
+                  -> Reader MathHeightsManagement (Maybe BracketSize) 
+neglectInfixSelfHeight :: Height_InfixPropagation
+neglectInfixSelfHeight _ _ = return Nothing
+
              
 symChoiceIfx :: (a->a->r) -> (MathExprKind -> MathExprKind 
                           -> Reader MathSymbolTranslations LaTeX) 
-            -> Fixity
+            -> Fixity -> Height_InfixPropagation
             -> MathLaTeXEval a c -> MathLaTeXEval a c -> MathLaTeXEval r c
-symChoiceIfx ifx ifxc fxty = mathExprInfix ifx ifxNamer
+symChoiceIfx ifx ifxc fxty bqSzer = mathExprInfix ifx ifxNamer
  where ifxNamer :: MathLaTeXInfix
-       ifxNamer (MathLaTeX knL lexpr) (MathLaTeX knR rexpr) = do
+       ifxNamer lh@(MathLaTeX knL lexpr) rh@(MathLaTeX knR rexpr) = do
+
           symbsCfg <- askMathSymbolTranslations
-          mathCompound_wFixity fxty $ mconcat
-             [ case(fxty,knL) of
-                 ( InfixA ε, MathExprCompound (InfixA κ) )
-                    | ε<=κ  -> lexpr
-                 ( InfixA ε, MathExprCompound (Infixl κ) )
-                    | ε<=κ  -> lexpr
-                 ( Infixl ε, MathExprCompound (InfixA κ) )
-                    | ε<=κ  -> lexpr
-                 ( Infixl ε, MathExprCompound (Infixl κ) )
-                    | ε<=κ  -> lexpr
-                 (ε, κ)
-                    | isotropFixity ε < isotropFixityOf κ   -> lexpr
-                    | otherwise -> autoParens lexpr
-             , " ", runReader (ifxc knL knR) symbsCfg , " "
-             , case(fxty,knR) of
-                 (_, MathExprCompound (RightGreedy _)) -> rexpr
-                 ( InfixA ε, MathExprCompound (InfixA κ) )
-                    | ε<=κ  -> rexpr
-                 ( InfixA ε, MathExprCompound (Infixr κ) )
-                    | ε<=κ  -> rexpr
-                 ( Infixr ε, MathExprCompound (InfixA κ) )
-                    | ε<=κ  -> rexpr
-                 ( Infixr ε, MathExprCompound (Infixr κ) )
-                    | ε<=κ  -> rexpr
-                 (ε, κ)
-                    | isotropFixity ε<isotropFixityOf κ   -> rexpr
-                    | otherwise -> autoParens rexpr
-             ]
+          heightCfg <- askMathHeightsManagement
+          let rddIfxc = " " <> runReader (ifxc knL knR) symbsCfg 
+              bqSzQ = (`runReader`heightCfg) $
+                  bqSzer (bracketSizeSuggestion lh) (bracketSizeSuggestion rh)
+                               
+          mathCompoundLaTeX fxty bqSzQ 
+                $ safeLExpr <> " " <> rddIfxc <> " " <> safeRExpr
+
+        where safeLExpr = case(fxty,knL) of
+                ( InfixA ε, MathExprCompound lIfx _ )
+                   | InfixA κ <- lIfx, ε<=κ  -> lexpr
+                   | Infixl κ <- lIfx, ε<=κ  -> lexpr
+                ( Infixl ε, MathExprCompound lIfx _ )
+                   | InfixA κ <- lIfx, ε<=κ  -> lexpr
+                   | Infixl κ <- lIfx, ε<=κ  -> lexpr
+                (ε, κ)
+                   | isotropFixity ε < isotropFixityOf κ   -> lexpr
+                   | otherwise -> autoParens lexpr
+              safeRExpr = case(fxty,knR) of
+                (_, MathExprCompound (RightGreedy _) _) -> rexpr
+                ( InfixA ε, MathExprCompound lIfx _ )
+                   | InfixA κ <- lIfx, ε<=κ  -> lexpr
+                   | Infixr κ <- lIfx, ε<=κ  -> lexpr
+                ( Infixr ε, MathExprCompound lIfx _ )
+                   | InfixA κ <- lIfx, ε<=κ  -> lexpr
+                   | Infixr κ <- lIfx, ε<=κ  -> lexpr
+                (ε, κ)
+                   | isotropFixity ε<isotropFixityOf κ   -> rexpr
+                   | otherwise -> autoParens rexpr
+
  
 mathExprIfx :: (ea ~ MathLaTeXEval a c, er ~ MathLaTeXEval r c)
       => (a->a->r) -> LaTeX -> Fixity 
           -> ea -> ea -> er
-mathExprIfx i s = symChoiceIfx i $ \_ _ -> return s
+mathExprIfx i s fxty = symChoiceIfx i (\_ _ -> return s) fxty neglectInfixSelfHeight
  
 
 data SubOrSupScrt = Subscript | Superscript
@@ -285,6 +306,12 @@ mathExpr_hetFn2 ifx ifxn el er
 
 
                                    
+autoLaTeXBrackets :: String -> String -> MathLaTeX -> RendConfReadMathLaTeX
+autoLaTeXBrackets lBr rBr (MathLaTeX nKnd inr)
+   = mathCompound_wFixity (Infix 9) $ case nKnd of
+       MathExprCompound _ bSz  -> latexBrackets bSz lBr rBr inr
+       _                       -> latexBrackets (Just 0) lBr rBr inr
+                                   
 
 instance (Num res) => Num (MathLaTeXEval res arg) where
   fromInteger n = mathNumPrimitiv (fromInteger n) (rendertex n)
@@ -299,19 +326,15 @@ instance (Num res) => Num (MathLaTeXEval res arg) where
   (*) = autoMult
   
   signum = mathExprFn abs (mathrm"sgn")
-  abs = mathExprFunction abs $
-               \(MathLaTeX nKnd inr) -> mathCompound_wFixity (Infix 9) $
-                 case nKnd of
-                   MathExprCompound _ -> autoBrackets"|""|" inr
-                   _                  -> "|" <> inr <> "|"
+  abs = mathExprFunction abs $ autoLaTeXBrackets "|" "|"
 
 
 autoMult, defaultMult, atomVarMult, numLiteralMult
   :: (Num res, e ~ MathLaTeXEval res arg) => e -> e -> e
-defaultMult    = symChoiceIfx (*) (\_ _ -> reader defMultiplicationSymbol    ) $ InfixA 7
-numLiteralMult = symChoiceIfx (*) (\_ _ -> reader numeralMultiplicationSymbol) $ InfixA 7
-atomVarMult    = symChoiceIfx (*) (\_ _ -> reader atomVarMultiplicationSymbol) $ InfixA 7
-autoMult       = symChoiceIfx (*) ((reader.) . acs) $ InfixA 7       
+defaultMult    = symChoiceIfx (*) (\_ _ -> reader defMultiplicationSymbol    ) (InfixA 7) neglectInfixSelfHeight
+numLiteralMult = symChoiceIfx (*) (\_ _ -> reader numeralMultiplicationSymbol) (InfixA 7) neglectInfixSelfHeight
+atomVarMult    = symChoiceIfx (*) (\_ _ -> reader atomVarMultiplicationSymbol) (InfixA 7) neglectInfixSelfHeight
+autoMult       = symChoiceIfx (*) ((reader.) . acs) (InfixA 7) neglectInfixSelfHeight
  where acs MathExprAtomSymbol MathExprAtomSymbol = atomVarMultiplicationSymbol
        acs MathExprNumLiteral MathExprAtomSymbol = atomVarMultiplicationSymbol
        acs MathExprNumLiteral _                  = numeralMultiplicationSymbol
@@ -343,12 +366,12 @@ instance (Fractional res) => Fractional (MathLaTeXEval res arg) where
           (\n d -> mathCompound_wFixity (Infix 8) -- Fixity like (^), but not right-associative.
                      . TeXComm(fracChoice (exprnKind n) (exprnKind d))
                      $ map (FixArg . rendrdExpression) [n,d] ) a b
-   where fracChoice (MathExprCompound _) _ = "frac"
-         fracChoice _ (MathExprCompound _) = "frac"
+   where fracChoice (MathExprCompound _ _) _ = "frac"
+         fracChoice _ (MathExprCompound _ _) = "frac"
          fracChoice _           _          = "tfrac"
   
   recip = mathExprFunction recip (uncurry mathCompound_wFixity . rcper)
-   where rcper (MathLaTeX (MathExprCompound q) inr)
+   where rcper (MathLaTeX (MathExprCompound q _) inr)
           | isotropFixity q>8 = (Infixr 8, autoParens inr ^: braces"-1")
          rcper (MathLaTeX MathExprNumLiteral inr)
             = (Infix 8, TeXComm "frac1" . (:[]) $ FixArg inr)
@@ -358,7 +381,7 @@ instance (Floating res) => Floating (MathLaTeXEval res arg) where
   pi = mathPrimitiv pi pi_
   
   sqrt = mathExprFunction sqrt $
-              return . onMathCompoundLaTeX(Infix 10)
+              return . onMathCompoundLaTeX (Infix 10) Nothing
                             (TeXComm "sqrt" .(:[]). FixArg)
            
   exp = (mathPrimitiv (exp 1) "e" **)
@@ -369,7 +392,7 @@ instance (Floating res) => Floating (MathLaTeXEval res arg) where
   log = mathExprFn log ln
   logBase = mathExprInfix logBase lbR
    where lbR β τ = case exprnKind β of
-           MathExprCompound _
+           MathExprCompound _ _
              -> mathCompound_wFixity(Infix 8) . TeXComm "frac"
                      $ map (FixArg . (ln<>) . rendrdExpression 
                                          . autoParensWhenFxtyLT 9) [β, τ]
@@ -401,13 +424,12 @@ instance (ComplexC r, RealFloat(RealAxis r))
   imagAsComplex = (imagUnit *) . pseudoFmap realAsComplex
   
   conjugate = mathExprFunction conjugate $
-               return . onMathCompoundLaTeX(Infix 10)
+               return . onMathCompoundLaTeX (Infix 10) Nothing
                           (TeXComm "overline" . (:[]) . FixArg . noRedBraces)
   realPart = mathExprFn realPart $ TeXCommS "Re"
   imagPart = mathExprFn imagPart $ TeXCommS "Im"
 
-  magnitude = mathExprFunction magnitude $
-               return . (onMathCompoundLaTeX(Infix 9) $ autoBrackets"|""|")
+  magnitude = mathExprFunction magnitude $ autoLaTeXBrackets "|" "|"
   phase     = mathExprFn phase $ TeXCommS "arg"
  
 -- instance (Enum r, Show r) => Enum (MathExpr
