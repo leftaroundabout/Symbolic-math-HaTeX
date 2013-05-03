@@ -81,6 +81,7 @@ theContents = do
       , polyLimsSum "i" 1 6 $ \i -> i * limsSum "j" 1 6 id
       , polyLimsSum "i" 1 6 $ \i -> limsSum "j" 1 i (i*)
       , polyLimsSum "i" 1 6 $ \i -> limsProd "j" 1 i (i*)
+      , 4 - 3 - (-(2 + 1))
       ]
    
    "Sums may also be only well-defined in an analytical sense, e.g. range to infinity, like"...:"."

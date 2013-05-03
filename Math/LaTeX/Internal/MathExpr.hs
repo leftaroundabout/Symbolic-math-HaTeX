@@ -293,7 +293,7 @@ instance (Num res) => Num (MathLaTeXEval res arg) where
   (-) = mathExprIfx (-) "-" $ Infixl 6
   negate = mathExprFunction negate $
                \(MathLaTeX nKnd inr) -> mathCompound_wFixity (Infixl 6) $
-                 "-"<> (if isotropFixityOf nKnd < 6 then autoParens else id)
+                 "-"<> (if isotropFixityOf nKnd <= 6 then autoParens else id)
                        (noRedBraces inr)
          
   (*) = autoMult
