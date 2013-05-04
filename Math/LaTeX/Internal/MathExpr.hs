@@ -100,6 +100,10 @@ onMathCompoundLaTeX :: Fixity -> Maybe BracketSize
 onMathCompoundLaTeX fxty bSz f (MathLaTeX _ inr)
      = MathLaTeX (MathExprCompound fxty bSz) $ f inr
 
+tweakMathLaTeXResult :: (MathLaTeX->RendConfReadMathLaTeX) 
+                       -> MathLaTeXEval r a->MathLaTeXEval r a
+tweakMathLaTeXResult tweaker (MathEnvd q r l) = MathEnvd q (tweaker <=< r) l
+
 mathCompound_wFixity :: Fixity -> LaTeX -> RendConfReadMathLaTeX
 mathCompound_wFixity fxty = mathCompoundLaTeX fxty Nothing
 
@@ -229,7 +233,10 @@ mathExprInfix ifx ifxn el er
 type Height_InfixPropagation = Maybe BracketSize -> Maybe BracketSize 
                   -> Reader MathHeightsManagement (Maybe BracketSize) 
 neglectInfixSelfHeight :: Height_InfixPropagation
-neglectInfixSelfHeight _ _ = return Nothing
+neglectInfixSelfHeight Nothing _ = return Nothing
+neglectInfixSelfHeight _ Nothing = return Nothing
+neglectInfixSelfHeight (Just lHeight) (Just rHeight) 
+             = return . Just $ max lHeight rHeight
 
              
 symChoiceIfx :: (a->a->r) -> (MathExprKind -> MathExprKind 
@@ -242,7 +249,7 @@ symChoiceIfx ifx ifxc fxty bqSzer = mathExprInfix ifx ifxNamer
 
           symbsCfg <- askMathSymbolTranslations
           heightCfg <- askMathHeightsManagement
-          let rddIfxc = " " <> runReader (ifxc knL knR) symbsCfg 
+          let rddIfxc = runReader (ifxc knL knR) symbsCfg 
               bqSzQ = (`runReader`heightCfg) $
                   bqSzer (bracketSizeSuggestion lh) (bracketSizeSuggestion rh)
                                
@@ -258,18 +265,18 @@ symChoiceIfx ifx ifxc fxty bqSzer = mathExprInfix ifx ifxNamer
                    | Infixl κ <- lIfx, ε<=κ  -> lexpr
                 (ε, κ)
                    | isotropFixity ε < isotropFixityOf κ   -> lexpr
-                   | otherwise -> autoParens lexpr
+                   | otherwise -> rendrdExpression $ autoLaTeXParens lh
               safeRExpr = case(fxty,knR) of
                 (_, MathExprCompound (RightGreedy _) _) -> rexpr
                 ( InfixA ε, MathExprCompound lIfx _ )
-                   | InfixA κ <- lIfx, ε<=κ  -> lexpr
-                   | Infixr κ <- lIfx, ε<=κ  -> lexpr
+                   | InfixA κ <- lIfx, ε<=κ  -> rexpr
+                   | Infixr κ <- lIfx, ε<=κ  -> rexpr
                 ( Infixr ε, MathExprCompound lIfx _ )
-                   | InfixA κ <- lIfx, ε<=κ  -> lexpr
-                   | Infixr κ <- lIfx, ε<=κ  -> lexpr
+                   | InfixA κ <- lIfx, ε<=κ  -> rexpr
+                   | Infixr κ <- lIfx, ε<=κ  -> rexpr
                 (ε, κ)
                    | isotropFixity ε<isotropFixityOf κ   -> rexpr
-                   | otherwise -> autoParens rexpr
+                   | otherwise -> rendrdExpression $ autoLaTeXParens rh
 
  
 mathExprIfx :: (ea ~ MathLaTeXEval a c, er ~ MathLaTeXEval r c)
@@ -306,12 +313,34 @@ mathExpr_hetFn2 ifx ifxn el er
 
 
                                    
-autoLaTeXBrackets :: String -> String -> MathLaTeX -> RendConfReadMathLaTeX
+autoLaTeXBrackets :: String -> String -> MathLaTeX -> MathLaTeX
 autoLaTeXBrackets lBr rBr (MathLaTeX nKnd inr)
-   = mathCompound_wFixity (Infix 9) $ case nKnd of
+   = MathLaTeX (MathExprCompound (Infix 9) Nothing) $ case nKnd of
        MathExprCompound _ bSz  -> latexBrackets bSz lBr rBr inr
        _                       -> latexBrackets (Just 0) lBr rBr inr
-                                   
+
+autoLaTeXParens :: MathLaTeX -> MathLaTeX
+autoLaTeXParens = autoLaTeXBrackets"("")"
+
+
+forceParens, unsafeOmitParens :: MathLaTeXEval r a -> MathLaTeXEval r a
+
+forceParens = tweakMathLaTeXResult $ return . autoLaTeXParens
+
+unsafeOmitParens = tweakMathLaTeXResult 
+         $ \(MathLaTeX k l) -> return $ MathLaTeX (exaggerate k) l
+ where exaggerate (MathExprCompound _ hEst) = MathExprCompound (Infix 10) hEst
+       exaggerate q = q
+
+
+
+manBracketSize :: BracketSize -> MathLaTeXEval r a -> MathLaTeXEval r a
+manBracketSize size = tweakMathLaTeXResult
+         $ \(MathLaTeX k l) -> return $ MathLaTeX (szSet k) l
+ where szSet (MathExprCompound fxty _) = MathExprCompound fxty $ Just size
+       szSet _                         = MathExprCompound (Infix 10) $ Just size
+
+
 
 instance (Num res) => Num (MathLaTeXEval res arg) where
   fromInteger n = mathNumPrimitiv (fromInteger n) (rendertex n)
@@ -326,7 +355,7 @@ instance (Num res) => Num (MathLaTeXEval res arg) where
   (*) = autoMult
   
   signum = mathExprFn abs (mathrm"sgn")
-  abs = mathExprFunction abs $ autoLaTeXBrackets "|" "|"
+  abs = mathExprFunction abs $ return . autoLaTeXBrackets "|" "|"
 
 
 autoMult, defaultMult, atomVarMult, numLiteralMult
@@ -429,7 +458,7 @@ instance (ComplexC r, RealFloat(RealAxis r))
   realPart = mathExprFn realPart $ TeXCommS "Re"
   imagPart = mathExprFn imagPart $ TeXCommS "Im"
 
-  magnitude = mathExprFunction magnitude $ autoLaTeXBrackets "|" "|"
+  magnitude = mathExprFunction magnitude $ return . autoLaTeXBrackets "|" "|"
   phase     = mathExprFn phase $ TeXCommS "arg"
  
 -- instance (Enum r, Show r) => Enum (MathExpr

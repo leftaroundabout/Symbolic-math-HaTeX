@@ -15,7 +15,10 @@ import Data.Complex.Class
 import Prelude hiding((^))
 import qualified Prelude
 
--- Document structure copied from Daniel Diaz' 'Examples/simple.hs'.
+
+
+subSection :: (Monad m) => LaTeXT m () -> MathematicalLaTeXT_ m
+subSection = fromHaTeX . subsection
 
 
 main :: IO ()
@@ -46,7 +49,7 @@ theBody = do
 theContents :: Monad m => MathematicalLaTeXT_ m
 theContents = do
    
-   fromHaTeX $ subsection "Arithmetics with infix operators"
+ subSection "Arithmetics with infix operators" >> do
    
    n::Integer <- displayMathExpr_ $
              4 ^ (2 ^ 3) ^ 2 - 10000 Prelude.^ 7
@@ -65,8 +68,9 @@ theContents = do
           2 +| (-1)
         , - exp (log 2 + imagUnit*pi/4)
         ]
+   nl
    
-   fromHaTeX $ subsection "Simple finite sums / products"
+ subSection "Simple finite sums / products" >> do
    
    sums::[Double] <- mapM displayMathExpr_wRResult
       [ lSetSum "n" (listAsFinSet[0,1,4,5]) (2.5 - )
@@ -81,14 +85,13 @@ theContents = do
       , polyLimsSum "i" 1 6 $ \i -> i * limsSum "j" 1 6 id
       , polyLimsSum "i" 1 6 $ \i -> limsSum "j" 1 i (i*)
       , polyLimsSum "i" 1 6 $ \i -> limsProd "j" 1 i (i*)
-      , 4 - 3 - (-(2 + 1))
       ]
    
    "Sums may also be only well-defined in an analytical sense, e.g. range to infinity, like"...:"."
    displayRealExpr .
        limsSum "j" 1 infty $ (1/) . (^2)
    
-   fromHaTeX $ subsection "Checking some simple identities"
+ subSection "Checking some simple identities" >> do
    
    testJudge =<< do
       zero <- displayMathExpr_ (
@@ -134,14 +137,40 @@ theContents = do
    nl
    
    "Complex exponential identities."
-   fromHaTeX
-     $ " (Writing only rough-equalities to avoid problems with the floating-point comparisons, as at the moment only " <> verb"double" <> " can be used as the underlying data type for the complex arithmetics.)"
+   fromHaTeX $
+     " (Writing only rough-equalities to avoid problems with the floating-point comparisons, as at the moment only " <> verb"double" <> " can be used as the underlying data type for the complex arithmetics.)"
    testJudge =<< do
        displayMathCompareSeq_ $
                   exp (3/4 * imagUnit * pi)
               =~& exp (11/4 *imagUnit * pi)
               =~. (-sqrt 2 +| sqrt 2   :: MathExpr (Complex Double)
                                    )/2
+   
+   
+ subSection "Layout tweaking" >> do
+   
+   let exaDisp = displayMathExpr_wRResultAsTypeOf (0::Double)
+   
+   "Parentheses are by default set if and only if necessary for the shown expression to match the Haskell source:"
+   exaDisp $ 5 - 4 - 3 + 2 + 1
+   "contains no parens, nor does the Haskell source. In contrast,"
+   exaDisp $ 5 - (4 - 3) + 2 + 1
+   "contains parens, which are obligatory since the result is different (subtraction not associative). They can neverless be omitted, but it's of course usually a bad idea -- which is why the needed function is called ">>fromHaTeX(verb"unsafeOmitParens")>>":"...:"???"
+   exaDisp $ 5 - unsafeOmitParens(4 - 3) + 2 + 1
+   "On the other hand,"
+   exaDisp $ 5 - 4 -  3 + (2 + 1)
+   "has parens around ">>inlineMathExpr_(2+1)>>" in the source, but they aren't relevant -- addition is associative -- and can thus be omitted in the output. Then again,"
+   exaDisp $ 5 - 4 -  3 + forceParens(2+1)
+   "wouldn't need the parens either, but they're enforced via the ">>fromHaTeX(verb"forceParens")>>" function."
+   nl
+   fromHaTeX $
+     "By default, delimiters are normally scaled to suitable size (by calling "<>latex<>"'s "<>verb"\\left("<>" and "<>verb"\\right)"<>" macros) if necessary:"
+   exaDisp $ ((5+2)/8 + 1) * 4 
+   "The behaviour can be tweaked with the ">>fromHaTeX(verb"manBracketSize")>>" function, like"...:","
+   exaDisp $ manBracketSize 0 ((5+2)/8 + 1) * 4 
+   "or"...:"."
+   exaDisp $ manBracketSize 3 (5+1) * 2
+   nl
    
    
    

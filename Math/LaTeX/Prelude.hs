@@ -46,6 +46,7 @@ module Math.LaTeX.Prelude (
   , (?~?), (?=?), (...:)
   , displayMathExpr , displayMathExpr_
   , displayMathExpr_wRResult
+  , displayMathExpr_wRResultAsTypeOf
   , displayMathCompareSeq , displayMathCompareSeq_
   , mathExprEvalRough
     -- * Construction
@@ -54,6 +55,8 @@ module Math.LaTeX.Prelude (
   , mathExprInfix, mathExprIfx
   , mathDefinition
   , prettyFloatApprox
+    -- * Manual tweaking of math expression displays
+  , forceParens, unsafeOmitParens, manBracketSize
     -- * Equivalency-relation classes
   , Equatable(..)
   , Orderable(..)
@@ -208,6 +211,9 @@ instance (Ord x) => Orderable(MathLaTeXEval x arg) where
 class PlainRoughEqable x where
   (≈) :: x -> x -> Bool
 
+instance PlainRoughEqable Integer where
+  (≈) = (==)
+
 instance (RealFloat x) => PlainRoughEqable x where
   a≈b = r>0.99 && r<1.01
    where r = a/b
@@ -256,7 +262,6 @@ class MathRoughRenderable v where
 
 -- instance (MathRenderable v) => MathRoughRenderable v where
 --   roughMathExpr = ExactRoughExpr . toMathExpr
-
 
 instance MathRoughRenderable Double where
   roughMathExpr = prettyFloatApprox
@@ -352,6 +357,9 @@ expln ?~? val = fromString expln >> inlineRoughValue val
 expln ?=? val = fromString expln >> inlineMathShow val
 
 
+-- | Display a math expression, together with its calculated result
+-- (exactly if feasible, approximate otherwise – in either case, the
+-- appropriate equality symbol will be chosen).
 displayMathExpr_wRResult :: ( Monad m, MathRoughRenderable b
                             , e ~ MathExpr b, RoughEqable e  )
                    => e -> MathematicalLaTeXT m b
@@ -361,6 +369,15 @@ displayMathExpr_wRResult e = do
       RoughExpr r     -> e =~. r
       ExactRoughExpr r -> e =. r
    return res
+
+-- | Same as 'displayMathExpr_wRResult', but takes an extra dummy parameter
+-- which can be used to determine what type the calculated expression is
+-- supposed to have.
+displayMathExpr_wRResultAsTypeOf :: ( Monad m, MathRoughRenderable b
+                            , e ~ MathExpr b, RoughEqable e  )
+                   => b -> e -> MathematicalLaTeXT m b
+displayMathExpr_wRResultAsTypeOf _ = displayMathExpr_wRResult
+ 
 
 displayMathCompareSeq :: Monad m => ComparisonsEval x (MathLaTeXEval x arg)
                            -> MathematicalLaTeXT m (arg->Bool)
