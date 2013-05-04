@@ -74,11 +74,14 @@ Library
                      , transformers >= 0.2.2
                      , text
                      , void
+                     , regex-tdfa
   Exposed-modules:   Math.LaTeX.Prelude
                      Math.LaTeX.VoidCalc
-                     Math.LaTeX.RendConfig
+                     Math.LaTeX.Config
+                     Math.LaTeX.TextMarkup
   Other-modules:     Math.LaTeX.Internal.MathExpr
                      Math.LaTeX.Internal.RendMonad
+                     Math.LaTeX.Internal.Misc.BracketSizes
                      Data.List.NonEmpty
                      Data.Chain Data.Functor.FixedLength
                      Data.HList.BasedUpon

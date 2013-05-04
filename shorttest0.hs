@@ -4,6 +4,8 @@
 
 import Math.LaTeX.Prelude
 import Math.LaTeX.VoidCalc
+import Math.LaTeX.Config
+import Math.LaTeX.TextMarkup
 
 import Text.LaTeX
 import Text.LaTeX.Packages.Inputenc
@@ -43,12 +45,12 @@ theBody = do
    section "Hello"
    "This is a simple example using the " <> hatex <> " library and some math stuff. "
    
-   wDefaultConf_toHaTeX theContents
+   toHaTeX_wConfig (mathLaTeXDefaultConfig{textMarkupConfig = inlineMarkdown})
+           theContents
 
 
 theContents :: Monad m => MathematicalLaTeXT_ m
 theContents = do
-   
  subSection "Arithmetics with infix operators" >> do
    
    n::Integer <- displayMathExpr_ $
@@ -137,8 +139,7 @@ theContents = do
    nl
    
    "Complex exponential identities."
-   fromHaTeX $
-     " (Writing only rough-equalities to avoid problems with the floating-point comparisons, as at the moment only " <> verb"double" <> " can be used as the underlying data type for the complex arithmetics.)"
+   " (Writing only rough-equalities to avoid problems with the floating-point comparisons, as at the moment only `double` can be used as the underlying data type for the complex arithmetics.)"
    testJudge =<< do
        displayMathCompareSeq_ $
                   exp (3/4 * imagUnit * pi)
@@ -155,18 +156,17 @@ theContents = do
    exaDisp $ 5 - 4 - 3 + 2 + 1
    "contains no parens, nor does the Haskell source. In contrast,"
    exaDisp $ 5 - (4 - 3) + 2 + 1
-   "contains parens, which are obligatory since the result is different (subtraction not associative). They can neverless be omitted, but it's of course usually a bad idea -- which is why the needed function is called ">>fromHaTeX(verb"unsafeOmitParens")>>":"...:"???"
+   "contains parens, which are obligatory since the result is different (subtraction not associative). They can neverless be omitted, but it's of course usually a bad idea -- which is why the needed function is called `unsafeOmitParens`:"...:"???"
    exaDisp $ 5 - unsafeOmitParens(4 - 3) + 2 + 1
    "On the other hand,"
    exaDisp $ 5 - 4 -  3 + (2 + 1)
-   "has parens around ">>inlineMathExpr_(2+1)>>" in the source, but they aren't relevant -- addition is associative -- and can thus be omitted in the output. Then again,"
+   "has parens around ">>inlineMathExpr_(2+1)>>" in the source, but they aren't relevant -- addition _is_ associative -- and can thus be omitted in the output. Then again,"
    exaDisp $ 5 - 4 -  3 + forceParens(2+1)
-   "wouldn't need the parens either, but they're enforced via the ">>fromHaTeX(verb"forceParens")>>" function."
+   "wouldn't need the parens either, but they're enforced via the `forceParens` function (which is perfectly safe)."
    nl
-   fromHaTeX $
-     "By default, delimiters are normally scaled to suitable size (by calling "<>latex<>"'s "<>verb"\\left("<>" and "<>verb"\\right)"<>" macros) if necessary:"
+   "By default, delimiters are normally scaled to suitable size (by calling ">>fromHaTeX latex>>"'s `\\left(` and `\\right)` macros) if necessary:"
    exaDisp $ ((5+2)/8 + 1) * 4 
-   "The behaviour can be tweaked with the ">>fromHaTeX(verb"manBracketSize")>>" function, like"...:","
+   "The behaviour can be tweaked with the `manBracketSize` function, like"...:","
    exaDisp $ manBracketSize 0 ((5+2)/8 + 1) * 4 
    "or"...:"."
    exaDisp $ manBracketSize 3 (5+1) * 2

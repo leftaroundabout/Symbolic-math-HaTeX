@@ -17,6 +17,8 @@
 module Math.LaTeX.Internal.RendMonad(
            module Control.Monad.State
          , wDefaultConf_toHaTeX
+         , toHaTeX
+         , toHaTeX_wConfig
          , MathematicalLaTeX
          , MathematicalLaTeX_
          , MathematicalLaTeXT
@@ -26,10 +28,12 @@ module Math.LaTeX.Internal.RendMonad(
          , srcNLEnv
          ) where
 
-import Math.LaTeX.RendConfig
+import Math.LaTeX.Config
 
 import Text.LaTeX.Base
 import Text.LaTeX.Base.Class
+
+import Math.LaTeX.TextMarkup
 
 import Control.Applicative
 import Control.Monad.Reader
@@ -61,15 +65,23 @@ type MathematicalLaTeX_ = MathematicalLaTeXT Identity () -- ReaderT TeXMathDispl
 instance (Monad m) => IsString (MathematicalLaTeXT m a) where
   fromString s = do
      (TeXMathStateProps {..}) <- get
-     lift . lift . fromString $ case punctuationNeededAtDisplayEnd of
-        Just pnct -> pnct ++ " " ++ s
-        Nothing   -> s
+     mkupCfg <- askTextMarkupConfig
+     lift . lift . fromLaTeX . (`runReader`mkupCfg) . markupTxtToLaTeX
+       $ case punctuationNeededAtDisplayEnd of
+          Just pnct -> pnct ++ " " ++ s
+          Nothing   -> s
 
 srcNLEnv :: LaTeX -> LaTeX
 srcNLEnv e = raw"\n" <> e <> raw"\n"
                                
 
+toHaTeX :: Monad m => MathematicalLaTeXT m a -> ReaderT TeXMathConfiguration (LaTeXT m) a
+toHaTeX mLaTeX = do
+   cfg <- ask
+   lift . (`runReaderT` cfg) . liftM fst $ runStateT mLaTeX texMathGroundState
+
+toHaTeX_wConfig :: Monad m => TeXMathConfiguration -> MathematicalLaTeXT m a -> LaTeXT m a
+toHaTeX_wConfig cfg = (`runReaderT`cfg) . toHaTeX
 
 wDefaultConf_toHaTeX :: Monad m => MathematicalLaTeXT m a -> LaTeXT m a
-wDefaultConf_toHaTeX = (`runReaderT` mathLaTeXExprDefaultConfig)
-               . liftM fst . (`runStateT`texMathGroundState)
+wDefaultConf_toHaTeX = toHaTeX_wConfig mathLaTeXDefaultConfig

@@ -66,6 +66,7 @@ module Math.LaTeX.Prelude (
     -- * The rendering monad
   , MathematicalLaTeX, MathematicalLaTeX_
   , MathematicalLaTeXT, MathematicalLaTeXT_
+  , toHaTeX_wConfig
   , wDefaultConf_toHaTeX
   , fromHaTeX
   , nl
@@ -73,7 +74,7 @@ module Math.LaTeX.Prelude (
 
 
 import Math.LaTeX.Internal.MathExpr
-import Math.LaTeX.RendConfig
+import Math.LaTeX.Config
 import Math.LaTeX.Internal.RendMonad
 
 import Text.LaTeX.Base

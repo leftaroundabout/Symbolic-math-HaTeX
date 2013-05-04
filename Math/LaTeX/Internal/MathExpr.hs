@@ -23,7 +23,8 @@
 
 module Math.LaTeX.Internal.MathExpr where
 
-import Math.LaTeX.RendConfig
+import Math.LaTeX.Config
+import Math.LaTeX.Internal.Misc.BracketSizes
 
 import Text.LaTeX.Base
 import Text.LaTeX.Base.Class
