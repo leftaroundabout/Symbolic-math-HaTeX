@@ -71,6 +71,14 @@ theContents = do
           2 +| (-1)
         , - exp (log 2 + imagUnit*pi/4)
         ]
+   
+   _::Integer <- do
+         "For "
+         f <- mathFuncDefinition "f" "x" $ \x -> x^2 - x
+         ", "...:"."
+         displayMathExpr_wRResult $
+                (f $$$ 5) + (f $$$ 25)
+   
    nl
    
  subSection "Simple finite sums / products" >> do

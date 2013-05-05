@@ -15,7 +15,7 @@
 {-# LANGUAGE FlexibleInstances                #-}
 {-# LANGUAGE UndecidableInstances             #-}
 {-# LANGUAGE OverlappingInstances             #-}
-{-# LANGUAGE IncoherentInstances             #-}
+{-# LANGUAGE IncoherentInstances              #-}
 {-# LANGUAGE PatternGuards                    #-}
 {-# LANGUAGE TypeFamilies                     #-}
 {-# LANGUAGE RankNTypes                       #-}
@@ -40,7 +40,7 @@ import Control.Monad.Identity
 
 import Data.Function
 import Data.Functor.Contravariant
-import Data.Monoid
+-- import Data.Monoid
 
 import qualified Data.VectorSpace as V
 
@@ -84,7 +84,6 @@ data MathLaTeXEval res arg where
 
 data MathExprKind
   = MathExprAtomSymbol
-      -- ^ \"Tight\" symbols, like /x/, but possibly with e.g. subscripts, hat etc..
   | MathExprNumLiteral
   | MathExprCompound
          { fixity :: Fixity
@@ -227,9 +226,12 @@ mathExprFn f fn
  
 type MathLaTeXInfix = MathLaTeX -> MathLaTeX -> RendConfReadMathLaTeX
 
-mathExprInfix :: (a->a->r)
-                 -> MathLaTeXInfix
-                 -> MathLaTeXEval a c -> MathLaTeXEval a c -> MathLaTeXEval r c
+type MathExprIfxASM a b c r
+   =   (  a                -> b                 -> r                     )
+    -> ( MathLaTeX         -> MathLaTeX         -> RendConfReadMathLaTeX )
+      -> MathLaTeXEval a c -> MathLaTeXEval b c -> MathLaTeXEval r c
+
+mathExprInfix :: MathExprIfxASM a a c r
 mathExprInfix ifx ifxn el er
   = MathEnvd ( \(Pair q p) c -> q c `ifx` p c )
              ( \(Pair q p) -> ifxn q p )
@@ -244,11 +246,12 @@ neglectInfixSelfHeight (Just lHeight) (Just rHeight)
              = return . Just $ max lHeight rHeight
 
              
-symChoiceIfx :: (a->a->r) -> (MathExprKind -> MathExprKind 
+symChoiceIfxBuilder :: MathExprIfxASM a b c r ->
+     (a->b->r) -> (MathExprKind -> MathExprKind 
                           -> Reader MathSymbolTranslations LaTeX) 
             -> Fixity -> Height_InfixPropagation
-            -> MathLaTeXEval a c -> MathLaTeXEval a c -> MathLaTeXEval r c
-symChoiceIfx ifx ifxc fxty bqSzer = mathExprInfix ifx ifxNamer
+            -> MathLaTeXEval a c -> MathLaTeXEval b c -> MathLaTeXEval r c
+symChoiceIfxBuilder asm ifx ifxc fxty bqSzer = asm ifx ifxNamer
  where ifxNamer :: MathLaTeXInfix
        ifxNamer lh@(MathLaTeX knL lexpr) rh@(MathLaTeX knR rexpr) = do
 
@@ -283,6 +286,12 @@ symChoiceIfx ifx ifxc fxty bqSzer = mathExprInfix ifx ifxNamer
                    | isotropFixity ε<isotropFixityOf κ   -> rexpr
                    | otherwise -> rendrdExpression $ autoLaTeXParens rh
 
+symChoiceIfx :: 
+     (a->a->r) -> (MathExprKind -> MathExprKind 
+                          -> Reader MathSymbolTranslations LaTeX) 
+            -> Fixity -> Height_InfixPropagation
+            -> MathLaTeXEval a c -> MathLaTeXEval a c -> MathLaTeXEval r c
+symChoiceIfx = symChoiceIfxBuilder mathExprInfix
  
 mathExprIfx :: (ea ~ MathLaTeXEval a c, er ~ MathLaTeXEval r c)
       => (a->a->r) -> LaTeX -> Fixity 
@@ -307,15 +316,22 @@ subOrSupScrtIfx ifx sscKind = mathExprInfix ifx ifxNamer
 
        
 
-mathExpr_hetFn2 :: (a -> b -> r)
-                -> (MathLaTeX -> MathLaTeX -> RendConfReadMathLaTeX)
-                -> MathLaTeXEval a c -> MathLaTeXEval b c -> MathLaTeXEval r c
+mathExpr_hetFn2 :: MathExprIfxASM a b c r
+--                 (a -> b -> r)
+--                 -> (MathLaTeX -> MathLaTeX -> RendConfReadMathLaTeX)
+--                 -> MathLaTeXEval a c -> MathLaTeXEval b c -> MathLaTeXEval r c
 mathExpr_hetFn2 ifx ifxn el er
   = MathEnvd ( \(Pair q p) c -> fst(q c) `ifx` snd(p c) )
              ( \(Pair q p) -> ifxn q p )
              ( Pair ( pseudoFmap coFst $ contramap hHead el )
                     ( pseudoFmap coSnd $ contramap hHead er ) )
-
+symChoiceHetIfx :: 
+     (a->b->r) -> (MathExprKind -> MathExprKind 
+                          -> Reader MathSymbolTranslations LaTeX) 
+            -> Fixity -> Height_InfixPropagation
+            -> MathLaTeXEval a c -> MathLaTeXEval b c -> MathLaTeXEval r c
+symChoiceHetIfx = symChoiceIfxBuilder mathExpr_hetFn2
+ 
 
                                    
 autoLaTeXBrackets :: String -> String -> MathLaTeX -> MathLaTeX
@@ -402,7 +418,7 @@ instance (Fractional res) => Fractional (MathLaTeXEval res arg) where
                      $ map (FixArg . rendrdExpression) [n,d] ) a b
    where fracChoice (MathExprCompound _ _) _ = "frac"
          fracChoice _ (MathExprCompound _ _) = "frac"
-         fracChoice _           _          = "tfrac"
+         fracChoice _           _            = "tfrac"
   
   recip = mathExprFunction recip (uncurry mathCompound_wFixity . rcper)
    where rcper (MathLaTeX (MathExprCompound q _) inr)
@@ -665,22 +681,49 @@ coSnd = (undefined,)
 
 
 
-instance (V.VectorSpace v, Num(V.Scalar v)) => Num (MathLaTeXEval (Endo v) arg) where
-  fromInteger n = mathNumPrimitiv (Endo (V.^* fromInteger n)) (rendertex n)
+instance (V.VectorSpace v, Num(V.Scalar v)) => Num (MathLaTeXEval (v->v) arg) where
+  fromInteger n = mathNumPrimitiv (V.^* fromInteger n) (rendertex n)
   
-  (+) = mathExprIfx (\(Endo f) (Endo g) -> Endo $ \x -> f x V.^+^ g x) ("+") $ InfixA 6
-  (-) = mathExprIfx (\(Endo f) (Endo g) -> Endo $ \x -> f x V.^-^ g x) ("-") $ InfixA 6
-  negate = mathExprFunction (\(Endo f) -> Endo $ V.negateV . f ) $
+  (+) = mathExprIfx (\f g x -> f x V.^+^ g x) ("+") $ InfixA 6
+  (-) = mathExprIfx (\f g x -> f x V.^-^ g x) ("-") $ InfixA 6
+  negate = mathExprFunction (V.negateV . ) $
                \(MathLaTeX nKnd inr) -> mathCompound_wFixity (Infixl 6) $
                  "-"<> (if isotropFixityOf nKnd <= 6 then autoParens else id)
                        (noRedBraces inr)
   
-  (*) = symChoiceIfx (<>) ((reader.) . acs) (InfixA 7) neglectInfixSelfHeight
+  (*) = symChoiceIfx (.) ((reader.) . acs) (InfixA 7) neglectInfixSelfHeight
    where acs MathExprAtomSymbol MathExprAtomSymbol = atomLinmapComposeMultiplicationSymbol
          acs MathExprNumLiteral MathExprAtomSymbol = atomLinmapComposeMultiplicationSymbol
          acs MathExprNumLiteral _                  = numeralLinmapMultiplicationSymbol
          acs _                  MathExprNumLiteral = numeralLinmapMultiplicationSymbol
          acs _                  _                  = linmapComposeMultiplicationSymbol
   
-  signum = error "Signum of a vectorspace-endofunction is not defined."
-  abs = error "Absolute-value of a vectorspace-endofunction is not defined."
+  signum = error "Signum of a general vectorspace-function is not defined."
+  abs = error "Absolute-value of a general vectorspace-function is not defined."
+
+
+
+infixr 0 $$$, $=$
+
+-- | What '$' is for Haskell functions, '$$$' is for math-functions.
+-- 
+-- @@
+-- infixr 0 $$$
+-- @@
+-- 
+-- This is however an area where standard mathematical notation differs quite strongly
+-- from Haskell syntax; in particular in linear algebra function application is
+-- essentially seen as right-associative multiplication. So the LaTeX result should
+-- be expected to look quite different from the Haskell input when you're using
+-- this operator.
+($$$) :: MathLaTeXEval (v->w) arg -> MathLaTeXEval v arg -> MathLaTeXEval w arg
+($$$) = symChoiceHetIfx ($) ((reader.) . acs) (Infixr 7) neglectInfixSelfHeight
+   where acs MathExprAtomSymbol MathExprAtomSymbol = atomLinmapComposeMultiplicationSymbol
+         acs MathExprNumLiteral MathExprAtomSymbol = atomLinmapComposeMultiplicationSymbol
+         acs MathExprNumLiteral _                  = numeralLinmapMultiplicationSymbol
+         acs _                  MathExprNumLiteral = numeralLinmapMultiplicationSymbol
+         acs _                  _                  = linmapComposeMultiplicationSymbol
+
+-- | Exactly the same as '$$$', but with less polymorphic signature to help type inference.
+($=$) :: MathLaTeXEval (v->v) arg -> MathLaTeXEval v arg -> MathLaTeXEval v arg
+($=$) = ($$$)

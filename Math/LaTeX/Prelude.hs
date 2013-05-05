@@ -13,6 +13,7 @@
 {-# LANGUAGE ScopedTypeVariables              #-}
 {-# LANGUAGE MultiParamTypeClasses            #-}
 {-# LANGUAGE FlexibleInstances                #-}
+{-# LANGUAGE FlexibleContexts                 #-}
 {-# LANGUAGE UndecidableInstances             #-}
 {-# LANGUAGE OverlappingInstances             #-}
 {-# LANGUAGE PatternGuards                    #-}
@@ -53,7 +54,7 @@ module Math.LaTeX.Prelude (
   , mathPrimitiv , mathDepPrimitiv
   , mathExprFunction, mathExprFn
   , mathExprInfix, mathExprIfx
-  , mathDefinition
+  , mathDefinition, mathFuncDefinition
   , prettyFloatApprox
     -- * Manual tweaking of math expression displays
   , forceParens, unsafeOmitParens, manBracketSize
@@ -61,8 +62,9 @@ module Math.LaTeX.Prelude (
   , Equatable(..)
   , Orderable(..)
   , RoughEqable(..)
---                           , MagnitudeOrd(..)
+    -- * Misc
   , Powerable(..)
+  , ($$$), ($=$)
     -- * The rendering monad
   , MathematicalLaTeX, MathematicalLaTeX_
   , MathematicalLaTeXT, MathematicalLaTeXT_
@@ -429,7 +431,22 @@ mathDefinition varn e = do
    return $ mathPrimitiv (mathExprCalculate_ e) varn
 
 
+mathFuncDefinition :: forall m fnarg res fqenvStack .
+    (Monad m, HNil~fqenvStack )
+     => MathPrimtvId -> MathPrimtvId
+            -> (MathLaTeXEval fnarg fqenvStack -> MathExpr res)
+           -> MathematicalLaTeXT m (MathExpr(fnarg->res))
+mathFuncDefinition funcn varn ef = do
+   rendCfg <- ask
+   let fnSymbExpr = mathPrimitiv (mathExprCalculate_ . ef . (`mathPrimitiv`varn)) funcn
+       varSymbExpr = mathPrimitiv undefined varn
+       dqRenderer e = mathExprRender e `runReader` rendCfg
+   lift.lift . fromLaTeX . math $
+      rendrdExpression (dqRenderer $ fnSymbExpr $$$ varSymbExpr)
+        =: rendrdExpression (dqRenderer $ ef varSymbExpr)
+   return fnSymbExpr
 
+   
                                
 
 
