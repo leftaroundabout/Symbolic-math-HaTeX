@@ -83,6 +83,8 @@ askTextMarkupConfig :: MonadReader TeXMathConfiguration m
            => m TextMarkupConfig
 askTextMarkupConfig = liftM textMarkupConfig ask
 
+instance HasTextMarkupConfig TeXMathConfiguration where
+  modifyMarkupRules f cfg = cfg { textMarkupConfig = modifyMarkupRules f $ textMarkupConfig cfg }
 
 
 

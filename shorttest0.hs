@@ -19,8 +19,9 @@ import qualified Prelude
 
 
 
-subSection :: (Monad m) => LaTeXT m () -> MathematicalLaTeXT_ m
+subSection, subSubSection :: (Monad m) => LaTeXT m () -> MathematicalLaTeXT_ m
 subSection = fromHaTeX . subsection
+subSubSection = fromHaTeX . subsubsection
 
 
 main :: IO ()
@@ -149,6 +150,7 @@ theContents = do
    
    
  subSection "Layout tweaking" >> do
+  subSubSection "Brackets in math" >> do
    
    let exaDisp = displayMathExpr_wRResultAsTypeOf (0::Double)
    
@@ -160,7 +162,7 @@ theContents = do
    exaDisp $ 5 - unsafeOmitParens(4 - 3) + 2 + 1
    "On the other hand,"
    exaDisp $ 5 - 4 -  3 + (2 + 1)
-   "has parens around ">>inlineMathExpr_(2+1)>>" in the source, but they aren't relevant -- addition _is_ associative -- and can thus be omitted in the output. Then again,"
+   "has parens around ">>inlineMathExpr_(2+1)>>" _in the source_, but they aren't relevant -- addition _is_ associative -- and can thus be omitted in the output. Then again,"
    exaDisp $ 5 - 4 -  3 + forceParens(2+1)
    "wouldn't need the parens either, but they're enforced via the `forceParens` function (which is perfectly safe)."
    nl
@@ -171,6 +173,22 @@ theContents = do
    "or"...:"."
    exaDisp $ manBracketSize 3 (5+1) * 2
    nl
+  
+  subSubSection "Text markup" >> do
+   "It can be tedious to switch into a completely different mode every time you need to do a non-plaintext operation, like simply emphasising ">>fromHaTeX(textit"single words")>>". To avoid this, we offer customisable markup on literal text passages. Deliberately avoiding any ``proper'' fixed syntax like ">>fromHaTeX latex>>"'s questionably mature one, this is based on general regex matching."
+   nl
+   "A popular markup language is *Markdown*, which is lightweight and allows simple stuff like _italic_, **bold** and `verbatim` with very little overhead. Upon such a simple basis, you can "
+   addMarkupRule"#([^#][^#]*)#"(textsc::LaTeX->LaTeX)
+    .addMarkupRule"\\^([^^][^^]*)\\^"(textsf::LaTeX->LaTeX) $ do
+    "at ^any^ point add extra #rules#, "
+    addMarkupRule"([aeiou])"((raw::Text->LaTeX).("\\\""<>)) $ do
+     "to arbitrarily "
+     addMarkupRule" "("_"::LaTeX)
+      .addMarkupRule"([rcsx])"(textbf . raw::Text->LaTeX)
+      .addMarkupRule"([dt])"(textit . raw::Text->LaTeX) $ do
+      "ridiculous extend. "
+   "Since all configuration changes are safely encapsulated in a reader monad, there is no way they can somehow leak into a global state, you _always_ get back to the correct scope's configuration." >> nl
+   "Text markup is really just meant for simple, frequent stuff that occurs in plain text, like emphasis, accents or single special characters. For anything more complicated, it's better to operate openly in the rendering monad, giving you the blessings of Haskell's type safety."
    
    
    

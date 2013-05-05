@@ -29,6 +29,10 @@ data RegexMatchToLaTeX
 
 class MatchesToLaTeX m where
   matchesToLaTeX :: m -> RegexMatchToLaTeX
+instance MatchesToLaTeX RegexMatchToLaTeX where
+  matchesToLaTeX = id
+instance MatchesToLaTeX LaTeX where
+  matchesToLaTeX = MatchesToLaTeX . const
 instance MatchesToLaTeX ([String] -> LaTeX) where
   matchesToLaTeX = MatchesToLaTeX
 instance MatchesToLaTeX ([Text] -> LaTeX) where
@@ -41,10 +45,13 @@ instance MatchesToLaTeX (Text -> LaTeX) where
   matchesToLaTeX = MatchesToLaTeX . foldMap . (.fromString)
 instance MatchesToLaTeX (LaTeX -> LaTeX) where
   matchesToLaTeX = MatchesToLaTeX_Recursive . foldMap
- 
+
+
+type Regex = String
+type MarkupRule = (String, RegexMatchToLaTeX)
 
 data TextMarkupConfig = TextMarkupConfig
-  { regexsToLaTeX :: [(String, RegexMatchToLaTeX)] }
+  { regexsToLaTeX :: [MarkupRule] }
 
 
 markupTxtToLaTeX :: MonadReader TextMarkupConfig m => String -> m LaTeX
@@ -65,12 +72,29 @@ type LaTeXFn = LaTeX->LaTeX
 
 inlineMarkdown :: TextMarkupConfig
 inlineMarkdown = TextMarkupConfig
-  [ (    "_([^_][^_]*)_"   , matchesToLaTeX (textit::LaTeXFn)     )
-  , (  "\\*([^*][^*]*)\\*" , matchesToLaTeX (emph::LaTeXFn)       )
-  , (     "__([^_]*)__"    , matchesToLaTeX (textbf::LaTeXFn)     )
-  , ( "\\*\\*([^*]*)\\*\\*", matchesToLaTeX (textbf::LaTeXFn)     )
-  , (    "`([^`][^`]*)`"   , matchesToLaTeX (verb::Text->LaTeX) )
+  [ (     "__([^_]*)__"    , matchesToLaTeX (textbf::LaTeXFn)   )  -- __Bold face__, rather unusual form
+  , (    "_([^_][^_]*)_"   , matchesToLaTeX (textit::LaTeXFn)   )  -- For text _emphasised_ through italic.
+  , ( "\\*\\*([^*]*)\\*\\*", matchesToLaTeX (textbf::LaTeXFn)   )  -- (you'd generally use the **asterisk variant**)
+  , (  "\\*([^*][^*]*)\\*" , matchesToLaTeX (emph::LaTeXFn)     )  -- Emphasised *normally* also through italic, but depends on the LaTeX config.
+  , (    "`([^`][^`]*)`"   , matchesToLaTeX (verb::Text->LaTeX) )  -- Verbatim code; calls the `verb` macro.
   ]
 
 noTextMarkup :: TextMarkupConfig
 noTextMarkup = TextMarkupConfig []
+
+
+-- | Note that the functions in this class may act either covariantly (when directly
+-- dealing with a configuration data type) or contravariantly (for reader monads).
+class HasTextMarkupConfig h where
+  modifyMarkupRules :: ([MarkupRule]->[MarkupRule]) -> h -> h
+  addMarkupRule :: MatchesToLaTeX m => String -> m -> h -> h
+  addMarkupRule rgex mtfn = modifyMarkupRules 
+        ( ++ [(rgex, matchesToLaTeX mtfn)] )
+  resetMarkupRules :: HasTextMarkupConfig h => h -> h
+  resetMarkupRules = modifyMarkupRules $ const []
+
+
+instance HasTextMarkupConfig TextMarkupConfig where
+  modifyMarkupRules f = TextMarkupConfig . f . regexsToLaTeX
+
+

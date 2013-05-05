@@ -58,9 +58,9 @@ texMathGroundState = TeXMathStateProps {
 
 type MathematicalLaTeXT m a = StateT TeXMathStateProps (
                               ReaderT TeXMathConfiguration (LaTeXT m) ) a
-type MathematicalLaTeXT_ m = MathematicalLaTeXT m ()  -- ReaderT TeXMathDisplayConf (LaTeXT m) ()
-type MathematicalLaTeX a = MathematicalLaTeXT Identity a  -- ReaderT TeXMathDisplayConf (LaTeXT Identity) a
-type MathematicalLaTeX_ = MathematicalLaTeXT Identity () -- ReaderT TeXMathDisplayConf (LaTeXT Identity) ()
+type MathematicalLaTeXT_ m = MathematicalLaTeXT m ()
+type MathematicalLaTeX a = MathematicalLaTeXT Identity a
+type MathematicalLaTeX_ = MathematicalLaTeXT Identity ()
 
 instance (Monad m) => IsString (MathematicalLaTeXT m a) where
   fromString s = do
@@ -85,3 +85,7 @@ toHaTeX_wConfig cfg = (`runReaderT`cfg) . toHaTeX
 
 wDefaultConf_toHaTeX :: Monad m => MathematicalLaTeXT m a -> LaTeXT m a
 wDefaultConf_toHaTeX = toHaTeX_wConfig mathLaTeXDefaultConfig
+
+
+instance (Monad m) => HasTextMarkupConfig (MathematicalLaTeXT m a) where
+  modifyMarkupRules = local . modifyMarkupRules
