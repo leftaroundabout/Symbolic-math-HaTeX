@@ -35,7 +35,10 @@ import qualified Data.Text as T
 data MathSymbolTranslations = MathSymbolTranslations
   { defMultiplicationSymbol
   , numeralMultiplicationSymbol
-  , atomVarMultiplicationSymbol  :: LaTeX
+  , atomVarMultiplicationSymbol
+  , linmapComposeMultiplicationSymbol
+  , numeralLinmapMultiplicationSymbol
+  , atomLinmapComposeMultiplicationSymbol :: LaTeX
   }
 
 data MathLaTeXInfixAddenda = MathLaTeXInfixAddenda
@@ -60,6 +63,10 @@ mathLaTeXDefaultConfig = TeXMathConfiguration
       { defMultiplicationSymbol     = commS"cdot"
       , numeralMultiplicationSymbol = commS"times"
       , atomVarMultiplicationSymbol = commS","
+      
+      , linmapComposeMultiplicationSymbol = commS","
+      , numeralLinmapMultiplicationSymbol = commS"cdot"
+      , atomLinmapComposeMultiplicationSymbol = commS","
       }
   , mathLaTeXInfixAddenda = MathLaTeXInfixAddenda
       { comparisonLineBreaker = mempty

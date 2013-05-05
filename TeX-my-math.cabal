@@ -68,6 +68,7 @@ Library
   Build-Depends:     base>=4.5
                      , HaTeX>3.4
                      , contravariant
+                     , vector-space
                      , bifunctors
                      , mtl
                      , HList

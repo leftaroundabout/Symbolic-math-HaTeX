@@ -15,6 +15,7 @@
 {-# LANGUAGE FlexibleInstances                #-}
 {-# LANGUAGE UndecidableInstances             #-}
 {-# LANGUAGE OverlappingInstances             #-}
+{-# LANGUAGE IncoherentInstances             #-}
 {-# LANGUAGE PatternGuards                    #-}
 {-# LANGUAGE TypeFamilies                     #-}
 {-# LANGUAGE RankNTypes                       #-}
@@ -39,6 +40,9 @@ import Control.Monad.Identity
 
 import Data.Function
 import Data.Functor.Contravariant
+import Data.Monoid
+
+import qualified Data.VectorSpace as V
 
 import Data.List
 import Data.HList
@@ -370,7 +374,7 @@ autoMult       = symChoiceIfx (*) ((reader.) . acs) (InfixA 7) neglectInfixSelfH
        acs MathExprNumLiteral _                  = numeralMultiplicationSymbol
        acs _                  MathExprNumLiteral = numeralMultiplicationSymbol
        acs _                  _                  = defMultiplicationSymbol
- 
+
 
 
 
@@ -657,3 +661,26 @@ coFst :: a -> (a,b)
 coSnd :: b -> (a,b)
 coFst = (,undefined)
 coSnd = (undefined,)
+
+
+
+
+instance (V.VectorSpace v, Num(V.Scalar v)) => Num (MathLaTeXEval (Endo v) arg) where
+  fromInteger n = mathNumPrimitiv (Endo (V.^* fromInteger n)) (rendertex n)
+  
+  (+) = mathExprIfx (\(Endo f) (Endo g) -> Endo $ \x -> f x V.^+^ g x) ("+") $ InfixA 6
+  (-) = mathExprIfx (\(Endo f) (Endo g) -> Endo $ \x -> f x V.^-^ g x) ("-") $ InfixA 6
+  negate = mathExprFunction (\(Endo f) -> Endo $ V.negateV . f ) $
+               \(MathLaTeX nKnd inr) -> mathCompound_wFixity (Infixl 6) $
+                 "-"<> (if isotropFixityOf nKnd <= 6 then autoParens else id)
+                       (noRedBraces inr)
+  
+  (*) = symChoiceIfx (<>) ((reader.) . acs) (InfixA 7) neglectInfixSelfHeight
+   where acs MathExprAtomSymbol MathExprAtomSymbol = atomLinmapComposeMultiplicationSymbol
+         acs MathExprNumLiteral MathExprAtomSymbol = atomLinmapComposeMultiplicationSymbol
+         acs MathExprNumLiteral _                  = numeralLinmapMultiplicationSymbol
+         acs _                  MathExprNumLiteral = numeralLinmapMultiplicationSymbol
+         acs _                  _                  = linmapComposeMultiplicationSymbol
+  
+  signum = error "Signum of a vectorspace-endofunction is not defined."
+  abs = error "Absolute-value of a vectorspace-endofunction is not defined."
