@@ -75,9 +75,9 @@ theContents = do
    _::Integer <- do
          "For "
          f <- mathFuncDefinition "f" "x" $ \x -> x^2 - x
-         ", "...:"."
+         ", we obtain"...:"."
          displayMathExpr_wRResult $
-                (f $$$ 5) + (f $$$ 25)
+                (f $$$ 5) + (f $$$ 5^2) - (f $$$ 5)^2
    
    nl
    

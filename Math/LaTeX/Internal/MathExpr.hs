@@ -246,12 +246,12 @@ neglectInfixSelfHeight (Just lHeight) (Just rHeight)
              = return . Just $ max lHeight rHeight
 
              
-symChoiceIfxBuilder :: MathExprIfxASM a b c r ->
+infixBuilder :: MathExprIfxASM a b c r ->
      (a->b->r) -> (MathExprKind -> MathExprKind 
-                          -> Reader MathSymbolTranslations LaTeX) 
+                          -> Reader MathSymbolTranslations (LaTeX->LaTeX->LaTeX))
             -> Fixity -> Height_InfixPropagation
             -> MathLaTeXEval a c -> MathLaTeXEval b c -> MathLaTeXEval r c
-symChoiceIfxBuilder asm ifx ifxc fxty bqSzer = asm ifx ifxNamer
+infixBuilder asm ifx ifxc fxty bqSzer = asm ifx ifxNamer
  where ifxNamer :: MathLaTeXInfix
        ifxNamer lh@(MathLaTeX knL lexpr) rh@(MathLaTeX knR rexpr) = do
 
@@ -262,7 +262,7 @@ symChoiceIfxBuilder asm ifx ifxc fxty bqSzer = asm ifx ifxNamer
                   bqSzer (bracketSizeSuggestion lh) (bracketSizeSuggestion rh)
                                
           mathCompoundLaTeX fxty bqSzQ 
-                $ safeLExpr <> " " <> rddIfxc <> " " <> safeRExpr
+                $ rddIfxc safeLExpr safeRExpr
 
         where safeLExpr = case(fxty,knL) of
                 ( InfixA ε, MathExprCompound lIfx _ )
@@ -291,7 +291,8 @@ symChoiceIfx ::
                           -> Reader MathSymbolTranslations LaTeX) 
             -> Fixity -> Height_InfixPropagation
             -> MathLaTeXEval a c -> MathLaTeXEval a c -> MathLaTeXEval r c
-symChoiceIfx = symChoiceIfxBuilder mathExprInfix
+symChoiceIfx ifx = infixBuilder mathExprInfix ifx . (fmap (fmap (
+        \m l r -> l <> " " <> m <> " " <> " " <> r  )     )  .  )
  
 mathExprIfx :: (ea ~ MathLaTeXEval a c, er ~ MathLaTeXEval r c)
       => (a->a->r) -> LaTeX -> Fixity 
@@ -325,12 +326,6 @@ mathExpr_hetFn2 ifx ifxn el er
              ( \(Pair q p) -> ifxn q p )
              ( Pair ( pseudoFmap coFst $ contramap hHead el )
                     ( pseudoFmap coSnd $ contramap hHead er ) )
-symChoiceHetIfx :: 
-     (a->b->r) -> (MathExprKind -> MathExprKind 
-                          -> Reader MathSymbolTranslations LaTeX) 
-            -> Fixity -> Height_InfixPropagation
-            -> MathLaTeXEval a c -> MathLaTeXEval b c -> MathLaTeXEval r c
-symChoiceHetIfx = symChoiceIfxBuilder mathExpr_hetFn2
  
 
                                    
@@ -384,7 +379,7 @@ autoMult, defaultMult, atomVarMult, numLiteralMult
 defaultMult    = symChoiceIfx (*) (\_ _ -> reader defMultiplicationSymbol    ) (InfixA 7) neglectInfixSelfHeight
 numLiteralMult = symChoiceIfx (*) (\_ _ -> reader numeralMultiplicationSymbol) (InfixA 7) neglectInfixSelfHeight
 atomVarMult    = symChoiceIfx (*) (\_ _ -> reader atomVarMultiplicationSymbol) (InfixA 7) neglectInfixSelfHeight
-autoMult       = symChoiceIfx (*) ((reader.) . acs) (InfixA 7) neglectInfixSelfHeight
+autoMult       = symChoiceIfx (*) (fmap reader . acs) (InfixA 7) neglectInfixSelfHeight
  where acs MathExprAtomSymbol MathExprAtomSymbol = atomVarMultiplicationSymbol
        acs MathExprNumLiteral MathExprAtomSymbol = atomVarMultiplicationSymbol
        acs MathExprNumLiteral _                  = numeralMultiplicationSymbol
@@ -691,7 +686,7 @@ instance (V.VectorSpace v, Num(V.Scalar v)) => Num (MathLaTeXEval (v->v) arg) wh
                  "-"<> (if isotropFixityOf nKnd <= 6 then autoParens else id)
                        (noRedBraces inr)
   
-  (*) = symChoiceIfx (.) ((reader.) . acs) (InfixA 7) neglectInfixSelfHeight
+  (*) = symChoiceIfx (.) (fmap reader . acs) (InfixA 7) neglectInfixSelfHeight
    where acs MathExprAtomSymbol MathExprAtomSymbol = atomLinmapComposeMultiplicationSymbol
          acs MathExprNumLiteral MathExprAtomSymbol = atomLinmapComposeMultiplicationSymbol
          acs MathExprNumLiteral _                  = numeralLinmapMultiplicationSymbol
@@ -717,12 +712,29 @@ infixr 0 $$$, $=$
 -- be expected to look quite different from the Haskell input when you're using
 -- this operator.
 ($$$) :: MathLaTeXEval (v->w) arg -> MathLaTeXEval v arg -> MathLaTeXEval w arg
-($$$) = symChoiceHetIfx ($) ((reader.) . acs) (Infixr 7) neglectInfixSelfHeight
-   where acs MathExprAtomSymbol MathExprAtomSymbol = atomLinmapComposeMultiplicationSymbol
-         acs MathExprNumLiteral MathExprAtomSymbol = atomLinmapComposeMultiplicationSymbol
-         acs MathExprNumLiteral _                  = numeralLinmapMultiplicationSymbol
-         acs _                  MathExprNumLiteral = numeralLinmapMultiplicationSymbol
-         acs _                  _                  = linmapComposeMultiplicationSymbol
+($$$) = infixBuilder mathExpr_hetFn2 ($) (fmap reader . acs) (Infixr 7) neglectInfixSelfHeight
+   where acs MathExprAtomSymbol MathExprAtomSymbol 
+                (MathSymbolTranslations{ functionToAtomApplySymb = Just s }) l r
+              = l <> " " <> s <> " " <> r
+         acs MathExprAtomSymbol MathExprNumLiteral 
+                (MathSymbolTranslations{ functionToNumeralApplySymb = Just s }) l r
+              = l <> " " <> s <> " " <> r
+         acs MathExprNumLiteral _
+                (MathSymbolTranslations{ numeralfunctionApplySymb = Just s }) l r
+              = l <> " " <> s <> " " <> r
+         acs _ _ (MathSymbolTranslations{ functionApplySymb = Just s }) l r
+              = l <> " " <> s <> " " <> r
+         acs lK rK _ l r = l' <> r'
+          where l' | MathExprAtomSymbol<-lK   = l
+                   | isotropFixityOf lK <= 7  = l
+                   | otherwise  = rendrdExpression . autoLaTeXParens $ MathLaTeX lK l
+                r' = case rK of
+                      MathExprAtomSymbol                         -> "("<>r<>")"
+                      MathExprNumLiteral                         -> "("<>r<>")"
+                      MathExprCompound (InfixA k) bSz | k>=7     -> latexBrackets bSz "("")" r
+                      MathExprCompound (Infixr k) bSz | k>=7     -> latexBrackets bSz "("")" r
+                      MathExprCompound κ bSz | isotropFixity κ>7 -> latexBrackets bSz "("")" r
+                      _                                          -> r
 
 -- | Exactly the same as '$$$', but with less polymorphic signature to help type inference.
 ($=$) :: MathLaTeXEval (v->v) arg -> MathLaTeXEval v arg -> MathLaTeXEval v arg

@@ -35,10 +35,17 @@ import qualified Data.Text as T
 data MathSymbolTranslations = MathSymbolTranslations
   { defMultiplicationSymbol
   , numeralMultiplicationSymbol
-  , atomVarMultiplicationSymbol
+  , atomVarMultiplicationSymbol :: LaTeX
+  
   , linmapComposeMultiplicationSymbol
   , numeralLinmapMultiplicationSymbol
   , atomLinmapComposeMultiplicationSymbol :: LaTeX
+  , functionApplySymb
+  , numeralfunctionApplySymb        -- ^ A numeral-function is basically a number, interpreted as @μ⋅id@
+  , functionToNumeralApplySymb
+  , functionToAtomApplySymb
+  , functionToKetApplySymb:: Maybe LaTeX
+      -- ^ When 'Nothing', no symbol is used but the common writing style \"@f(x)@\" (no space, paren even around atoms) employed.
   }
 
 data MathLaTeXInfixAddenda = MathLaTeXInfixAddenda
@@ -67,6 +74,12 @@ mathLaTeXDefaultConfig = TeXMathConfiguration
       , linmapComposeMultiplicationSymbol = commS","
       , numeralLinmapMultiplicationSymbol = commS"cdot"
       , atomLinmapComposeMultiplicationSymbol = commS","
+      
+      , functionApplySymb = Nothing
+      , numeralfunctionApplySymb = Just $ commS"cdot"
+      , functionToNumeralApplySymb = Nothing
+      , functionToAtomApplySymb = Nothing
+      , functionToKetApplySymb = Just $ commS","
       }
   , mathLaTeXInfixAddenda = MathLaTeXInfixAddenda
       { comparisonLineBreaker = mempty
