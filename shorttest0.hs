@@ -72,13 +72,7 @@ theContents = do
         , - exp (log 2 + imagUnit*pi/4)
         ]
    
-   _::Integer <- do
-         "For "
-         f <- mathFuncDefinition "f" "x" $ \x -> x^2 - x
-         ", we obtain"...:"."
-         displayMathExpr_wRResult $
-                (f $$$ 5) + (f $$$ 5^2) - (f $$$ 5)^2
-   
+  
    nl
    
  subSection "Simple finite sums / products" >> do
@@ -102,6 +96,24 @@ theContents = do
    displayRealExpr .
        limsSum "j" 1 infty $ (1/) . (^2)
    
+   nl
+   
+ subSection "Function definitions" >> do
+   _::Integer <- do
+         "For "
+         f <- mathFuncDefinition "f" "x" $ \x -> x^2 - x
+         ", we obtain"...:"."
+         displayMathExpr_wRResult $
+                (f $$$ 5) + (f $$$ 5^2) - (f $$$ 5)^2
+ 
+   _::Integer <- do
+         "For "
+         f <- mathFuncDefinition "f" "x" $ \x -> limsSum "n" 1 8 (x-)
+         ", "...:"."
+         displayMathExpr_wRResult $
+                limsSum "x" 1 8 (f $$$)
+   nl
+ 
  subSection "Checking some simple identities" >> do
    
    testJudge =<< do

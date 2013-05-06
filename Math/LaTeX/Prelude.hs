@@ -422,25 +422,26 @@ displayMathCompareSeq_ = liftM ($HNil) . displayMathCompareSeq
 --         where ((lrend              , lres), (llm, lrm)) = go l
 --               ((rrendhead:rrendtail, rres), (rlm, rrm)) = go r
 
-mathDefinition :: Monad m => MathPrimtvId -> MathExpr b
-                                -> MathematicalLaTeXT m(MathExpr b)
+mathDefinition :: Monad m => MathPrimtvId -> MathLaTeXEval a b
+                                -> MathematicalLaTeXT m(MathLaTeXEval a b)
 mathDefinition varn e = do
    rendCfg <- ask
    lift.lift . fromLaTeX . math $ 
          varn =: rendrdExpression (mathExprRender e `runReader` rendCfg)
-   return $ mathPrimitiv (mathExprCalculate_ e) varn
+   return $ mathVarEntry varn (mathExprCalculate e)
 
 
-mathFuncDefinition :: forall m fnarg res .
+mathFuncDefinition :: forall m fnarg res a .
     (Monad m)
      => MathPrimtvId -> MathPrimtvId
-            -> ( (forall fqenvStack . BasedUpon HNil fqenvStack
-                   => MathLaTeXEval fnarg fqenvStack) -> MathExpr res)
-           -> MathematicalLaTeXT m (MathExpr(fnarg->res))
+            -> ( (forall fqenvStack . BasedUpon a fqenvStack
+                   => MathLaTeXEval fnarg fqenvStack) -> MathLaTeXEval res a)
+           -> MathematicalLaTeXT m (MathLaTeXEval (fnarg->res) a)
 mathFuncDefinition funcn varn ef = do
    rendCfg <- ask
-   let fnSymbExpr = mathPrimitiv (mathExprCalculate_ . \v -> ef (mathPrimitiv v varn)) funcn
-       varSymbExpr :: forall fqs' . BasedUpon HNil fqs' => MathLaTeXEval fnarg fqs'
+   let fnSymbExpr = mathVarEntry funcn 
+                     (\a v -> (`mathExprCalculate`a) $ ef (mathVarEntry varn $ const v))
+       varSymbExpr :: forall fqs' . BasedUpon a fqs' => MathLaTeXEval fnarg fqs'
        varSymbExpr = mathPrimitiv undefined varn
        dqRenderer e = mathExprRender e `runReader` rendCfg
    lift.lift . fromLaTeX . math $
