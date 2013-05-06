@@ -431,14 +431,16 @@ mathDefinition varn e = do
    return $ mathPrimitiv (mathExprCalculate_ e) varn
 
 
-mathFuncDefinition :: forall m fnarg res fqenvStack .
-    (Monad m, HNil~fqenvStack )
+mathFuncDefinition :: forall m fnarg res .
+    (Monad m)
      => MathPrimtvId -> MathPrimtvId
-            -> (MathLaTeXEval fnarg fqenvStack -> MathExpr res)
+            -> ( (forall fqenvStack . BasedUpon HNil fqenvStack
+                   => MathLaTeXEval fnarg fqenvStack) -> MathExpr res)
            -> MathematicalLaTeXT m (MathExpr(fnarg->res))
 mathFuncDefinition funcn varn ef = do
    rendCfg <- ask
-   let fnSymbExpr = mathPrimitiv (mathExprCalculate_ . ef . (`mathPrimitiv`varn)) funcn
+   let fnSymbExpr = mathPrimitiv (mathExprCalculate_ . \v -> ef (mathPrimitiv v varn)) funcn
+       varSymbExpr :: forall fqs' . BasedUpon HNil fqs' => MathLaTeXEval fnarg fqs'
        varSymbExpr = mathPrimitiv undefined varn
        dqRenderer e = mathExprRender e `runReader` rendCfg
    lift.lift . fromLaTeX . math $
