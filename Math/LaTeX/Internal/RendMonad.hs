@@ -41,6 +41,7 @@ import Control.Monad.State
 import Control.Monad.Identity
 
 import Data.List
+import Data.HList
 import Data.Function
 import Data.String
 
@@ -56,13 +57,14 @@ texMathGroundState = TeXMathStateProps {
  }
 
 
-type MathematicalLaTeXT m a = StateT TeXMathStateProps (
-                              ReaderT TeXMathConfiguration (LaTeXT m) ) a
-type MathematicalLaTeXT_ m = MathematicalLaTeXT m ()
-type MathematicalLaTeX a = MathematicalLaTeXT Identity a
-type MathematicalLaTeX_ = MathematicalLaTeXT Identity ()
+type MathematicalLaTeXT baseMonad freeVarStack mRe
+   = StateT TeXMathStateProps ( ReaderT TeXMathConfiguration
+      (LaTeXT baseMonad) ) mRe
+type MathematicalLaTeXT_ m = MathematicalLaTeXT m HNil ()
+type MathematicalLaTeX f a = MathematicalLaTeXT Identity f a
+type MathematicalLaTeX_ f = MathematicalLaTeXT Identity f ()
 
-instance (Monad m) => IsString (MathematicalLaTeXT m a) where
+instance (Monad m) => IsString (MathematicalLaTeXT m f a) where
   fromString s = do
      (TeXMathStateProps {..}) <- get
      mkupCfg <- askTextMarkupConfig
@@ -75,17 +77,17 @@ srcNLEnv :: LaTeX -> LaTeX
 srcNLEnv e = raw"\n" <> e <> raw"\n"
                                
 
-toHaTeX :: Monad m => MathematicalLaTeXT m a -> ReaderT TeXMathConfiguration (LaTeXT m) a
+toHaTeX :: Monad m => MathematicalLaTeXT m f a -> ReaderT TeXMathConfiguration (LaTeXT m) a
 toHaTeX mLaTeX = do
    cfg <- ask
    lift . (`runReaderT` cfg) . liftM fst $ runStateT mLaTeX texMathGroundState
 
-toHaTeX_wConfig :: Monad m => TeXMathConfiguration -> MathematicalLaTeXT m a -> LaTeXT m a
+toHaTeX_wConfig :: Monad m => TeXMathConfiguration -> MathematicalLaTeXT m f a -> LaTeXT m a
 toHaTeX_wConfig cfg = (`runReaderT`cfg) . toHaTeX
 
-wDefaultConf_toHaTeX :: Monad m => MathematicalLaTeXT m a -> LaTeXT m a
+wDefaultConf_toHaTeX :: Monad m => MathematicalLaTeXT m f a -> LaTeXT m a
 wDefaultConf_toHaTeX = toHaTeX_wConfig mathLaTeXDefaultConfig
 
 
-instance (Monad m) => HasTextMarkupConfig (MathematicalLaTeXT m a) where
+instance (Monad m) => HasTextMarkupConfig (MathematicalLaTeXT m f a) where
   modifyMarkupRules = local . modifyMarkupRules

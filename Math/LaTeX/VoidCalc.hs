@@ -107,20 +107,20 @@ instance (InfReal r) => InfReal(MathLaTeXEval r arg) where
   infty = mathPrimitiv infty AMS.infty
   
 
-inline :: Monad m => MathHard b -> MathematicalLaTeXT m ()
+inline :: Monad m => MathHard b -> MathematicalLaTeXT m HNil ()
 inline = liftM (const ()) . inlineMathExpr
 
-display :: Monad m => MathHard b -> MathematicalLaTeXT m ()
+display :: Monad m => MathHard b -> MathematicalLaTeXT m HNil ()
 display = liftM (const ()) . displayMathExpr
 
-inlinePrTypeAs, displayPrTypeAs :: Monad m => b -> MathHard b -> MathematicalLaTeXT m ()
+inlinePrTypeAs, displayPrTypeAs :: Monad m => b -> MathHard b -> MathematicalLaTeXT m HNil ()
 inlinePrTypeAs = const inline; displayPrTypeAs = const display
 
-inlineIntegerExpr, displayIntegerExpr :: Monad m => MathHard Integer -> MathematicalLaTeXT m ()
+inlineIntegerExpr, displayIntegerExpr :: Monad m => MathHard Integer -> MathematicalLaTeXT m HNil ()
 displayIntegerExpr = display; inlineIntegerExpr = inline
 
-inlineRealExpr, displayRealExpr :: Monad m => MathHard PseudoReal -> MathematicalLaTeXT m ()
+inlineRealExpr, displayRealExpr :: Monad m => MathHard PseudoReal -> MathematicalLaTeXT m HNil ()
 displayRealExpr = display; inlineRealExpr = inline
 
-inlineComplexExpr, displayComplexExpr :: Monad m => MathHard PseudoComplex -> MathematicalLaTeXT m ()
+inlineComplexExpr, displayComplexExpr :: Monad m => MathHard PseudoComplex -> MathematicalLaTeXT m HNil ()
 displayComplexExpr = display; inlineComplexExpr = inline
