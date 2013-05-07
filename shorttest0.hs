@@ -1,5 +1,7 @@
 {-# LANGUAGE OverloadedStrings                #-}
 {-# LANGUAGE ScopedTypeVariables              #-}
+{-# LANGUAGE RankNTypes                       #-}
+{-# LANGUAGE FlexibleContexts                 #-}
 
 
 import Math.LaTeX.Prelude
@@ -11,6 +13,7 @@ import Text.LaTeX
 import Text.LaTeX.Packages.Inputenc
 import qualified Text.LaTeX.Packages.AMSMath as AMS
 
+import Data.HList
 import Data.Complex(Complex(..))
 import Data.Complex.Class
 
@@ -101,14 +104,16 @@ theContents = do
  subSection "Function definitions" >> do
    _::Integer <- do
          "For "
-         f <- mathFuncDefinition "f" "x" $ \x -> x^2 - x
+         f :: forall a. BasedUpon HNil a => MathLaTeXEval (Integer->Integer) a
+           <- mathFuncDefinition "f" "x" $ \x -> x^2 - x
          ", we obtain"...:"."
          displayMathExpr_wRResult $
                 (f $$$ 5) + (f $$$ 5^2) - (f $$$ 5)^2
  
    _::Integer <- do
          "For "
-         f <- mathFuncDefinition "f" "x" $ \x -> limsSum "n" 1 8 (x-)
+         f :: forall a. BasedUpon HNil a => MathLaTeXEval (Integer->Integer) a 
+          <- mathFuncDefinition "f" "x" $ \x -> limsSum "n" 1 8 (x-)
          ", "...:"."
          displayMathExpr_wRResult $
                 limsSum "x" 1 8 (f $$$)

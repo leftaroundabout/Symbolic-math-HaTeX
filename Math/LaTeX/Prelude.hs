@@ -19,6 +19,7 @@
 {-# LANGUAGE PatternGuards                    #-}
 {-# LANGUAGE TypeFamilies                     #-}
 {-# LANGUAGE RankNTypes                       #-}
+{-# LANGUAGE ImpredicativeTypes               #-}
 {-# LANGUAGE TupleSections                    #-}
 {-# LANGUAGE RecordWildCards                  #-}
 
@@ -65,6 +66,7 @@ module Math.LaTeX.Prelude (
     -- * Misc
   , Powerable(..)
   , ($$$), ($=$)
+  , BasedUpon
     -- * The rendering monad
   , MathematicalLaTeX, MathematicalLaTeX_
   , MathematicalLaTeXT, MathematicalLaTeXT_
@@ -318,45 +320,45 @@ mathExprEvalRough = roughMathExpr . mathExprCalculate_
 
 
 
-inlineMathExpr :: Monad m => MathLaTeXEval b arg -> MathematicalLaTeXT m arg (arg->b)
+inlineMathExpr :: Monad m => MathLaTeXEval b arg -> MathematicalLaTeXT arg m (arg->b)
 inlineMathExpr e = do
    rendCfg <- ask
-   lift.lift . fromLaTeX . math . rendrdExpression 
+   fromHaTeX . fromLaTeX . math . rendrdExpression 
                   $ mathExprRender e `runReader` rendCfg
    return $ mathExprCalculate e
 
-inlineMathExpr_ :: Monad m => MathExpr b -> MathematicalLaTeXT m HNil b
+inlineMathExpr_ :: Monad m => MathExpr b -> MathematicalLaTeXT HNil m b
 inlineMathExpr_ = liftM ($HNil) . inlineMathExpr
 
 
-displayMathExpr :: Monad m => MathLaTeXEval b arg -> MathematicalLaTeXT m arg (arg->b)
+displayMathExpr :: Monad m => MathLaTeXEval b arg -> MathematicalLaTeXT arg m (arg->b)
 displayMathExpr e = do
    rendCfg <- ask
    stProps@(TeXMathStateProps {..}) <- get
-   lift.lift . fromLaTeX . mathDisplay . srcNLEnv
+   fromHaTeX . fromLaTeX . mathDisplay . srcNLEnv
        $  rendrdExpression (mathExprRender e `runReader` rendCfg)
            <> fold(fmap fromString punctuationNeededAtDisplayEnd)
    put $ stProps{ punctuationNeededAtDisplayEnd = Nothing }
    return $ mathExprCalculate e
         
        
-displayMathExpr_ :: Monad m => MathExpr b -> MathematicalLaTeXT m HNil b
+displayMathExpr_ :: Monad m => MathExpr b -> MathematicalLaTeXT HNil m b
 displayMathExpr_ = liftM ($HNil) . displayMathExpr
 
 inlineMathShow :: ( Monad m, MathRenderable b )
-                 => b -> MathematicalLaTeXT m HNil b
+                 => b -> MathematicalLaTeXT HNil m b
 inlineMathShow = inlineMathExpr_ . toMathExpr
 
 inlineRoughValue :: ( Monad m, MathRoughRenderable b )
-                 => b -> MathematicalLaTeXT m HNil b
+                 => b -> MathematicalLaTeXT HNil m b
 inlineRoughValue = inlineMathExpr_ . getRoughExpression . roughMathExpr
 
 infix 4 ?~?, ?=?
 (?~?) :: ( Monad m, MathRoughRenderable b )
-                 => String -> b -> MathematicalLaTeXT m HNil b
+                 => String -> b -> MathematicalLaTeXT HNil m b
 expln ?~? val = fromString expln >> inlineRoughValue val
 (?=?) :: ( Monad m, MathRenderable b )
-                 => String -> b -> MathematicalLaTeXT m HNil b
+                 => String -> b -> MathematicalLaTeXT HNil m b
 expln ?=? val = fromString expln >> inlineMathShow val
 
 
@@ -365,7 +367,7 @@ expln ?=? val = fromString expln >> inlineMathShow val
 -- appropriate equality symbol will be chosen).
 displayMathExpr_wRResult :: ( Monad m, MathRoughRenderable b
                             , e ~ MathExpr b, RoughEqable e  )
-                   => e -> MathematicalLaTeXT m HNil b
+                   => e -> MathematicalLaTeXT HNil m b
 displayMathExpr_wRResult e = do
    let res = mathExprCalculate e HNil
    displayMathCompareSeq_ $ case roughMathExpr res of
@@ -378,12 +380,12 @@ displayMathExpr_wRResult e = do
 -- supposed to have.
 displayMathExpr_wRResultAsTypeOf :: ( Monad m, MathRoughRenderable b
                             , e ~ MathExpr b, RoughEqable e  )
-                   => b -> e -> MathematicalLaTeXT m HNil b
+                   => b -> e -> MathematicalLaTeXT HNil m b
 displayMathExpr_wRResultAsTypeOf _ = displayMathExpr_wRResult
  
 
 displayMathCompareSeq :: Monad m => ComparisonsEval x (MathLaTeXEval x arg)
-                           -> MathematicalLaTeXT m arg (arg->Bool)
+                           -> MathematicalLaTeXT arg m (arg->Bool)
 displayMathCompareSeq (ComparisonsEval comparisons) = do
   rendCfg <- ask
   let otInfixAddenda = mathLaTeXInfixAddenda rendCfg
@@ -404,7 +406,7 @@ displayMathCompareSeq (ComparisonsEval comparisons) = do
                         -> let [l',r'] = map mathExprCalculate [l,r]
                            in (liftA2 cmp l' r', re)                 )
                   comparisons
-  lift.lift . fromLaTeX . align_
+  fromHaTeX . fromLaTeX . align_
      $ [ rendrdExpression(renders undefined)
        <> fold(fmap fromString punctuationNeededAtDisplayEnd) ]
   put $ stProps{ punctuationNeededAtDisplayEnd = Nothing }
@@ -412,15 +414,15 @@ displayMathCompareSeq (ComparisonsEval comparisons) = do
                                        
                                        
 displayMathCompareSeq_ :: Monad m => ComparisonsEval x (MathExpr x) 
-                                                      -> MathematicalLaTeXT m HNil Bool
+                                                      -> MathematicalLaTeXT HNil m Bool
 displayMathCompareSeq_ = liftM ($HNil) . displayMathCompareSeq
 
 
 mathDefinition :: Monad m => MathPrimtvId -> MathLaTeXEval a b
-                                -> MathematicalLaTeXT m b (MathLaTeXEval a b)
+                                -> MathematicalLaTeXT b m (MathLaTeXEval a b)
 mathDefinition varn e = do
    rendCfg <- ask
-   lift.lift . fromLaTeX . math $ 
+   fromHaTeX . fromLaTeX . math $ 
          varn =: rendrdExpression (mathExprRender e `runReader` rendCfg)
    return $ mathVarEntry varn (mathExprCalculate e)
 
@@ -428,21 +430,26 @@ mathDefinition varn e = do
 mathFuncDefinition :: forall m fnarg res a .
     (Monad m)
      => MathPrimtvId -> MathPrimtvId
-            -> ( (forall fqenvStack . BasedUpon a fqenvStack
-                   => MathLaTeXEval fnarg fqenvStack) -> MathLaTeXEval res a)
-           -> MathematicalLaTeXT m a (MathLaTeXEval (fnarg->res) a)
+            -> ( (forall a' . BasedUpon a a'
+                   => MathLaTeXEval fnarg a') -> MathLaTeXEval res a)
+           -> MathematicalLaTeXT a m ( forall a' . BasedUpon a a'
+                                       => MathLaTeXEval (fnarg->res) a' )
 mathFuncDefinition funcn varn ef = do
    rendCfg <- ask
-   let fnSymbExpr = mathVarEntry funcn 
+   let fnSymbExpr :: forall a' . BasedUpon a a' => MathLaTeXEval (fnarg->res) a'
+       fnSymbExpr = polyMathVarEntry funcn 
                      (\a v -> (`mathExprCalculate`a) $ ef (mathVarEntry varn $ const v))
-       varSymbExpr :: forall fqs' . BasedUpon a fqs' => MathLaTeXEval fnarg fqs'
+       varSymbExpr :: forall a' . BasedUpon a a' => MathLaTeXEval fnarg a'
        varSymbExpr = mathPrimitiv undefined varn
        dqRenderer e = mathExprRender e `runReader` rendCfg
-   lift.lift . fromLaTeX . math $
+   fromHaTeX . fromLaTeX . math $
       rendrdExpression (dqRenderer $ fnSymbExpr $$$ varSymbExpr)
         =: rendrdExpression (dqRenderer $ ef varSymbExpr)
-   return fnSymbExpr
+   (return :: (forall a' . BasedUpon a a' => MathLaTeXEval (fnarg->res) a')
+             -> (MathematicalLaTeXT a m ( forall a' . BasedUpon a a'
+                                       => MathLaTeXEval (fnarg->res) a' )) ) fnSymbExpr
 
+-- MathematicalLaTeXT a m (
    
                                
 
@@ -450,9 +457,9 @@ freeVarIntro :: forall v outerFree innerFree m mRe .
          ( Monad m, innerFree ~ HCons v outerFree )
   => MathPrimtvId
     -> ( ( forall c . BasedUpon innerFree c => MathLaTeXEval v c )
-         -> MathematicalLaTeXT m innerFree mRe )
-     -> MathematicalLaTeXT m outerFree mRe
-freeVarIntro vn qgen = qgen vVar
+         -> MathematicalLaTeXT innerFree m mRe )
+     -> MathematicalLaTeXT outerFree m mRe
+freeVarIntro vn qgen = tamperFreeVarStack $ qgen vVar
  where vVar :: forall c . BasedUpon innerFree c => MathLaTeXEval v c
        vVar = mathVarEntry vn (\c -> hHead (base c))
         where base :: c -> innerFree; base = basement
@@ -480,7 +487,7 @@ infixr 4 ...:
 -- 
 -- This will not affect any result-requests you may also be conducting.
 -- The fixity of this operator is @infixr 4 ...:@.
-(...:) :: Monad m => MathematicalLaTeXT m f a -> String -> MathematicalLaTeXT m f a
+(...:) :: Monad m => MathematicalLaTeXT f m a -> String -> MathematicalLaTeXT f m a
 txt...:punct = do
    res <- txt
    modify $ \sps -> sps{ punctuationNeededAtDisplayEnd = Just punct }
@@ -493,11 +500,9 @@ instance (Monad m) => Monoid (MathematicalLaTeXT_ m) where
      a
      b
 
-fromHaTeX :: Monad m => LaTeXT m a -> MathematicalLaTeXT m f a
-fromHaTeX = lift.lift
 
 nl :: Monad m => MathematicalLaTeXT_ m
-nl = lift.lift $ raw"\n\n"
+nl = fromHaTeX $ raw"\n\n"
 
 -- instance (Monad m) => LaTeXC (MathematicalLaTeXT_ m) where
   

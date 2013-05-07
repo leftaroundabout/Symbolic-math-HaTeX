@@ -107,20 +107,20 @@ instance (InfReal r) => InfReal(MathLaTeXEval r arg) where
   infty = mathPrimitiv infty AMS.infty
   
 
-inline :: Monad m => MathHard b -> MathematicalLaTeXT m HNil ()
-inline = liftM (const ()) . inlineMathExpr
+inline :: Monad m => MathHard b -> MathematicalLaTeXT HNil m ()
+inline = tamperFreeVarStack . liftM (const ()) . inlineMathExpr
 
-display :: Monad m => MathHard b -> MathematicalLaTeXT m HNil ()
-display = liftM (const ()) . displayMathExpr
+display :: Monad m => MathHard b -> MathematicalLaTeXT HNil m ()
+display = tamperFreeVarStack . liftM (const ()) . displayMathExpr
 
-inlinePrTypeAs, displayPrTypeAs :: Monad m => b -> MathHard b -> MathematicalLaTeXT m HNil ()
+inlinePrTypeAs, displayPrTypeAs :: Monad m => b -> MathHard b -> MathematicalLaTeXT HNil m ()
 inlinePrTypeAs = const inline; displayPrTypeAs = const display
 
-inlineIntegerExpr, displayIntegerExpr :: Monad m => MathHard Integer -> MathematicalLaTeXT m HNil ()
+inlineIntegerExpr, displayIntegerExpr :: Monad m => MathHard Integer -> MathematicalLaTeXT HNil m ()
 displayIntegerExpr = display; inlineIntegerExpr = inline
 
-inlineRealExpr, displayRealExpr :: Monad m => MathHard PseudoReal -> MathematicalLaTeXT m HNil ()
+inlineRealExpr, displayRealExpr :: Monad m => MathHard PseudoReal -> MathematicalLaTeXT HNil m ()
 displayRealExpr = display; inlineRealExpr = inline
 
-inlineComplexExpr, displayComplexExpr :: Monad m => MathHard PseudoComplex -> MathematicalLaTeXT m HNil ()
+inlineComplexExpr, displayComplexExpr :: Monad m => MathHard PseudoComplex -> MathematicalLaTeXT HNil m ()
 displayComplexExpr = display; inlineComplexExpr = inline
