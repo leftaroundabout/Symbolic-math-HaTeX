@@ -2,6 +2,7 @@
 {-# LANGUAGE ScopedTypeVariables              #-}
 {-# LANGUAGE RankNTypes                       #-}
 {-# LANGUAGE FlexibleContexts                 #-}
+{-# LANGUAGE TypeFamilies                     #-}
 
 
 import Math.LaTeX.Prelude
@@ -118,6 +119,15 @@ theContents = do
          displayMathExpr_wRResult $
                 limsSum "x" 1 8 (f $$$)
    nl
+ 
+ subSection "Free variables"; (freeVarIntro "x" :: NewFreeVar Double) $ \x -> do
+   "We have now a free variable, ">>inlineMathExpr x>>", in scope. General statements can be made, involving this variable:"...:"."
+   displayMathCompareSeq $ forceParens(sin x)^2 + forceParens(cos x)^2 =. 1
+   
+   (freeVarIntro "f" :: NewFreeVar (Double->Integer)) $ \f -> do
+     "Free variables may also have a function type. You can again make statements about those, in the obvious ways:"...:","
+     displayMathCompareSeq $ (f $$$ x) =. (f $$$ x + pi) - 5
+     "this example being obviously _not_ a correct identity for general functions. At the moment, statements involving free variables can not be checked in any way."
  
  subSection "Checking some simple identities" >> do
    

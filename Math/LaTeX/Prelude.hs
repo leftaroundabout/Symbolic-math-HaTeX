@@ -67,6 +67,7 @@ module Math.LaTeX.Prelude (
   , Powerable(..)
   , ($$$), ($=$)
   , BasedUpon
+  , freeVarIntro, NewFreeVar
     -- * The rendering monad
   , MathematicalLaTeX, MathematicalLaTeX_
   , MathematicalLaTeXT, MathematicalLaTeXT_
@@ -452,6 +453,13 @@ mathFuncDefinition funcn varn ef = do
 -- MathematicalLaTeXT a m (
    
                                
+type NewFreeVar v = forall outerFree innerFree m mRe .
+         ( Monad m, innerFree ~ HCons v outerFree )
+      => ( ( forall c . BasedUpon innerFree c => MathLaTeXEval v c )
+         -> MathematicalLaTeXT innerFree m mRe )
+     -> MathematicalLaTeXT outerFree m mRe
+
+
 
 freeVarIntro :: forall v outerFree innerFree m mRe .
          ( Monad m, innerFree ~ HCons v outerFree )
