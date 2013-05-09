@@ -44,8 +44,23 @@ data MathSymbolTranslations = MathSymbolTranslations
   , numeralfunctionApplySymb        -- ^ A numeral-function is basically a number, interpreted as @μ⋅id@
   , functionToNumeralApplySymb
   , functionToAtomApplySymb
-  , functionToKetApplySymb:: Maybe LaTeX
-      -- ^ When 'Nothing', no symbol is used but the common writing style \"@f(x)@\" (no space, paren even around atoms) employed.
+--   , functionToKetApplySymb
+     :: Maybe LaTeX
+     -- ^ When 'Nothing', no symbol is used but the common writing style \"&#x1d453;(&#x1d465;)\" employed (further specified through the @forceParensAround*@ fields).
+  
+  , functionApplySpacingSymb :: LaTeX
+     -- ^ The spacing (or symbol) to use when none of the @*function*ApplySymb@s apply, but no parens around the arguments are enforced.
+      
+  , forceParensAroundAtomFunctionArgs  -- True -> f(x), False -> f x
+      -- ^ @True@ &#x2192; &#x1d453;(&#x1d465;), @False@ &#x2192 &#x1d453; &#x1d465;
+  , forceParensAroundNumFunctionArgs   -- True -> f(24), False -> f 24
+      -- ^ @True@ &#x2192; &#x1d453;(24), @False@ &#x2192; &#x1d453; 24
+  , forceParensAroundAtomArgsToStdFunc -- True -> sin(x), False -> sin x
+      -- ^ @True@ &#x2192; sin(&#x1d465;), @False@ &#x2192; sin &#x1d465;
+  , forceParensAroundNumArgsToStdFunc :: Bool
+      -- ^ @True@ &#x2192; sin(2.4), @False@ &#x2192 sin 2.4
+      
+  , lambdafunctionVisualisation  :: LaTeX -> LaTeX -> LaTeX
   }
 
 data MathLaTeXInfixAddenda = MathLaTeXInfixAddenda
@@ -79,7 +94,16 @@ mathLaTeXDefaultConfig = TeXMathConfiguration
       , numeralfunctionApplySymb = Just $ commS"cdot"
       , functionToNumeralApplySymb = Nothing
       , functionToAtomApplySymb = Nothing
-      , functionToKetApplySymb = Just $ commS","
+--       , functionToKetApplySymb = Just $ commS","
+      
+      , functionApplySpacingSymb = commS","
+      
+      , forceParensAroundAtomFunctionArgs = True
+      , forceParensAroundNumFunctionArgs = True
+      , forceParensAroundAtomArgsToStdFunc = False
+      , forceParensAroundNumArgsToStdFunc = True
+      
+      , lambdafunctionVisualisation = \x f -> x <> commS"mapsto" <> f
       }
   , mathLaTeXInfixAddenda = MathLaTeXInfixAddenda
       { comparisonLineBreaker = mempty

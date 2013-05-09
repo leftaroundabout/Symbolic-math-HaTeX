@@ -84,6 +84,7 @@ data MathLaTeXEval res arg where
 
 data MathExprKind
   = MathExprAtomSymbol
+  | MathExprStandardFunction
   | MathExprNumLiteral
   | MathExprCompound
          { fixity :: Fixity
@@ -124,6 +125,7 @@ mathCompoundLaTeX fxty bSz = return . MathLaTeX (MathExprCompound fxty bSz)
 isotropFixityOf :: MathExprKind -> Int
 isotropFixityOf MathExprNumLiteral = 10
 isotropFixityOf MathExprAtomSymbol = 10
+isotropFixityOf MathExprStandardFunction = 10
 isotropFixityOf (MathExprCompound fq _)= isotropFixity fq
 
 isotropFixity :: Fixity -> Int
@@ -217,11 +219,11 @@ mathExprFunction f fn e = MathEnvd ( \(Identity q) -> f . q )
 
 mathExprFn :: (a->r) -> MathPrimtvId
                  -> MathLaTeXEval a c -> MathLaTeXEval r c
-mathExprFn f fn
-   = mathExprFunction f $ mathCompound_wFixity (Infix 9) . funnamer
- where funnamer (MathLaTeX eKind incl)
-         | isotropFixityOf eKind <= 9  = fn <> (autoParens incl)
-         | otherwise                 = fn <> commS":" <> noRedBraces incl
+mathExprFn = fmap funcall . mathPrimitiv_ofKind MathExprStandardFunction
+--    = mathExprFunction f $ mathCompound_wFixity (Infix 9) . funnamer
+--  where funnamer (MathLaTeX eKind incl)
+--          | isotropFixityOf eKind <= 9  = fn <> (autoParens incl)
+--          | otherwise                 = fn <> commS":" <> noRedBraces incl
 
  
 type MathLaTeXInfix = MathLaTeX -> MathLaTeX -> RendConfReadMathLaTeX
@@ -700,7 +702,14 @@ instance (V.VectorSpace v, Num(V.Scalar v)) => Num (MathLaTeXEval (v->v) arg) wh
 
 infixr 0 $$$, $=$
 
--- | What '$' is for Haskell functions, '$$$' is for math-functions.
+funcall, ($$$) :: MathLaTeXEval (v->w) arg -> MathLaTeXEval v arg -> MathLaTeXEval w arg
+
+-- | Somewhat analoguous to Common Lisp's @funcall@, this allows applying math functions to
+-- arguments.
+funcall = ($$$)
+
+-- | Infix version of 'funcall'. What '$' is for Haskell functions,
+-- '$$$' is for math-functions.
 -- 
 -- @@
 -- infixr 0 $$$
@@ -711,7 +720,6 @@ infixr 0 $$$, $=$
 -- essentially seen as right-associative multiplication. So the LaTeX result should
 -- be expected to look quite different from the Haskell input when you're using
 -- this operator.
-($$$) :: MathLaTeXEval (v->w) arg -> MathLaTeXEval v arg -> MathLaTeXEval w arg
 ($$$) = infixBuilder mathExpr_hetFn2 ($) (fmap reader . acs) (Infixr 7) neglectInfixSelfHeight
    where acs MathExprAtomSymbol MathExprAtomSymbol 
                 (MathSymbolTranslations{ functionToAtomApplySymb = Just s }) l r
@@ -724,17 +732,25 @@ infixr 0 $$$, $=$
               = l <> " " <> s <> " " <> r
          acs _ _ (MathSymbolTranslations{ functionApplySymb = Just s }) l r
               = l <> " " <> s <> " " <> r
-         acs lK rK _ l r = l' <> r'
-          where l' | MathExprAtomSymbol<-lK   = l
-                   | isotropFixityOf lK <= 7  = l
+         acs lK rK (MathSymbolTranslations{..})
+             l  r  =  l' <> r'
+          where l' | MathExprStandardFunction<-lK  = l
+                   | MathExprAtomSymbol<-lK        = l
+                   | isotropFixityOf lK <= 7       = l
                    | otherwise  = rendrdExpression . autoLaTeXParens $ MathLaTeX lK l
                 r' = case rK of
-                      MathExprAtomSymbol                         -> "("<>r<>")"
-                      MathExprNumLiteral                         -> "("<>r<>")"
+                      MathExprAtomSymbol | forceAtomArgParens    -> "("<>r<>")"
+                      MathExprNumLiteral | forceNumArgParens     -> "("<>r<>")"
                       MathExprCompound (InfixA k) bSz | k>=7     -> latexBrackets bSz "("")" r
                       MathExprCompound (Infixr k) bSz | k>=7     -> latexBrackets bSz "("")" r
                       MathExprCompound κ bSz | isotropFixity κ>7 -> latexBrackets bSz "("")" r
-                      _                                          -> r
+                      _                                          -> functionApplySpacingSymb <> r
+                forceNumArgParens = case lK of
+                      MathExprStandardFunction  -> forceParensAroundNumArgsToStdFunc 
+                      _                         -> forceParensAroundNumFunctionArgs 
+                forceAtomArgParens = case lK of
+                      MathExprStandardFunction  -> forceParensAroundAtomArgsToStdFunc 
+                      _                         -> forceParensAroundAtomFunctionArgs 
 
 -- | Exactly the same as '$$$', but with less polymorphic signature to help type inference.
 ($=$) :: MathLaTeXEval (v->v) arg -> MathLaTeXEval v arg -> MathLaTeXEval v arg
