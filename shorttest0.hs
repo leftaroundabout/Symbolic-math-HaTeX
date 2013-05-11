@@ -68,9 +68,11 @@ theContents = do
    
    _::Double <- do
          "For "
-         x <- mathDefinition "x" 19
+         x::forall a . BasedUpon HNil a => MathLaTeXEval Double a 
+           <- mathDefinition "x" 19
          " and "
-         tau <- mathDefinition AMS.tau $ 2*pi
+         tau::forall a . BasedUpon HNil a => MathLaTeXEval Double a
+           <- mathDefinition AMS.tau $ 2*pi
          ", "...:"."
          displayMathExpr_wRResult $
                     2 + 7*(6 - tau) - exp(5 - sqrt(x**2 + 4/pi))
@@ -134,10 +136,9 @@ theContents = do
      "this example being obviously _not_ a correct identity for general functions. At the moment, statements involving free variables can not be checked in any way."
    nl
    (freeVarIntro AMS.psi :: NewFreeVar (Integer->Double->Complex Double)) $
---          (\psi j x -> psi ! j % x ) >>> 
-          \psi -> do
+          \psi' -> let psi j x = psi' ! j % x in do
      "Function-arguments can be typeset in different ways, like one ``index-argument''">>" and one ``function-argument''."
-     displayMathCompareSeq $ psi ! 2 % x =. psi ! 1 % (2*x)
+     displayMathCompareSeq $ psi 2 x =. psi 1 (2*x)
  
  subSection "Checking some simple identities" >> do
    

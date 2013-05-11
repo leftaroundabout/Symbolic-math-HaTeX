@@ -419,13 +419,19 @@ displayMathCompareSeq_ :: Monad m => ComparisonsEval x (MathExpr x)
 displayMathCompareSeq_ = liftM ($HNil) . displayMathCompareSeq
 
 
-mathDefinition :: Monad m => MathPrimtvId -> MathLaTeXEval a b
-                                -> MathematicalLaTeXT b m (MathLaTeXEval a b)
+-- mathDefinition :: Monad m => MathPrimtvId -> MathLaTeXEval a b
+--                                 -> MathematicalLaTeXT b m (MathLaTeXEval a b)
+mathDefinition :: forall m x a . (Monad m)
+     => MathPrimtvId -> MathLaTeXEval x a
+           -> MathematicalLaTeXT a m ( forall a' . BasedUpon a a'
+                                            => MathLaTeXEval x a' )
 mathDefinition varn e = do
    rendCfg <- ask
    fromHaTeX . fromLaTeX . math $ 
          varn =: rendrdExpression (mathExprRender e `runReader` rendCfg)
-   return $ mathVarEntry varn (mathExprCalculate e)
+   (return :: (forall a' . BasedUpon a a' => MathLaTeXEval x a')
+               -> (MathematicalLaTeXT a m ( forall a' . BasedUpon a a' => MathLaTeXEval x a' ) ) )
+       $ polyMathVarEntry varn (mathExprCalculate e)
 
 
 mathFuncDefinition :: forall m fnarg res a .
