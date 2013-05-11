@@ -10,9 +10,11 @@ import Math.LaTeX.VoidCalc
 import Math.LaTeX.Config
 import Math.LaTeX.TextMarkup
 
-import Text.LaTeX
+import Text.LaTeX hiding ((%))
 import Text.LaTeX.Packages.Inputenc
 import qualified Text.LaTeX.Packages.AMSMath as AMS
+
+import Control.Arrow
 
 import Data.HList
 import Data.Complex(Complex(..))
@@ -21,6 +23,8 @@ import Data.Complex.Class
 import Prelude hiding((^))
 import qualified Prelude
 
+
+(%) = ($$$); (!) = ($$!)
 
 
 subSection, subSubSection :: (Monad m) => LaTeXT m () -> MathematicalLaTeXT_ m
@@ -126,8 +130,14 @@ theContents = do
    
    (freeVarIntro "f" :: NewFreeVar (Double->Integer)) $ \f -> do
      "Free variables may also have a function type. You can again make statements about those, in the obvious ways:"...:","
-     displayMathCompareSeq $ (f $$$ x) =. (f $$$ x + pi) - 5
+     displayMathCompareSeq $ f%x =. f%(x + pi) - 5
      "this example being obviously _not_ a correct identity for general functions. At the moment, statements involving free variables can not be checked in any way."
+   nl
+   (freeVarIntro AMS.psi :: NewFreeVar (Integer->Double->Complex Double)) $
+--          (\psi j x -> psi ! j % x ) >>> 
+          \psi -> do
+     "Function-arguments can be typeset in different ways, like one ``index-argument''">>" and one ``function-argument''."
+     displayMathCompareSeq $ psi ! 2 % x =. psi ! 1 % (2*x)
  
  subSection "Checking some simple identities" >> do
    

@@ -288,14 +288,28 @@ infixBuilder asm ifx ifxc fxty bqSzer = asm ifx ifxNamer
                    | isotropFixity ε<isotropFixityOf κ   -> rexpr
                    | otherwise -> rendrdExpression $ autoLaTeXParens rh
 
-symChoiceIfx :: 
-     (a->a->r) -> (MathExprKind -> MathExprKind 
+symChoiceIfxBuilder :: MathExprIfxASM a b c r ->
+     (a->b->r) -> (MathExprKind -> MathExprKind 
+                          -> Reader MathSymbolTranslations LaTeX) 
+            -> Fixity -> Height_InfixPropagation
+            -> MathLaTeXEval a c -> MathLaTeXEval b c -> MathLaTeXEval r c
+symChoiceIfxBuilder asm ifx = infixBuilder asm ifx . (fmap (fmap (
+        \m l r -> l <> " " <> m <> " " <> " " <> r  )     )  .  )
+ 
+
+symChoiceIfx :: (a->a->r) -> (MathExprKind -> MathExprKind 
                           -> Reader MathSymbolTranslations LaTeX) 
             -> Fixity -> Height_InfixPropagation
             -> MathLaTeXEval a c -> MathLaTeXEval a c -> MathLaTeXEval r c
-symChoiceIfx ifx = infixBuilder mathExprInfix ifx . (fmap (fmap (
-        \m l r -> l <> " " <> m <> " " <> " " <> r  )     )  .  )
+symChoiceIfx = symChoiceIfxBuilder mathExprInfix 
  
+symChoiceHetIfx :: (a->b->r) -> (MathExprKind -> MathExprKind 
+                          -> Reader MathSymbolTranslations LaTeX) 
+            -> Fixity -> Height_InfixPropagation
+            -> MathLaTeXEval a c -> MathLaTeXEval b c -> MathLaTeXEval r c
+symChoiceHetIfx = symChoiceIfxBuilder mathExpr_hetFn2
+
+
 mathExprIfx :: (ea ~ MathLaTeXEval a c, er ~ MathLaTeXEval r c)
       => (a->a->r) -> LaTeX -> Fixity 
           -> ea -> ea -> er
@@ -304,9 +318,10 @@ mathExprIfx i s fxty = symChoiceIfx i (\_ _ -> return s) fxty neglectInfixSelfHe
 
 data SubOrSupScrt = Subscript | Superscript
 
-subOrSupScrtIfx :: (a->a->r) -> SubOrSupScrt 
-      -> MathLaTeXEval a c -> MathLaTeXEval a c -> MathLaTeXEval r c
-subOrSupScrtIfx ifx sscKind = mathExprInfix ifx ifxNamer
+subOrSupScrtIfx :: MathExprIfxASM a b c r
+         -> (a->b->r) -> SubOrSupScrt 
+      -> MathLaTeXEval a c -> MathLaTeXEval b c -> MathLaTeXEval r c
+subOrSupScrtIfx asm ifx sscKind = asm ifx ifxNamer
  where ifxNamer :: MathLaTeXInfix
        ifxNamer (MathLaTeX knL lexpr) (MathLaTeX knR rexpr)
         = mathCompound_wFixity (Infixr 8) $ mconcat
@@ -399,7 +414,7 @@ instance Powerable Double where { (^) = (**) }
 instance Powerable Float where { (^) = (**) }
 instance Powerable Integer where { (^) = (Prelude.^) }
 instance (Powerable res, Show res) => Powerable (MathLaTeXEval res arg) where
-  (^) = subOrSupScrtIfx (^) Superscript
+  (^) = subOrSupScrtIfx mathExprInfix (^) Superscript
 
 
 instance (Fractional res) => Fractional (MathLaTeXEval res arg) where
@@ -434,7 +449,7 @@ instance (Floating res) => Floating (MathLaTeXEval res arg) where
   exp = (mathPrimitiv (exp 1) "e" **)
 --    (`mathCompound_wFixity`Infix 8) mathExprFunction exp (return . ("e"^:))
            
-  (**) = subOrSupScrtIfx (**) Superscript
+  (**) = subOrSupScrtIfx mathExprInfix (**) Superscript
            
   log = mathExprFn log ln
   logBase = mathExprInfix logBase lbR
@@ -676,6 +691,23 @@ coFst = (,undefined)
 coSnd = (undefined,)
 
 
+infixl 5 $:$
+
+-- | Cons up a heterogeneous math tuple, like you might use as argument to a
+-- multi-argument math function (sadly, currying isn't really common in most fields...).
+-- Note that @'MathLaTeXEval' (((a,b),c),d) q@ will be treated as an @(a,b,c,d)@ tuple.
+-- The precedence is @infixl 5@, like @:@ but left-associative as function application.
+-- (And it's not supposed to be used starting with a unit like @()@ analogue to @[]@,
+-- but straight away as an infix between elements.
+-- It should really be called @$,$@, but that's not possible.)
+($:$) :: MathLaTeXEval a q -> MathLaTeXEval b q
+                  -> MathLaTeXEval (a,b) q
+($:$) = symChoiceHetIfx (,) (\_ _ -> reader tupleSeperatorSymbol) (Infixl 5) neglectInfixSelfHeight
+ 
+mathUncurry :: MathLaTeXEval (a->b->c) q -> MathLaTeXEval ((a,b) -> c) q
+mathUncurry = pseudoFmap uncurry
+
+
 
 
 instance (V.VectorSpace v, Num(V.Scalar v)) => Num (MathLaTeXEval (v->v) arg) where
@@ -700,12 +732,16 @@ instance (V.VectorSpace v, Num(V.Scalar v)) => Num (MathLaTeXEval (v->v) arg) wh
 
 
 
-infixr 0 $$$, $=$
+infixr 0 $$$, $=$, $$!
 
-funcall, ($$$) :: MathLaTeXEval (v->w) arg -> MathLaTeXEval v arg -> MathLaTeXEval w arg
+
+
+
+
+funcall, ($$$), ($$!), ($$^) :: MathLaTeXEval (v->w) arg -> MathLaTeXEval v arg -> MathLaTeXEval w arg
 
 -- | Somewhat analoguous to Common Lisp's @funcall@, this allows applying math functions to
--- arguments.
+-- math arguments.
 funcall = ($$$)
 
 -- | Infix version of 'funcall'. What '$' is for Haskell functions,
@@ -733,11 +769,11 @@ funcall = ($$$)
          acs _ _ (MathSymbolTranslations{ functionApplySymb = Just s }) l r
               = l <> " " <> s <> " " <> r
          acs lK rK (MathSymbolTranslations{..})
-             l  r  =  l' <> r'
-          where l' | MathExprStandardFunction<-lK  = l
-                   | MathExprAtomSymbol<-lK        = l
-                   | isotropFixityOf lK <= 7       = l
-                   | otherwise  = rendrdExpression . autoLaTeXParens $ MathLaTeX lK l
+             l  r  =  l <> r'
+          where -- l' | MathExprStandardFunction<-lK  = l
+                --    | MathExprAtomSymbol<-lK        = l
+                --    | isotropFixityOf lK <= 7       = l
+                --    | otherwise  = rendrdExpression . autoLaTeXParens $ MathLaTeX lK l
                 r' = case rK of
                       MathExprAtomSymbol | forceAtomArgParens    -> "("<>r<>")"
                       MathExprNumLiteral | forceNumArgParens     -> "("<>r<>")"
@@ -755,3 +791,14 @@ funcall = ($$$)
 -- | Exactly the same as '$$$', but with less polymorphic signature to help type inference.
 ($=$) :: MathLaTeXEval (v->v) arg -> MathLaTeXEval v arg -> MathLaTeXEval v arg
 ($=$) = ($$$)
+
+
+-- | Compututation-wise like '$$$', but sets the argument as a subscript rather
+-- than employing the normal parenthesised juxtaposition. Useful for e.g. sequences
+-- as @'MathExpr' (Integer -> Double)@.
+($$!) = subOrSupScrtIfx mathExpr_hetFn2 ($) Subscript
+
+-- | Again like '$$$', but sets the argument /super/script. This is highly uncommon;
+-- it may be useful for tensors or suchlike.
+($$^) = subOrSupScrtIfx mathExpr_hetFn2 ($) Superscript
+

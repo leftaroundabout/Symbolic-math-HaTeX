@@ -65,7 +65,7 @@ module Math.LaTeX.Prelude (
   , RoughEqable(..)
     -- * Misc
   , Powerable(..)
-  , ($$$), ($=$)
+  , ($$$), ($=$), ($$!), ($:$)
   , BasedUpon
   , freeVarIntro, NewFreeVar
     -- * The rendering monad
@@ -509,7 +509,7 @@ instance (Monad m) => Monoid (MathematicalLaTeXT_ m) where
      b
 
 
-nl :: Monad m => MathematicalLaTeXT_ m
+nl :: Monad m => MathematicalLaTeXT f m a
 nl = fromHaTeX $ raw"\n\n"
 
 -- instance (Monad m) => LaTeXC (MathematicalLaTeXT_ m) where

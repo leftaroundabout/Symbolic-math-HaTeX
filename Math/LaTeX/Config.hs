@@ -33,7 +33,9 @@ import qualified Data.Text as T
 
 
 data MathSymbolTranslations = MathSymbolTranslations
-  { defMultiplicationSymbol
+  { tupleSeperatorSymbol :: LaTeX
+  
+  , defMultiplicationSymbol
   , numeralMultiplicationSymbol
   , atomVarMultiplicationSymbol :: LaTeX
   
@@ -82,7 +84,9 @@ data TeXMathConfiguration = TeXMathConfiguration
 mathLaTeXDefaultConfig :: TeXMathConfiguration
 mathLaTeXDefaultConfig = TeXMathConfiguration
   { mathSymbolTranslations = MathSymbolTranslations
-      { defMultiplicationSymbol     = commS"cdot"
+      { tupleSeperatorSymbol = fromString","
+       
+      , defMultiplicationSymbol     = commS"cdot"
       , numeralMultiplicationSymbol = commS"times"
       , atomVarMultiplicationSymbol = commS","
       
