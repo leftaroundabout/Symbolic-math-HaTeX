@@ -82,9 +82,12 @@ theContents = do
         , - exp (log 2 + imagUnit*pi/4)
         ]
    
-   "For such simple expressions, the rough-result display does hide the usual floating-point glitches (though you should perhaps not count on it):"...:"."
+   "For such simple expressions, the rough-result display does hide the usual floating-point glitches (though you should perhaps not count on it):"...:","
    _::Double <- displayMathExpr_wRResult $
-           sum $ replicate 10 ((-1)/10)  -- fixme: breaks prettyFloatApprox.
+           sum $ replicate 10 ((-1)/10)
+   "and even"...:"."
+   _::Double <- displayMathExpr_wRResult $
+           cos(pi/3)
   
    nl
    

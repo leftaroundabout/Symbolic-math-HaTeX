@@ -88,6 +88,8 @@ import Text.LaTeX.Base.Syntax
 import Text.LaTeX.Packages.AMSMath
 import qualified Data.Text as T
 
+import Text.Printf
+
 import Control.Applicative
 import Control.Monad.Reader
 import Control.Monad.State
@@ -270,10 +272,10 @@ class MathRoughRenderable v where
 --   roughMathExpr = ExactRoughExpr . toMathExpr
 
 instance MathRoughRenderable Double where
-  roughMathExpr = prettyFloatApprox
+  roughMathExpr = prettyFloatApprox 3
 
 instance MathRoughRenderable Integer where
-  roughMathExpr = reRound . prettyFloatApprox . fromInteger
+  roughMathExpr = reRound . prettyFloatApprox 3 . fromInteger
    where reRound (RoughExpr m) = RoughExpr (pseudoFmap round m)
          reRound (ExactRoughExpr m) = ExactRoughExpr (pseudoFmap round m)
 
@@ -290,27 +292,30 @@ instance (RealFloat r, MathRoughRenderable r) => MathRoughRenderable (Complex r)
 
 
 
-prettyFloatApprox :: Double -> RoughExpr Double
-prettyFloatApprox x
-    | (mantissa, 'e':expon) <- break(=='e') s
-    , m<-read $ strRound 5 mantissa, expn<-read expon
-    , (ExactRoughExpr mR) <- prettyFloatApprox m
-                = RoughExpr $ mR * 10 ^ fromInteger expn
-    | (intgPart, fractPt) <- break(=='.') s
-    , length fractPt > 5
-          = RoughExpr . mathNumPrimitiv x . fromString $ intgPart ++ strRound 4 fractPt
-    | otherwise = ExactRoughExpr . mathNumPrimitiv x $ fromString s
- where s = remTrailing0 $ show x
-       remTrailing0 = reverse . r0 . reverse
-        where r0 ('0':'.':n) = n
-              r0 n = n
-       strRound n es = maybe safe (reverse . (`bckCarry` reverse safe)) o
-        where (safe, o) = second (find isDigit) $ splitAt n es
-              bckCarry dg ('.':rr) = '.' : bckCarry dg rr
-              bckCarry dg sff
-               | dg<'4'  = sff
-              bckCarry _ ('9':rr) = '0' : bckCarry '6' rr
-              bckCarry _ (q:rr)   = succ q : rr
+prettyFloatApprox :: Int -> Double -> RoughExpr Double
+prettyFloatApprox _ 0 = ExactRoughExpr 0
+prettyFloatApprox preci x
+    | x < 0 = case prettyFloatApprox preci (-x) of
+               ExactRoughExpr q -> ExactRoughExpr $ -q
+               RoughExpr q      -> RoughExpr      $ -q
+    | x < 10^^(preci+2), x_i<-round x, x≈fromInteger x_i  = ExactRoughExpr $ fromInteger x_i
+    | ((ngExp, x'):_) <- multiples
+    , x'_i <- round x', x' ≈ fromInteger x'_i
+          = ExactRoughExpr $ (fromInteger x'_i) * 10 ^ fromIntegral (-ngExp)
+    | preci < 1 = RoughExpr $ 10 ^ fromIntegral e₀
+    | x < 1000, x > 0.1, m <- 10^^preci, x' <- fromIntegral(round $ x*m) / m
+          = RoughExpr . mathNumPrimitiv x' . fromString . rmLead0 
+                $ printf ("%."++show (preci-e₀)++"g") x'
+    | RoughExpr mantissa <- prettyFloatApprox (max 1 $ preci-1) $ x / 10^^e₀
+          = RoughExpr $ mantissa * 10 ^ fromIntegral e₀
+ where a ≈ b = abs (a - b) < ε
+        where ε = minimum $ map ((* 1e-10) . abs) [a, b]
+       multiples = [ (e, x * 10^^e) | e <- [-e₀ .. preci - e₀] ]
+       e₀ = floor $ log x / log 10
+       rmLead0 ('0':s) = s
+       rmLead0 s = s
+   
+   
   
 mathExprEvalRough :: MathRoughRenderable v
       => MathExpr v -> RoughExpr v
