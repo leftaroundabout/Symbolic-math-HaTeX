@@ -82,6 +82,9 @@ theContents = do
         , - exp (log 2 + imagUnit*pi/4)
         ]
    
+   "For such simple expressions, the rough-result display does hide the usual floating-point glitches (though you should perhaps not count on it):"...:"."
+   _::Double <- displayMathExpr_wRResult $
+           sum $ replicate 10 ((-1)/10)  -- fixme: breaks prettyFloatApprox.
   
    nl
    
@@ -210,7 +213,7 @@ theContents = do
    exaDisp $ 5 - 4 -  3 + (2 + 1)
    "has parens around ">>inlineMathExpr_(2+1)>>" _in the source_, but they aren't relevant -- addition _is_ associative -- and can thus be omitted in the output. Then again,"
    exaDisp $ 5 - 4 -  3 + forceParens(2+1)
-   "wouldn't need the parens either, but they're enforced via the `forceParens` function (which is perfectly safe)."
+   "wouldn't need the parens either, but they're enforced via the `forceParens` function (which is perfectly safe, at least if we disregard floating-point associativity issues)."
    nl
    "By default, delimiters are normally scaled to suitable size (by calling ">>fromHaTeX latex>>"'s `\\left(` and `\\right)` macros) if necessary:"
    exaDisp $ ((5+2)/8 + 1) * 4 
