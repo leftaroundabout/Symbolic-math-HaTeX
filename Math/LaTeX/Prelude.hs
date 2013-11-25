@@ -111,7 +111,7 @@ import Data.Ratio
 import Data.Complex(Complex(..))
 import Data.Complex.Class
 import Data.String
-import Data.Maybe(maybe)
+import Data.Maybe(maybe, catMaybes)
 import Data.Char(isDigit)
 
 import Prelude hiding((^))
@@ -298,10 +298,11 @@ prettyFloatApprox preci x
     | x < 0 = case prettyFloatApprox preci (-x) of
                ExactRoughExpr q -> ExactRoughExpr $ -q
                RoughExpr q      -> RoughExpr      $ -q
-    | x < 10^^(preci+2), x_i<-round x, x≈fromInteger x_i  = ExactRoughExpr $ fromInteger x_i
-    | ((ngExp, x'):_) <- multiples
-    , x'_i <- round x', x' ≈ fromInteger x'_i
-          = ExactRoughExpr $ (fromInteger x'_i) * 10 ^ fromIntegral (-ngExp)
+    | x < 10^^(preci+2), Just x_i <- maybeIntCast x  = ExactRoughExpr $ fromInteger x_i
+    | ((ngExp, x'_i):_) <- catMaybes $ map (\(e, x') -> fmap (e,) $ maybeIntCast x') multiples
+          = ExactRoughExpr $ if abs ngExp > 3 
+                              then fromInteger x'_i * 10 ^ fromIntegral (-ngExp)
+                              else realToFrac $ fromInteger x'_i * 10 ^^ (-ngExp)
     | preci < 1 = RoughExpr $ 10 ^ fromIntegral e₀
     | x < 1000, x > 0.1, m <- 10^^preci, x' <- fromIntegral(round $ x*m) / m
           = RoughExpr . mathNumPrimitiv x' . fromString . rmLead0 
@@ -310,6 +311,8 @@ prettyFloatApprox preci x
           = RoughExpr $ mantissa * 10 ^ fromIntegral e₀
  where a ≈ b = abs (a - b) < ε
         where ε = minimum $ map ((* 1e-10) . abs) [a, b]
+       maybeIntCast a | b<-round a, a ≈ fromIntegral b  = Just b
+                      | otherwise                       = Nothing
        multiples = [ (e, x * 10^^e) | e <- [-e₀ .. preci - e₀] ]
        e₀ = floor $ log x / log 10
        rmLead0 ('0':s) = s
