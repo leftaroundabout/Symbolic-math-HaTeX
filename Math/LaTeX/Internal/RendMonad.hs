@@ -88,14 +88,15 @@ instance (Monad m) => MonadState TeXMathStateProps (MathematicalLaTeXT f m) wher
   put = MathematicalLaTeXT . put
 
 
-instance (Monad m) => IsString (MathematicalLaTeXT f m a) where
+instance (Monad m) => IsString (MathematicalLaTeXT f m ()) where
   fromString s = do
      (TeXMathStateProps {..}) <- get
      mkupCfg <- askTextMarkupConfig
-     fromHaTeX . fromLaTeX . (`runReader`mkupCfg) . markupTxtToLaTeX
-       $ case punctuationNeededAtDisplayEnd of
+     let optPunct = case punctuationNeededAtDisplayEnd of
           Just pnct -> pnct ++ " " ++ s
           Nothing   -> s
+     fromHaTeX . fromLaTeX $
+       runReader (markupTxtToLaTeX optPunct) mkupCfg
 
 srcNLEnv :: LaTeX -> LaTeX
 srcNLEnv e = raw"\n" <> e <> raw"\n"
