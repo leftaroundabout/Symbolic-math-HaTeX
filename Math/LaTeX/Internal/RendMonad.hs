@@ -63,7 +63,7 @@ newtype MathematicalLaTeXT freeVarStack baseMonad mRe
   = MathematicalLaTeXT { runMathematicalLaTeXT ::
      StateT TeXMathStateProps ( ReaderT TeXMathConfiguration
        (LaTeXT baseMonad) ) mRe }
-type MathematicalLaTeXT_ m = MathematicalLaTeXT HNil m ()
+type MathematicalLaTeXT_ m = MathematicalLaTeXT HNil' m ()
 type MathematicalLaTeX f x = MathematicalLaTeXT f Identity x
 type MathematicalLaTeX_ f = MathematicalLaTeXT f Identity ()
 

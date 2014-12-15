@@ -68,10 +68,10 @@ theContents = do
    
    _::Double <- do
          "For "
-         x::forall a . BasedUpon HNil a => MathLaTeXEval Double a 
+         x::forall a . BasedUpon HNil' a => MathLaTeXEval Double a 
            <- mathDefinition "x" 19
          " and "
-         tau::forall a . BasedUpon HNil a => MathLaTeXEval Double a
+         tau::forall a . BasedUpon HNil' a => MathLaTeXEval Double a
            <- mathDefinition AMS.tau $ 2*pi
          ", "...:"."
          displayMathExpr_wRResult $
@@ -117,7 +117,7 @@ theContents = do
  subSection "Function definitions" >> do
    _::Integer <- do
          "For "
-         f :: forall a. BasedUpon HNil a => MathLaTeXEval (Integer->Integer) a
+         f :: forall a. BasedUpon HNil' a => MathLaTeXEval (Integer->Integer) a
            <- mathFuncDefinition "f" "x" $ \x -> x^2 - x
          ", we obtain"...:"."
          displayMathExpr_wRResult $
@@ -125,7 +125,7 @@ theContents = do
  
    _::Integer <- do
          "For "
-         f :: forall a. BasedUpon HNil a => MathLaTeXEval (Integer->Integer) a 
+         f :: forall a. BasedUpon HNil' a => MathLaTeXEval (Integer->Integer) a 
           <- mathFuncDefinition "f" "x" $ \x -> limsSum "n" 1 8 (x-)
          ", "...:"."
          displayMathExpr_wRResult $

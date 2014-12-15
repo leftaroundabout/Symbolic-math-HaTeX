@@ -336,8 +336,8 @@ inlineMathExpr e = do
                   $ mathExprRender e `runReader` rendCfg
    return $ mathExprCalculate e
 
-inlineMathExpr_ :: Monad m => MathExpr b -> MathematicalLaTeXT HNil m b
-inlineMathExpr_ = liftM ($HNil) . inlineMathExpr
+inlineMathExpr_ :: Monad m => MathExpr b -> MathematicalLaTeXT HNil' m b
+inlineMathExpr_ = liftM ($HNil') . inlineMathExpr
 
 
 displayMathExpr :: Monad m => MathLaTeXEval b arg -> MathematicalLaTeXT arg m (arg->b)
@@ -351,23 +351,23 @@ displayMathExpr e = do
    return $ mathExprCalculate e
         
        
-displayMathExpr_ :: Monad m => MathExpr b -> MathematicalLaTeXT HNil m b
-displayMathExpr_ = liftM ($HNil) . displayMathExpr
+displayMathExpr_ :: Monad m => MathExpr b -> MathematicalLaTeXT HNil' m b
+displayMathExpr_ = liftM ($HNil') . displayMathExpr
 
 inlineMathShow :: ( Monad m, MathRenderable b )
-                 => b -> MathematicalLaTeXT HNil m b
+                 => b -> MathematicalLaTeXT HNil' m b
 inlineMathShow = inlineMathExpr_ . toMathExpr
 
 inlineRoughValue :: ( Monad m, MathRoughRenderable b )
-                 => b -> MathematicalLaTeXT HNil m b
+                 => b -> MathematicalLaTeXT HNil' m b
 inlineRoughValue = inlineMathExpr_ . getRoughExpression . roughMathExpr
 
 infix 4 ?~?, ?=?
 (?~?) :: ( Monad m, MathRoughRenderable b )
-                 => String -> b -> MathematicalLaTeXT HNil m b
+                 => String -> b -> MathematicalLaTeXT HNil' m b
 expln ?~? val = fromString expln >> inlineRoughValue val
 (?=?) :: ( Monad m, MathRenderable b )
-                 => String -> b -> MathematicalLaTeXT HNil m b
+                 => String -> b -> MathematicalLaTeXT HNil' m b
 expln ?=? val = fromString expln >> inlineMathShow val
 
 
@@ -376,9 +376,9 @@ expln ?=? val = fromString expln >> inlineMathShow val
 -- appropriate equality symbol will be chosen).
 displayMathExpr_wRResult :: ( Monad m, MathRoughRenderable b
                             , e ~ MathExpr b, RoughEqable e  )
-                   => e -> MathematicalLaTeXT HNil m b
+                   => e -> MathematicalLaTeXT HNil' m b
 displayMathExpr_wRResult e = do
-   let res = mathExprCalculate e HNil
+   let res = mathExprCalculate e HNil'
    displayMathCompareSeq_ $ case roughMathExpr res of
       RoughExpr r     -> e =~. r
       ExactRoughExpr r -> e =. r
@@ -389,7 +389,7 @@ displayMathExpr_wRResult e = do
 -- supposed to have.
 displayMathExpr_wRResultAsTypeOf :: ( Monad m, MathRoughRenderable b
                             , e ~ MathExpr b, RoughEqable e  )
-                   => b -> e -> MathematicalLaTeXT HNil m b
+                   => b -> e -> MathematicalLaTeXT HNil' m b
 displayMathExpr_wRResultAsTypeOf _ = displayMathExpr_wRResult
  
 
@@ -423,8 +423,8 @@ displayMathCompareSeq (ComparisonsEval comparisons) = do
                                        
                                        
 displayMathCompareSeq_ :: Monad m => ComparisonsEval x (MathExpr x) 
-                                                      -> MathematicalLaTeXT HNil m Bool
-displayMathCompareSeq_ = liftM ($HNil) . displayMathCompareSeq
+                                                      -> MathematicalLaTeXT HNil' m Bool
+displayMathCompareSeq_ = liftM ($HNil') . displayMathCompareSeq
 
 
 -- mathDefinition :: Monad m => MathPrimtvId -> MathLaTeXEval a b
@@ -468,7 +468,7 @@ mathFuncDefinition funcn varn ef = do
    
                                
 type NewFreeVar v = forall outerFree innerFree m mRe .
-         ( Monad m, innerFree ~ HCons v outerFree )
+         ( Monad m, innerFree ~ HCons' v outerFree )
       => ( ( forall c . BasedUpon innerFree c => MathLaTeXEval v c )
          -> MathematicalLaTeXT innerFree m mRe )
      -> MathematicalLaTeXT outerFree m mRe
@@ -476,7 +476,7 @@ type NewFreeVar v = forall outerFree innerFree m mRe .
 
 
 freeVarIntro :: forall v outerFree innerFree m mRe .
-         ( Monad m, innerFree ~ HCons v outerFree )
+         ( Monad m, innerFree ~ HCons' v outerFree )
   => MathPrimtvId
     -> ( ( forall c . BasedUpon innerFree c => MathLaTeXEval v c )
          -> MathematicalLaTeXT innerFree m mRe )

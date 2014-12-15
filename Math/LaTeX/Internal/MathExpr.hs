@@ -78,7 +78,7 @@ data MathLaTeXEval res arg where
   MathEnvd :: Functor list =>
            { mathEnclosingFunc :: list (a -> b) -> c -> d
            , enclosingLaTeX :: list MathLaTeX -> RendConfReadMathLaTeX
-           , enclosedMathExpr :: list(MathLaTeXEval b (HCons a c))
+           , enclosedMathExpr :: list(MathLaTeXEval b (HCons' a c))
            } -> MathLaTeXEval d c
 
 
@@ -147,7 +147,7 @@ bracketSizeSuggestion _ = Just defaultBracketSize
 instance Contravariant (MathLaTeXEval res) where
   contramap f(MathEnvd g wr encld) = MathEnvd g' wr encld'
      where g' l = g l . f
-           encld' = fmap(contramap $ \(HCons a c) -> (HCons a $ f c)) encld
+           encld' = fmap(contramap $ \(HCons' a c) -> (HCons' a $ f c)) encld
 -- instance Contravariant (MathLaTeXEval res) where
 --   contramap f (MathLaTeXEval e fxty) = MathLaTeXEval (contramap f e) fxty
 
@@ -168,7 +168,7 @@ instance PseudoFunctor MathLaTeXEval where
 withArg :: a -> MathLaTeXEval res a -> MathExpr res
 withArg = contramap . const
 
-type MathExpr a = MathLaTeXEval a HNil
+type MathExpr a = MathLaTeXEval a HNil'
 
 
 mathExprRender :: MathLaTeXEval c a -> RendConfReadMathLaTeX
@@ -181,10 +181,10 @@ mathExprCalculate = calculated
  where calculated :: MathLaTeXEval d c -> c -> d
        calculated (MathEnvd f _ enclosed) c
             = f (fmap(\e' a
-                    -> calculated e' (HCons a c) ) $ enclosed) c
+                    -> calculated e' (HCons' a c) ) $ enclosed) c
 
 mathExprCalculate_ :: MathExpr b -> b
-mathExprCalculate_ x = mathExprCalculate x HNil
+mathExprCalculate_ x = mathExprCalculate x HNil'
 
 mathPrimitiv_ofKind :: MathExprKind -> b -> LaTeX -> MathLaTeXEval b a
 mathPrimitiv_ofKind k v name
@@ -501,7 +501,7 @@ instance (ComplexC r, RealFloat(RealAxis r))
 -- the output of some function.
 lSetFold_bigSymb :: forall rng res a sumVarDep svdStack .
               ( Monoid res
-              , BasedUpon sumVarDep svdStack, sumVarDep ~ HCons rng a )
+              , BasedUpon sumVarDep svdStack, sumVarDep ~ HCons' rng a )
        => Fixity -> MathPrimtvId -> LaTeX
         -> MathLaTeXEval [rng] a
                  -> ( MathLaTeXEval rng svdStack
@@ -524,11 +524,11 @@ lSetFold_bigSymb fxty sumVar folderVis rngSpec summand
                      ( pseudoFmap coFst
                            . summand $ mathVarEntry sumVar
                                                     (hHead.(basement :: svdStack->sumVarDep)) )
-                                              :: Pair(MathLaTeXEval (res, [rng]) (HCons rng a) ) )
+                                              :: Pair(MathLaTeXEval (res, [rng]) (HCons' rng a) ) )
 
 polyLSetFold_bigSymb :: forall rng res a sumVarDep .
               ( Monoid res
-              , sumVarDep ~ HCons rng a )
+              , sumVarDep ~ HCons' rng a )
        => Fixity -> MathPrimtvId -> LaTeX
         -> MathLaTeXEval [rng] a
                  -> ( ( forall svdStack . BasedUpon sumVarDep svdStack
@@ -556,13 +556,13 @@ polyLSetFold_bigSymb fxty sumVar folderVis rngSpec summand
                                 :: forall svdStack' . BasedUpon sumVarDep svdStack'
                                                      => MathLaTeXEval rng svdStack'
                                                     ) )
-                                          :: Pair(MathLaTeXEval (res, [rng]) (HCons rng a) ) )
+                                          :: Pair(MathLaTeXEval (res, [rng]) (HCons' rng a) ) )
 
 -- | A list only represents a set properly when there are no duplicate elements,
 -- a precondition which this function doesn't (and can't!) check.
 listAsFinSet :: [MathLaTeXEval r a] -> MathLaTeXEval [r] a
 listAsFinSet ls
- = MathEnvd ( const . map($HNil) )
+ = MathEnvd ( const . map($HNil') )
             ( mathCompound_wFixity(Infix 9) . autoBraces 
                   . mconcat . intersperse(raw",") . map rendrdExpression )
             ( map (contramap hTail) ls )
@@ -571,7 +571,7 @@ listAsFinSet ls
 -- | Gather the results over some range. The usual @ᵢ₌₁Σ³ aᵢ⋅bᵢ@-thing.
 limsFold_bigSymb :: forall rng res a sumVarDep svdStack .
               ( Enum rng, Monoid res
-              , BasedUpon sumVarDep svdStack, sumVarDep ~ HCons rng a ) =>
+              , BasedUpon sumVarDep svdStack, sumVarDep ~ HCons' rng a ) =>
       Fixity -> MathPrimtvId -> LaTeX
         -> MathLaTeXEval rng a -> MathLaTeXEval rng a
           -> ( MathLaTeXEval rng svdStack
@@ -599,7 +599,7 @@ limsFold_bigSymb fxty sumVar folderVis lBound uBound summand
 -- the simpler 'limsFold_bigSymb' will also work and should be preferred.
 polyLimsFold_bigSymb :: forall rng res a sumVarDep svdStack .
               ( Enum rng, Monoid res
-              , sumVarDep ~ HCons rng a ) =>
+              , sumVarDep ~ HCons' rng a ) =>
       Fixity -> MathPrimtvId -> LaTeX
         -> MathLaTeXEval rng a -> MathLaTeXEval rng a
           -> ( (forall svdStack. BasedUpon sumVarDep svdStack
@@ -629,7 +629,7 @@ polyLimsFold_bigSymb fxty sumVar folderVis lBound uBound summand
 -- in this case 'lSetFold_bigSymb'.
 lSetSum, lSetProd :: forall rng res a sumVarDep svdStack .
               ( Num res
-              , BasedUpon sumVarDep svdStack, sumVarDep ~ HCons rng a )
+              , BasedUpon sumVarDep svdStack, sumVarDep ~ HCons' rng a )
        => MathPrimtvId -> MathLaTeXEval [rng] a
                  -> ( MathLaTeXEval rng svdStack
                      -> MathLaTeXEval res sumVarDep )
@@ -643,7 +643,7 @@ lSetProd sv rngLG = pseudoFmap getProduct
  
 polyLSetSum, polyLSetProd :: forall rng res a sumVarDep .
               ( Num res
-              , sumVarDep ~ HCons rng a )
+              , sumVarDep ~ HCons' rng a )
        => MathPrimtvId -> MathLaTeXEval [rng] a
                  -> ( ( forall svdStack . BasedUpon sumVarDep svdStack
                          => MathLaTeXEval rng svdStack                 )
@@ -658,7 +658,7 @@ polyLSetProd sv rngLG = pseudoFmap getProduct
  
 limsSum, limsProd :: forall rng res a sumVarDep svdStack .
               ( Enum rng, Num res
-              , BasedUpon sumVarDep svdStack, sumVarDep ~ HCons rng a ) =>
+              , BasedUpon sumVarDep svdStack, sumVarDep ~ HCons' rng a ) =>
       MathPrimtvId -> MathLaTeXEval rng a -> MathLaTeXEval rng a
           -> ( MathLaTeXEval rng svdStack
               -> MathLaTeXEval res sumVarDep )
@@ -672,7 +672,7 @@ limsProd sv lBG uBG = pseudoFmap getProduct
 
 polyLimsSum, polyLimsProd :: forall rng res a sumVarDep svdStack .
               ( Enum rng, Num res
-              , sumVarDep ~ HCons rng a ) =>
+              , sumVarDep ~ HCons' rng a ) =>
       MathPrimtvId -> MathLaTeXEval rng a -> MathLaTeXEval rng a
           -> ( (forall svdStack. BasedUpon sumVarDep svdStack
                  => MathLaTeXEval rng svdStack) -> MathLaTeXEval res sumVarDep )

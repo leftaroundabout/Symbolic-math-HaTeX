@@ -71,7 +71,7 @@ Library
                      , vector-space
                      , bifunctors
                      , mtl
-                     , HList
+                     , HList >= 0.3
                      , transformers >= 0.2.2
                      , text
                      , void

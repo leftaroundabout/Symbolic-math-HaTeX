@@ -71,9 +71,9 @@ class IsVoid v where
 instance IsVoid Void where
   absurdV = absurd
 
-instance IsVoid (HCons Void l)
+instance IsVoid (HCons' Void l)
 
-instance (IsVoid l) => IsVoid (HCons e l)
+instance (IsVoid l) => IsVoid (HCons' e l)
 
 
 -- | A variable nothing is known about, safe for its supposed return type.
@@ -107,20 +107,20 @@ instance (InfReal r) => InfReal(MathLaTeXEval r arg) where
   infty = mathPrimitiv infty AMS.infty
   
 
-inline :: Monad m => MathHard b -> MathematicalLaTeXT HNil m ()
+inline :: Monad m => MathHard b -> MathematicalLaTeXT HNil' m ()
 inline = tamperFreeVarStack . liftM (const ()) . inlineMathExpr
 
-display :: Monad m => MathHard b -> MathematicalLaTeXT HNil m ()
+display :: Monad m => MathHard b -> MathematicalLaTeXT HNil' m ()
 display = tamperFreeVarStack . liftM (const ()) . displayMathExpr
 
-inlinePrTypeAs, displayPrTypeAs :: Monad m => b -> MathHard b -> MathematicalLaTeXT HNil m ()
+inlinePrTypeAs, displayPrTypeAs :: Monad m => b -> MathHard b -> MathematicalLaTeXT HNil' m ()
 inlinePrTypeAs = const inline; displayPrTypeAs = const display
 
-inlineIntegerExpr, displayIntegerExpr :: Monad m => MathHard Integer -> MathematicalLaTeXT HNil m ()
+inlineIntegerExpr, displayIntegerExpr :: Monad m => MathHard Integer -> MathematicalLaTeXT HNil' m ()
 displayIntegerExpr = display; inlineIntegerExpr = inline
 
-inlineRealExpr, displayRealExpr :: Monad m => MathHard PseudoReal -> MathematicalLaTeXT HNil m ()
+inlineRealExpr, displayRealExpr :: Monad m => MathHard PseudoReal -> MathematicalLaTeXT HNil' m ()
 displayRealExpr = display; inlineRealExpr = inline
 
-inlineComplexExpr, displayComplexExpr :: Monad m => MathHard PseudoComplex -> MathematicalLaTeXT HNil m ()
+inlineComplexExpr, displayComplexExpr :: Monad m => MathHard PseudoComplex -> MathematicalLaTeXT HNil' m ()
 displayComplexExpr = display; inlineComplexExpr = inline
