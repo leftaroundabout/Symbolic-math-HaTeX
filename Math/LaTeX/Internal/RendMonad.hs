@@ -70,8 +70,12 @@ type MathematicalLaTeX_ f = MathematicalLaTeXT f Identity ()
 instance (Functor m) => Functor (MathematicalLaTeXT a m) where
   fmap f = MathematicalLaTeXT . fmap f . runMathematicalLaTeXT
 
-instance (Monad m) => Monad (MathematicalLaTeXT a m) where
-  return = MathematicalLaTeXT . return
+instance (Applicative m, Monad m) => Applicative (MathematicalLaTeXT a m) where
+  pure = MathematicalLaTeXT . return
+  (<*>) = ap
+
+instance (Applicative m, Monad m) => Monad (MathematicalLaTeXT a m) where
+  return = pure
   MathematicalLaTeXT stm >>= f
     = MathematicalLaTeXT $ stm >>= runMathematicalLaTeXT . f
   fail = MathematicalLaTeXT . fail
@@ -79,16 +83,18 @@ instance (Monad m) => Monad (MathematicalLaTeXT a m) where
 instance MonadTrans (MathematicalLaTeXT a) where
   lift = MathematicalLaTeXT . lift . lift . lift
 
-instance (Monad m) => MonadReader TeXMathConfiguration (MathematicalLaTeXT f m) where
+instance (Applicative m, Monad m)
+           => MonadReader TeXMathConfiguration (MathematicalLaTeXT f m) where
   ask = MathematicalLaTeXT ask
   local f (MathematicalLaTeXT q) = MathematicalLaTeXT $ local f q
 
-instance (Monad m) => MonadState TeXMathStateProps (MathematicalLaTeXT f m) where
+instance (Applicative m, Monad m)
+           => MonadState TeXMathStateProps (MathematicalLaTeXT f m) where
   get = MathematicalLaTeXT get
   put = MathematicalLaTeXT . put
 
 
-instance (Monad m) => IsString (MathematicalLaTeXT f m ()) where
+instance (Applicative m, Monad m) => IsString (MathematicalLaTeXT f m ()) where
   fromString s = do
      (TeXMathStateProps {..}) <- get
      mkupCfg <- askTextMarkupConfig
@@ -120,5 +126,5 @@ tamperFreeVarStack :: MathematicalLaTeXT f m a -> MathematicalLaTeXT f' m a
 tamperFreeVarStack = MathematicalLaTeXT . runMathematicalLaTeXT
 
 
-instance (Monad m) => HasTextMarkupConfig (MathematicalLaTeXT f m a) where
+instance (Applicative m, Monad m) => HasTextMarkupConfig (MathematicalLaTeXT f m a) where
   modifyMarkupRules = local . modifyMarkupRules
