@@ -83,6 +83,7 @@ Library
   Other-modules:     Math.LaTeX.Internal.MathExpr
                      Math.LaTeX.Internal.RendMonad
                      Math.LaTeX.Internal.Misc.BracketSizes
+                     Control.Monad.AppIncluded
                      Data.List.NonEmpty
                      Data.Chain Data.Functor.FixedLength
                      Data.HList.BasedUpon

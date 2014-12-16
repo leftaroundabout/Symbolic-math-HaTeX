@@ -17,6 +17,7 @@
 {-# LANGUAGE PatternGuards                    #-}
 {-# LANGUAGE TypeFamilies                     #-}
 {-# LANGUAGE RecordWildCards                  #-}
+{-# LANGUAGE ConstraintKinds                  #-}
 
 
 module Math.LaTeX.VoidCalc where
@@ -35,6 +36,7 @@ import qualified Data.Text as T
 
 import Control.Applicative
 import Control.Monad
+import Control.Monad.AppIncluded
 import Control.Monad.Reader
 import Control.Monad.Identity
 
@@ -84,7 +86,7 @@ muteFunction :: IsVoid arg
      => (MathLaTeX -> RendConfReadMathLaTeX) -> MathLaTeXEval r arg -> MathLaTeXEval r arg
 muteFunction fn e = MathEnvd ( \(Identity _) -> absurdV )
                              ( fn . runIdentity )
-                             ( Identity $ contramap hHead e )
+                             ( Identity $ contramap (\(HCons' h _)->h) e )
  
 muteFn :: IsVoid arg => LaTeX -> MathLaTeXEval r arg -> MathLaTeXEval r arg
 muteFn fn = muteFunction $ mathCompound_wFixity(Infix 9) . funnamer
@@ -107,20 +109,20 @@ instance (InfReal r) => InfReal(MathLaTeXEval r arg) where
   infty = mathPrimitiv infty AMS.infty
   
 
-inline :: Monad m => MathHard b -> MathematicalLaTeXT HNil' m ()
+inline :: Monad' m => MathHard b -> MathematicalLaTeXT HNil' m ()
 inline = tamperFreeVarStack . liftM (const ()) . inlineMathExpr
 
-display :: Monad m => MathHard b -> MathematicalLaTeXT HNil' m ()
+display :: Monad' m => MathHard b -> MathematicalLaTeXT HNil' m ()
 display = tamperFreeVarStack . liftM (const ()) . displayMathExpr
 
-inlinePrTypeAs, displayPrTypeAs :: Monad m => b -> MathHard b -> MathematicalLaTeXT HNil' m ()
+inlinePrTypeAs, displayPrTypeAs :: Monad' m => b -> MathHard b -> MathematicalLaTeXT HNil' m ()
 inlinePrTypeAs = const inline; displayPrTypeAs = const display
 
-inlineIntegerExpr, displayIntegerExpr :: Monad m => MathHard Integer -> MathematicalLaTeXT HNil' m ()
+inlineIntegerExpr, displayIntegerExpr :: Monad' m => MathHard Integer -> MathematicalLaTeXT HNil' m ()
 displayIntegerExpr = display; inlineIntegerExpr = inline
 
-inlineRealExpr, displayRealExpr :: Monad m => MathHard PseudoReal -> MathematicalLaTeXT HNil' m ()
+inlineRealExpr, displayRealExpr :: Monad' m => MathHard PseudoReal -> MathematicalLaTeXT HNil' m ()
 displayRealExpr = display; inlineRealExpr = inline
 
-inlineComplexExpr, displayComplexExpr :: Monad m => MathHard PseudoComplex -> MathematicalLaTeXT HNil' m ()
+inlineComplexExpr, displayComplexExpr :: Monad' m => MathHard PseudoComplex -> MathematicalLaTeXT HNil' m ()
 displayComplexExpr = display; inlineComplexExpr = inline

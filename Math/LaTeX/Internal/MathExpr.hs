@@ -16,6 +16,7 @@
 {-# LANGUAGE UndecidableInstances             #-}
 {-# LANGUAGE OverlappingInstances             #-}
 {-# LANGUAGE IncoherentInstances              #-}
+{-# LANGUAGE ImpredicativeTypes               #-}
 {-# LANGUAGE PatternGuards                    #-}
 {-# LANGUAGE TypeFamilies                     #-}
 {-# LANGUAGE RankNTypes                       #-}
@@ -40,7 +41,7 @@ import Control.Monad.Identity
 
 import Data.Function
 import Data.Functor.Contravariant
--- import Data.Monoid
+import Data.Monoid
 
 import qualified Data.VectorSpace as V
 
@@ -215,7 +216,7 @@ mathExprFunction :: (a->r)
                  -> MathLaTeXEval a c -> MathLaTeXEval r c
 mathExprFunction f fn e = MathEnvd ( \(Identity q) -> f . q )
                                    ( fn . runIdentity )
-                                   ( Identity $ contramap hHead e )
+                                   ( Identity $ contramap (\(HCons' h _) -> h) e )
 
 mathExprFn :: (a->r) -> MathPrimtvId
                  -> MathLaTeXEval a c -> MathLaTeXEval r c
@@ -237,7 +238,7 @@ mathExprInfix :: MathExprIfxASM a a c r
 mathExprInfix ifx ifxn el er
   = MathEnvd ( \(Pair q p) c -> q c `ifx` p c )
              ( \(Pair q p) -> ifxn q p )
-             ( Pair (contramap hHead el) (contramap hHead er) )
+             ( Pair (contramap (\(HCons' h _)->h) el) (contramap (\(HCons' h _)->h) er) )
 
 type Height_InfixPropagation = Maybe BracketSize -> Maybe BracketSize 
                   -> Reader MathHeightsManagement (Maybe BracketSize) 
@@ -341,8 +342,8 @@ mathExpr_hetFn2 :: MathExprIfxASM a b c r
 mathExpr_hetFn2 ifx ifxn el er
   = MathEnvd ( \(Pair q p) c -> fst(q c) `ifx` snd(p c) )
              ( \(Pair q p) -> ifxn q p )
-             ( Pair ( pseudoFmap coFst $ contramap hHead el )
-                    ( pseudoFmap coSnd $ contramap hHead er ) )
+             ( Pair ( pseudoFmap coFst $ contramap (\(HCons' h _)->h) el )
+                    ( pseudoFmap coSnd $ contramap (\(HCons' h _)->h) er ) )
  
 
                                    
@@ -520,10 +521,10 @@ lSetFold_bigSymb fxty sumVar folderVis rngSpec summand
                                                                (isotropFixity fxty) summandV)
                           )
               ( Pair ( pseudoFmap coSnd 
-                        $ contramap hTail rngSpec )
+                        $ contramap (\(HCons' _ t)->t) rngSpec )
                      ( pseudoFmap coFst
                            . summand $ mathVarEntry sumVar
-                                                    (hHead.(basement :: svdStack->sumVarDep)) )
+                                                    ((\(HCons' h _)->h).(basement :: svdStack->sumVarDep)) )
                                               :: Pair(MathLaTeXEval (res, [rng]) (HCons' rng a) ) )
 
 polyLSetFold_bigSymb :: forall rng res a sumVarDep .
@@ -548,11 +549,11 @@ polyLSetFold_bigSymb fxty sumVar folderVis rngSpec summand
                                                           (isotropFixity fxty) summandV)
                            )
                ( Pair ( pseudoFmap coSnd 
-                         $ contramap hTail rngSpec )
+                         $ contramap (\(HCons' _ t)->t) rngSpec )
                       ( pseudoFmap coFst
                             $ summand 
                               ( polyMathVarEntry sumVar 
-                                  ( hHead :: sumVarDep -> rng )
+                                  ( (\(HCons' h _)->h) :: sumVarDep -> rng )
                                 :: forall svdStack' . BasedUpon sumVarDep svdStack'
                                                      => MathLaTeXEval rng svdStack'
                                                     ) )
@@ -565,7 +566,7 @@ listAsFinSet ls
  = MathEnvd ( const . map($HNil') )
             ( mathCompound_wFixity(Infix 9) . autoBraces 
                   . mconcat . intersperse(raw",") . map rendrdExpression )
-            ( map (contramap hTail) ls )
+            ( map (contramap (\(HCons' _ t)->t)) ls )
 
 
 -- | Gather the results over some range. The usual @ᵢ₌₁Σ³ aᵢ⋅bᵢ@-thing.
@@ -586,10 +587,10 @@ limsFold_bigSymb fxty sumVar folderVis lBound uBound summand
                                                    (autoParensWhenFxtyLT 4 rngLV))
                                   ^: noRedBraces(rendrdExpression rngUV)        ) 
                        <> rendrdExpression (autoParensWhenFxtyLT (isotropFixity fxty) summandV ) )
-            ( Triple (pseudoFmap coSnd $ contramap hTail lBound )
-                     (pseudoFmap coSnd $ contramap hTail uBound )
+            ( Triple (pseudoFmap coSnd $ contramap (\(HCons' _ t)->t) lBound )
+                     (pseudoFmap coSnd $ contramap (\(HCons' _ t)->t) uBound )
                      (pseudoFmap coFst . summand
-                        $ mathVarEntry sumVar (hHead.(basement :: svdStack->sumVarDep))                     ) )
+                        $ mathVarEntry sumVar ((\(HCons' h _)->h).(basement :: svdStack->sumVarDep))                     ) )
  
 -- | Just as 'limsFold_bigSymb', but as a Rank3-function. This allows the summation-variable to
 -- be used in multiple different closures, i.e. in different nesting-depths of local-sums
@@ -614,11 +615,11 @@ polyLimsFold_bigSymb fxty sumVar folderVis lBound uBound summand
                                                        (autoParensWhenFxtyLT 4 rngLV))
                                   ^: noRedBraces(rendrdExpression rngUV)        ) 
                        <> rendrdExpression (autoParensWhenFxtyLT (isotropFixity fxty) summandV ) )
-            ( Triple (pseudoFmap coSnd $ contramap hTail lBound )
-                     (pseudoFmap coSnd $ contramap hTail uBound )
+            ( Triple (pseudoFmap coSnd $ contramap (\(HCons' _ t)->t) lBound )
+                     (pseudoFmap coSnd $ contramap (\(HCons' _ t)->t) uBound )
                      (pseudoFmap coFst $ summand
                           ( polyMathVarEntry sumVar 
-                                             ( hHead :: sumVarDep -> rng )
+                                             ( (\(HCons' h _)->h) :: sumVarDep -> rng )
                          :: forall svdStack' . BasedUpon sumVarDep svdStack'
                                        => MathLaTeXEval rng svdStack'
                         ) ) )

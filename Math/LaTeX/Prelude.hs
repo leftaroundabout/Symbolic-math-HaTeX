@@ -22,6 +22,7 @@
 {-# LANGUAGE ImpredicativeTypes               #-}
 {-# LANGUAGE TupleSections                    #-}
 {-# LANGUAGE RecordWildCards                  #-}
+{-# LANGUAGE ConstraintKinds                  #-}
 
 module Math.LaTeX.Prelude (
     -- * Data types
@@ -90,6 +91,7 @@ import qualified Data.Text as T
 
 import Text.Printf
 
+import Control.Monad.AppIncluded
 import Control.Applicative
 import Control.Monad.Reader
 import Control.Monad.State
@@ -329,18 +331,21 @@ mathExprEvalRough = roughMathExpr . mathExprCalculate_
 
 
 
-inlineMathExpr :: Monad m => MathLaTeXEval b arg -> MathematicalLaTeXT arg m (arg->b)
+inlineMathExpr :: (Monad' m)
+           => MathLaTeXEval b arg -> MathematicalLaTeXT arg m (arg->b)
 inlineMathExpr e = do
    rendCfg <- ask
    fromHaTeX . fromLaTeX . math . rendrdExpression 
                   $ mathExprRender e `runReader` rendCfg
    return $ mathExprCalculate e
 
-inlineMathExpr_ :: Monad m => MathExpr b -> MathematicalLaTeXT HNil' m b
+inlineMathExpr_ :: (Monad' m)
+            => MathExpr b -> MathematicalLaTeXT HNil' m b
 inlineMathExpr_ = liftM ($HNil') . inlineMathExpr
 
 
-displayMathExpr :: Monad m => MathLaTeXEval b arg -> MathematicalLaTeXT arg m (arg->b)
+displayMathExpr :: (Monad' m)
+          => MathLaTeXEval b arg -> MathematicalLaTeXT arg m (arg->b)
 displayMathExpr e = do
    rendCfg <- ask
    stProps@(TeXMathStateProps {..}) <- get
@@ -351,30 +356,30 @@ displayMathExpr e = do
    return $ mathExprCalculate e
         
        
-displayMathExpr_ :: Monad m => MathExpr b -> MathematicalLaTeXT HNil' m b
+displayMathExpr_ :: (Monad' m) => MathExpr b -> MathematicalLaTeXT HNil' m b
 displayMathExpr_ = liftM ($HNil') . displayMathExpr
 
-inlineMathShow :: ( Monad m, MathRenderable b )
+inlineMathShow :: ( Monad' m, MathRenderable b )
                  => b -> MathematicalLaTeXT HNil' m b
 inlineMathShow = inlineMathExpr_ . toMathExpr
 
-inlineRoughValue :: ( Monad m, MathRoughRenderable b )
+inlineRoughValue :: ( Monad' m, MathRoughRenderable b )
                  => b -> MathematicalLaTeXT HNil' m b
 inlineRoughValue = inlineMathExpr_ . getRoughExpression . roughMathExpr
 
 infix 4 ?~?, ?=?
-(?~?) :: ( Monad m, MathRoughRenderable b )
+(?~?) :: ( Monad' m, MathRoughRenderable b )
                  => String -> b -> MathematicalLaTeXT HNil' m b
-expln ?~? val = fromString expln >> inlineRoughValue val
-(?=?) :: ( Monad m, MathRenderable b )
+expln ?~? val = fromString expln >>= \() -> inlineRoughValue val
+(?=?) :: ( Monad' m, MathRenderable b )
                  => String -> b -> MathematicalLaTeXT HNil' m b
-expln ?=? val = fromString expln >> inlineMathShow val
+expln ?=? val = fromString expln >>= \() -> inlineMathShow val
 
 
 -- | Display a math expression, together with its calculated result
 -- (exactly if feasible, approximate otherwise – in either case, the
 -- appropriate equality symbol will be chosen).
-displayMathExpr_wRResult :: ( Monad m, MathRoughRenderable b
+displayMathExpr_wRResult :: ( Monad' m, MathRoughRenderable b
                             , e ~ MathExpr b, RoughEqable e  )
                    => e -> MathematicalLaTeXT HNil' m b
 displayMathExpr_wRResult e = do
@@ -387,13 +392,13 @@ displayMathExpr_wRResult e = do
 -- | Same as 'displayMathExpr_wRResult', but takes an extra dummy parameter
 -- which can be used to determine what type the calculated expression is
 -- supposed to have.
-displayMathExpr_wRResultAsTypeOf :: ( Monad m, MathRoughRenderable b
+displayMathExpr_wRResultAsTypeOf :: ( Monad' m, MathRoughRenderable b
                             , e ~ MathExpr b, RoughEqable e  )
                    => b -> e -> MathematicalLaTeXT HNil' m b
 displayMathExpr_wRResultAsTypeOf _ = displayMathExpr_wRResult
  
 
-displayMathCompareSeq :: Monad m => ComparisonsEval x (MathLaTeXEval x arg)
+displayMathCompareSeq :: (Monad' m) => ComparisonsEval x (MathLaTeXEval x arg)
                            -> MathematicalLaTeXT arg m (arg->Bool)
 displayMathCompareSeq (ComparisonsEval comparisons) = do
   rendCfg <- ask
@@ -422,14 +427,14 @@ displayMathCompareSeq (ComparisonsEval comparisons) = do
   return result
                                        
                                        
-displayMathCompareSeq_ :: Monad m => ComparisonsEval x (MathExpr x) 
-                                                      -> MathematicalLaTeXT HNil' m Bool
+displayMathCompareSeq_ :: (Monad' m)
+      => ComparisonsEval x (MathExpr x) -> MathematicalLaTeXT HNil' m Bool
 displayMathCompareSeq_ = liftM ($HNil') . displayMathCompareSeq
 
 
 -- mathDefinition :: Monad m => MathPrimtvId -> MathLaTeXEval a b
 --                                 -> MathematicalLaTeXT b m (MathLaTeXEval a b)
-mathDefinition :: forall m x a . (Monad m)
+mathDefinition :: forall m x a . (Monad' m)
      => MathPrimtvId -> MathLaTeXEval x a
            -> MathematicalLaTeXT a m ( forall a' . BasedUpon a a'
                                             => MathLaTeXEval x a' )
@@ -443,7 +448,7 @@ mathDefinition varn e = do
 
 
 mathFuncDefinition :: forall m fnarg res a .
-    (Monad m)
+    (Monad' m)
      => MathPrimtvId -> MathPrimtvId
             -> ( (forall a' . BasedUpon a a'
                    => MathLaTeXEval fnarg a') -> MathLaTeXEval res a)
@@ -468,7 +473,7 @@ mathFuncDefinition funcn varn ef = do
    
                                
 type NewFreeVar v = forall outerFree innerFree m mRe .
-         ( Monad m, innerFree ~ HCons' v outerFree )
+         ( Monad' m, innerFree ~ HCons' v outerFree )
       => ( ( forall c . BasedUpon innerFree c => MathLaTeXEval v c )
          -> MathematicalLaTeXT innerFree m mRe )
      -> MathematicalLaTeXT outerFree m mRe
@@ -476,14 +481,14 @@ type NewFreeVar v = forall outerFree innerFree m mRe .
 
 
 freeVarIntro :: forall v outerFree innerFree m mRe .
-         ( Monad m, innerFree ~ HCons' v outerFree )
+         ( Monad' m, innerFree ~ HCons' v outerFree )
   => MathPrimtvId
     -> ( ( forall c . BasedUpon innerFree c => MathLaTeXEval v c )
          -> MathematicalLaTeXT innerFree m mRe )
      -> MathematicalLaTeXT outerFree m mRe
 freeVarIntro vn qgen = tamperFreeVarStack $ qgen vVar
  where vVar :: forall c . BasedUpon innerFree c => MathLaTeXEval v c
-       vVar = mathVarEntry vn (\c -> hHead (base c))
+       vVar = mathVarEntry vn (\c -> (\(HCons' h _)->h) (base c))
         where base :: c -> innerFree; base = basement
 
 
@@ -509,21 +514,21 @@ infixr 4 ...:
 -- 
 -- This will not affect any result-requests you may also be conducting.
 -- The fixity of this operator is @infixr 4 ...:@.
-(...:) :: Monad m => MathematicalLaTeXT f m a -> String -> MathematicalLaTeXT f m a
+(...:) :: (Monad' m) => MathematicalLaTeXT f m a -> String -> MathematicalLaTeXT f m a
 txt...:punct = do
    res <- txt
    modify $ \sps -> sps{ punctuationNeededAtDisplayEnd = Just punct }
    return res
 
   
-instance (Monad m) => Monoid (MathematicalLaTeXT_ m) where
+instance (Monad' m) => Monoid (MathematicalLaTeXT_ m) where
   mempty = return()
   a`mappend`b = do
      a
      b
 
 
-nl :: Monad m => MathematicalLaTeXT f m a
+nl :: (Monad' m) => MathematicalLaTeXT f m ()
 nl = fromHaTeX $ raw"\n\n"
 
 -- instance (Monad m) => LaTeXC (MathematicalLaTeXT_ m) where
