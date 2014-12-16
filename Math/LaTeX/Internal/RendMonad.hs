@@ -12,6 +12,7 @@
 {-# LANGUAGE FlexibleInstances          #-}
 {-# LANGUAGE MultiParamTypeClasses      #-}
 {-# LANGUAGE OverloadedStrings          #-}
+{-# LANGUAGE TypeFamilies               #-}
 
 
 
@@ -94,7 +95,7 @@ instance (Applicative m, Monad m)
   put = MathematicalLaTeXT . put
 
 
-instance (Applicative m, Monad m) => IsString (MathematicalLaTeXT f m ()) where
+instance (Applicative m, Monad m, a~()) => IsString (MathematicalLaTeXT f m a) where
   fromString s = do
      (TeXMathStateProps {..}) <- get
      mkupCfg <- askTextMarkupConfig

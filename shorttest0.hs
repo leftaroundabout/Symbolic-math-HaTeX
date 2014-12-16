@@ -3,6 +3,8 @@
 {-# LANGUAGE RankNTypes                       #-}
 {-# LANGUAGE FlexibleContexts                 #-}
 {-# LANGUAGE TypeFamilies                     #-}
+{-# LANGUAGE ConstraintKinds                  #-}
+{-# LANGUAGE ImpredicativeTypes               #-}
 
 
 import Math.LaTeX.Prelude
@@ -14,6 +16,7 @@ import Text.LaTeX hiding ((%))
 import Text.LaTeX.Packages.Inputenc
 import qualified Text.LaTeX.Packages.AMSMath as AMS
 
+import Control.Monad.AppIncluded
 import Control.Arrow
 
 import Data.HList
@@ -27,7 +30,7 @@ import qualified Prelude
 (%) = ($$$); (!) = ($$!)
 
 
-subSection, subSubSection :: (Monad m) => LaTeXT m () -> MathematicalLaTeXT_ m
+subSection, subSubSection :: (Monad' m) => LaTeXT m () -> MathematicalLaTeXT_ m
 subSection = fromHaTeX . subsection
 subSubSection = fromHaTeX . subsubsection
 
@@ -35,12 +38,12 @@ subSubSection = fromHaTeX . subsubsection
 main :: IO ()
 main = execLaTeXT simple >>= renderFile "shorttest0.tex"
 
-simple :: Monad m => LaTeXT_ m
+simple :: Monad' m => LaTeXT_ m
 simple = do
    thePreamble
    document theBody
 
-thePreamble :: Monad m => LaTeXT_ m
+thePreamble :: Monad' m => LaTeXT_ m
 thePreamble = do
    documentclass [] article
    usepackage [utf8] inputenc
@@ -48,7 +51,7 @@ thePreamble = do
    author "Justus Sagemüller"
    title "Simple example"
 
-theBody :: Monad m => LaTeXT_ m
+theBody :: Monad' m => LaTeXT_ m
 theBody = do
    maketitle
    section "Hello"
@@ -58,7 +61,7 @@ theBody = do
            theContents
 
 
-theContents :: Monad m => MathematicalLaTeXT_ m
+theContents :: Monad' m => MathematicalLaTeXT_ m
 theContents = do
  subSection "Arithmetics with infix operators" >> do
    
@@ -245,7 +248,7 @@ theContents = do
    
    
 
-testJudge :: Monad m => Bool -> MathematicalLaTeXT_ m
+testJudge :: Monad' m => Bool -> MathematicalLaTeXT_ m
 testJudge True = "(Test passed.)"
 testJudge _    = "(" <> failMsg <> ".)" where
  failMsg = fromHaTeX $ do textbf "Test failed"
