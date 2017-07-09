@@ -1,5 +1,5 @@
 Name:                TeX-my-math
-Version:             0.1
+Version:             0.201.0.0
 Category:            math
 Synopsis:            Render general Haskell math to LaTeX. Or: math typesetting with high signal-to-noise–ratio.
 Description:         This is an attempt to get convenient math syntax in HaTeX (i.e., in data structures
@@ -20,46 +20,20 @@ Description:         This is an attempt to get convenient math syntax in HaTeX (
                      but get the result back as a full pretty-printing LaTeX math string. /And the actual
                      calculated result as well/, if possible!
                      .
-                     For very simple expressions (plain number arithmetic with either literals or predefined
-                     variables) this already works quite nicely, see the example given (result in
-                     @shorttest0/shorttest0.pdf@).
-                     Where it gets interesting is when there are actual variables around, like an integral
-                     @∫ dx f(x)@. There is a bit of a conflict here: in Haskell, one would like to see such
-                     a thing as a (in principle point-free) operation on a lambda function, whereas most
-                     mathematicians and particularly physicists rather think of the @f(x)@ as some kind of
-                     /term/ that happens to include the @x@ symbol.
-                     .
-                     The solution I propose works thus:
-                     .
-                     * A mathematical expression @e@ which depends on a variable of type @Arg@ so the result
-                         represents a value of type @Res@, has type @MathEvaluation Res Arg@ (notice the
-                         different order of the type arguments, compared to Haskell functions (or categories,
-                         arrows...) @(->) Arg Res@).
-                     .
-                     * In the simplest case, such an expression does indeed just represent a Haskell function
-                         @f :: Arg -> Res@ that a mathematician would simply denote @f(x)@.
-                     .
-                     * /In general/, the symbolic term that @e@ displays in the LaTeX output will not be an
-                         exact description of the function @f@. It will rather be
-                         /some way to write the result of/ @f@,
-                         given some kind of transformation from @Arg@ to a number of variables
-                         that appear in the expression. To keep to the integral example: in physics, one very
-                         often writes things such as @∫ dr f(φ) ⋅ g(z)@, meaning in fact an integral over the
-                         @ℝ³@ space @∫ dṟ f(atan₂(r₁,r₂)) ⋅ g(r₃)@, but assuming this transformation is
-                         obvious to the reader.
-                     .
-                     This ability to map over the /input/ makes @MathEvaluation Res@ a contravariant functor,
-                     class defined in "Data.Functor.Contravariant".
-                     Of course, this means there is no guarantee that the Haskell function will actually be
-                     equivalent to the \"obvious\" interpretation of the LaTeX output, but I doubt it's possible
-                     to achieve this while still giving enough freedom to write expressions that won't look overly clumsy.
-                     .
-                     Whether this approach actually works as desired for real maths and physics applications has
-                     yet to be shown. 
-License:             GPL-3
+                     To this end, we use a minimal symbolic-manipulation EDSL, namely
+                     <http://hackage.haskell.org/package/dumb-cas dumb-cas>, set up in a way so the
+                     leaves of the syntax tree, i.e. the individual symbols, are represented by LaTeX
+                     expressions in memory and by single-letter variables in the Haskell code.
+                     These can then be combined with operators corresponding to LaTeX's maths operators,
+                     to obtain a very compact and almost WYSIWYG-like code appearance, while retaining
+                     the ability to apply any LaTeX-specific tweaks whenever necessary. At the same
+                     time, because the AST is fully precedence-aware, it is safely possible to transform
+                     the expressions via e.g. Template Haskell, to actually compute concrete numerical
+                     results, or apply exact symbolic-manipulation techniques.
+                     License:             GPL-3
 License-file:        COPYING
 Author:              Justus Sagemüller
-Maintainer:          (@) sagemuej $ smail.uni-koeln.de
+Maintainer:          (@) jsagemue $ uni-koeln.de
 Homepage:            http://github.com/leftaroundabout/Symbolic-math-HaTeX
 Build-Type:          Simple
 Cabal-Version:       >=1.2
@@ -67,24 +41,10 @@ Cabal-Version:       >=1.2
 Library
   Build-Depends:     base>=4.5
                      , HaTeX>3.4
-                     , contravariant
                      , vector-space
-                     , bifunctors
-                     , mtl
-                     , HList >= 0.3
-                     , transformers >= 0.2.2
+                     , dumb-cas >= 0.1 && < 0.2
+                     , dumb-cas-HaTeX
                      , text
                      , void
-                     , regex-tdfa
   Exposed-modules:   Math.LaTeX.Prelude
-                     Math.LaTeX.VoidCalc
-                     Math.LaTeX.Config
-                     Math.LaTeX.TextMarkup
   Other-modules:     Math.LaTeX.Internal.MathExpr
-                     Math.LaTeX.Internal.RendMonad
-                     Math.LaTeX.Internal.Misc.BracketSizes
-                     Control.Monad.AppIncluded
-                     Data.List.NonEmpty
-                     Data.Chain Data.Functor.FixedLength
-                     Data.HList.BasedUpon
-                     Data.Complex.Class
