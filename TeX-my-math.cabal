@@ -50,6 +50,7 @@ Library
   Exposed-modules:   Math.LaTeX.Prelude
                      Math.LaTeX.Internal.MathExpr
 --   Other-modules:     Math.LaTeX.Internal.MathExpr
+  Default-Language:    Haskell2010
 
 test-suite test
   default-language:
@@ -67,4 +68,5 @@ test-suite test
     , dumb-cas
     , HaTeX
     , TeX-my-math
+  Default-Language:    Haskell2010
 

@@ -35,10 +35,20 @@ shouldYieldLaTeX e s = LaTeX.render (toMathLaTeX e) @?= s
 tests :: TestTree
 tests = testGroup "Tests"
   [ testGroup "Rendering of simple expressions"
-     [ testCase "𝑎 + 𝑏 * 𝑐" $  𝑎 + 𝑏 * 𝑐
-             `shouldYieldLaTeX` "a+b{\\cdot}c"
-     , testCase "(𝑎 + 𝑏) * 𝑐" $  (𝑎 + 𝑏) * 𝑐
-          `shouldYieldLaTeX` "\\left(a+b\\right){\\cdot}c"
+     [ testCase "𝑎 + 𝑏 * 𝑐" $
+                 𝑎 + 𝑏 * 𝑐 `shouldYieldLaTeX` "a+b{\\cdot}c"
+     , testCase "(𝑎 + 𝑏) * 𝑐" $
+                 (𝑎 + 𝑏) * 𝑐 `shouldYieldLaTeX` "\\left(a+b\\right){\\cdot}c"
+     , testCase "(𝑎 + 𝑏) / (𝑥 - 𝑦)" $
+                 (𝑎 + 𝑏) / (𝑥 - 𝑦) `shouldYieldLaTeX` "\\frac{a+b}{x-y}"
+     , testCase "(𝑎 + 𝑏)**(𝑥 - 𝑦)" $
+                 (𝑎 + 𝑏)**(𝑥 - 𝑦) `shouldYieldLaTeX` "\\left(a+b\\right)^{x-y}"
+     , testCase "𝑎**𝑏**𝑐" $
+                 𝑎**𝑏**𝑐 `shouldYieldLaTeX` "a^{b^{c}}"
+     , testCase "(𝑎**𝑏)**𝑐" $
+                 (𝑎**𝑏)**𝑐 `shouldYieldLaTeX` "\\left(a^{b}\\right)^{c}"
+     , testCase "sin (sin 𝑥)" $
+                 sin (sin 𝑥) `shouldYieldLaTeX` "\\sin{\\left(\\sin{x}\\right)}"
      ]
   ]
 
