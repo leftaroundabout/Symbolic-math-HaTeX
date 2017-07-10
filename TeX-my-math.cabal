@@ -46,5 +46,6 @@ Library
                      , dumb-cas-HaTeX
                      , text
                      , void
+                     , template-haskell
   Exposed-modules:   Math.LaTeX.Prelude
   Other-modules:     Math.LaTeX.Internal.MathExpr
