@@ -36,7 +36,7 @@ Author:              Justus Sagemüller
 Maintainer:          (@) jsagemue $ uni-koeln.de
 Homepage:            http://github.com/leftaroundabout/Symbolic-math-HaTeX
 Build-Type:          Simple
-Cabal-Version:       >=1.2
+Cabal-Version:       >=1.10
 
 Library
   Build-Depends:     base>=4.5
@@ -48,4 +48,23 @@ Library
                      , void
                      , template-haskell
   Exposed-modules:   Math.LaTeX.Prelude
-  Other-modules:     Math.LaTeX.Internal.MathExpr
+                     Math.LaTeX.Internal.MathExpr
+--   Other-modules:     Math.LaTeX.Internal.MathExpr
+
+test-suite test
+  default-language:
+    Haskell2010
+  type:
+    exitcode-stdio-1.0
+  hs-source-dirs:
+    test/tasty
+  main-is:
+    test.hs
+  build-depends:
+      base >= 4 && < 5
+    , tasty >= 0.7
+    , tasty-hunit
+    , dumb-cas
+    , HaTeX
+    , TeX-my-math
+
