@@ -43,13 +43,13 @@ Library
                      , HaTeX>3.4
                      , vector-space
                      , dumb-cas >= 0.1 && < 0.2
-                     , dumb-cas-HaTeX
                      , text
                      , void
+                     , hashable, unordered-containers
                      , template-haskell
   Exposed-modules:   Math.LaTeX.Prelude
                      Math.LaTeX.Internal.MathExpr
---   Other-modules:     Math.LaTeX.Internal.MathExpr
+  Other-modules:     CAS.Dumb.LaTeX.Symbols
   Default-Language:    Haskell2010
 
 test-suite makeSnippets
