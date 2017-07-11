@@ -61,8 +61,11 @@ test-suite makeSnippets
     test/PdfSnippets
   main-is:
     MkSnippets.hs
+  Other-modules:
+    LaTeXComparer
   build-depends:
       base >= 4 && < 5
+    , template-haskell, haskell-src-meta
     , dumb-cas
     , HaTeX
     , TeX-my-math

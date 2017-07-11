@@ -8,8 +8,11 @@
 -- Portability : portable
 -- 
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE QuasiQuotes       #-}
 
 module Main where
+
+import LaTeXComparer
 
 import Math.LaTeX.Internal.MathExpr
 import Text.LaTeX (LaTeX, raw, Text)
@@ -30,39 +33,30 @@ import Control.Monad
 
 main :: IO ()
 main = do
-   evalTests tests >>= Txt.writeFile "../../README.md"
+   evalTests tests >>= Txt.writeFile "EXAMPLES.md"
    
-
-type Expr = Expression LaTeX
 
 
 tests :: TestTree
 tests = testGroup "Tests"
   [ testGroup "Simple expressions"
-     [         𝑎 + 𝑏 * 𝑐 ====>$$ "a+b{\\cdot}c"
-     ,       (𝑎 + 𝑏) * 𝑐 ====>$$ "\\left(a+b\\right){\\cdot}c"
-     , (𝑎 + 𝑏) / (𝑥 - 𝑦) ====>$$ "\\frac{a+b}{x-y}"
-     ,  (𝑎 + 𝑏)**(𝑥 - 𝑦) ====>$$ "\\left(a+b\\right)^{x-y}"
-     ,           𝑎**𝑏**𝑐 ====>$$ "a^{b^{c}}"
-     ,         (𝑎**𝑏)**𝑐 ====>$$ "\\left(a^{b}\\right)^{c}"
-     ,       sin (sin 𝑥) ====>$$ "\\sin{\\left(\\sin{x}\\right)}"
+     [ [mkLaTeXSnip|        𝑎 + 𝑏 * 𝑐 |] "a+b{\\cdot}c"
+     , [mkLaTeXSnip|      (𝑎 + 𝑏) * 𝑐 |] "\\left(a+b\\right){\\cdot}c"
+     , [mkLaTeXSnip|(𝑎 + 𝑏) / (𝑥 - 𝑦) |] "\\frac{a+b}{x-y}"
+     , [mkLaTeXSnip| (𝑎 + 𝑏)**(𝑥 - 𝑦) |] "\\left(a+b\\right)^{x-y}"
+     , [mkLaTeXSnip|          𝑎**𝑏**𝑐 |] "a^{b^{c}}"
+     , [mkLaTeXSnip|        (𝑎**𝑏)**𝑐 |] "\\left(a^{b}\\right)^{c}"
+     , [mkLaTeXSnip|      sin (sin 𝑥) |] "\\sin{\\left(\\sin{x}\\right)}"
      ]
   ]
 
 
-data TestTree = TestGroup String [TestTree]
-              | TestCase Expr Text
-
 testGroup :: String -> [TestTree] -> TestTree
 testGroup = TestGroup
 
-infix 0 ====>$$
-(====>$$) :: Expr -> Text -> TestTree
-(====>$$) = TestCase
-
 evalTests :: TestTree -> IO Text
-evalTests = go 1
- where go _ (TestCase e s)
+evalTests = go False 1
+ where go hasHeader _ (TestCase e ec s)
         | s==s'    = do
          let snipName = "test/PdfSnippets"</>encode (Txt.unpack s)
          doesFileExist (snipName<.>".png") >>= flip
@@ -79,19 +73,17 @@ evalTests = go 1
                    ]
                 readProcess "pdflatex" ["expression.tex"] ""
                 callProcess "convert" ["-density","300", "expression.pdf", snipName<.>"png"]
-         return $ Txt.unlines
-            [ "#### Haskell"
-            , "```haskell"
-            , Txt.pack $ show e
-            , "```"
-            , ""
-            , "#### LaTeX"
-            , "```latex"
-            , s
-            , "```"
-            ]
+         return . (if hasHeader then id
+                                else ("| Haskell | LaTeX | pdf |\
+                                    \\n| ---: | --- | :--- |\n"<>)) $
+           "| `"<>Txt.pack ec
+           <>"` | ⟹  `"<>s
+           <>"` | ⟹  ![pdflatex-rendered version of `"<>s
+                            <>"`](Symbolic-math-HaTeX/"<>Txt.pack(snipName<.>"png")<>") |\n"
         where s' = LaTeX.render (toMathLaTeX e)
-       go i (TestGroup g s) = (Txt.pack (replicate i '#' <> " " <> g <> "\n") <>)
-                              . Txt.concat <$> mapM (go $ i+1) s
+       go _ i (TestGroup g (s₀:s))
+              = (Txt.pack (replicate i '#' <> " " <> g <> "\n") <>)
+               . Txt.concat <$> ((:) <$> go False (i+1) s₀
+                                     <*> mapM (go True $ i+1) s)
 
 
