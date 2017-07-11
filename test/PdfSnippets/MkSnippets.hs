@@ -33,7 +33,10 @@ import Control.Monad
 
 main :: IO ()
 main = do
-   evalTests tests >>= Txt.writeFile "EXAMPLES.md"
+   examples <- evalTests tests
+   Txt.writeFile "EXAMPLES.md"
+      $ "_This file was generated automatically from [MkSnippets.hs](test/PdfSnippets/MkSnippets.hs). Run `cabal test` to refresh it._\n"
+       <> examples
    
 
 

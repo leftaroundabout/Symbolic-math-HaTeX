@@ -1,3 +1,4 @@
+_This file was generated automatically from [MkSnippets.hs](test/PdfSnippets/MkSnippets.hs). Run `cabal test` to refresh it._
 # Tests
 ## Simple expressions
 | Haskell | LaTeX | pdf |
