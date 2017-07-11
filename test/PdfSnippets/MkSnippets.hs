@@ -19,13 +19,13 @@ import Text.LaTeX (LaTeX, raw, Text)
 import qualified Text.LaTeX as LaTeX
 import qualified Data.Text as Txt
 import qualified Data.Text.IO as Txt
+import Data.Char
 
 import CAS.Dumb
 
 import System.FilePath
 import System.Directory
 import System.Process
-import Network.URI.Encode
 
 import Data.Monoid
 import Control.Monad
@@ -72,14 +72,16 @@ evalTests = go False 1
                    , "\\end{document}"
                    ]
                 readProcess "pdflatex" ["expression.tex"] ""
-                callProcess "convert" ["-density","300", "expression.pdf", snipName<.>"png"]
+                callProcess "convert" [ "-density","300"
+                                      , "-background","grey", "-alpha","remove"
+                                      , "expression.pdf", snipName<.>"png" ]
          return . (if hasHeader then id
                                 else ("| Haskell | LaTeX | pdf |\
                                     \\n| ---: | --- | :--- |\n"<>)) $
            "| `"<>Txt.pack ec
            <>"` | ⟹  `"<>s
            <>"` | ⟹  ![pdflatex-rendered version of `"<>s
-                            <>"`](Symbolic-math-HaTeX/"<>Txt.pack(snipName<.>"png")<>") |\n"
+                            <>"`]("<>Txt.pack(snipName<.>"png")<>") |\n"
         where s' = LaTeX.render (toMathLaTeX e)
        go _ i (TestGroup g (s₀:s))
               = (Txt.pack (replicate i '#' <> " " <> g <> "\n") <>)
@@ -87,3 +89,17 @@ evalTests = go False 1
                                      <*> mapM (go True $ i+1) s)
 
 
+
+encode :: String -> String
+encode = concatMap enc
+ where enc c
+        | isAlphaNum c = [c]
+       enc '+' = "PLUS"
+       enc '-' = "MINUS"
+       enc '\\' = "BACKSLASH"
+       enc '{' = "OBRACE"
+       enc '}' = "CBRACE"
+       enc '(' = "OPAREN"
+       enc ')' = "CPAREN"
+       enc '^' = "TOTHE"
+       enc c = error $ "Unencodable character '"++[c]++"'"

@@ -71,6 +71,5 @@ test-suite makeSnippets
     , TeX-my-math
     , text
     , directory, filepath, process
-    , uri-encode
   Default-Language:    Haskell2010
 
