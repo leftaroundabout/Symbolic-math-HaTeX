@@ -83,8 +83,8 @@ evalTests = go False 1
                                 else ("| Haskell | LaTeX | pdf |\
                                     \\n| ---: | --- | :--- |\n"<>)) $
            "| `"<>Txt.pack ec
-           <>"` | ⟹  `"<>s
-           <>"` | ⟹  ![pdflatex-rendered version of `"<>s
+           <>"` | `"<>s
+           <>"` | ![pdflatex-rendered version of `"<>s
                             <>"`]("<>Txt.pack(snipName<.>"png")<>") |\n"
         | otherwise    = error $ "Got "<>show s'<>"; expected "
                                   <> show s<>", when rendering "<>ec
