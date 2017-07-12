@@ -47,6 +47,7 @@ tests = testGroup "Tests"
      , [mkLaTeXSnip|      (𝑎 + 𝑏) * 𝑐 |] "\\left(a+b\\right){\\cdot}c"
      , [mkLaTeXSnip|(𝑎 + 𝑏) / (𝑥 - 𝑦) |] "\\frac{a+b}{x-y}"
      , [mkLaTeXSnip| (𝑎 + 𝑏)**(𝑥 - 𝑦) |] "\\left(a+b\\right)^{x-y}"
+     , [mkLaTeXSnip|         (𝑝/𝑞)**γ |]  "\\left(\\frac{p}{q}\\right)^{\\gamma{}}"
      , [mkLaTeXSnip|          𝑎**𝑏**𝑐 |] "a^{b^{c}}"
      , [mkLaTeXSnip|        (𝑎**𝑏)**𝑐 |] "\\left(a^{b}\\right)^{c}"
      , [mkLaTeXSnip|      sin (sin 𝑥) |] "\\sin{\\left(\\sin{x}\\right)}"
@@ -85,6 +86,8 @@ evalTests = go False 1
            <>"` | ⟹  `"<>s
            <>"` | ⟹  ![pdflatex-rendered version of `"<>s
                             <>"`]("<>Txt.pack(snipName<.>"png")<>") |\n"
+        | otherwise    = error $ "Got "<>show s'<>"; expected "
+                                  <> show s<>", when rendering "<>ec
         where s' = LaTeX.render (toMathLaTeX e)
        go _ i (TestGroup g (s₀:s))
               = (Txt.pack (replicate i '#' <> " " <> g <> "\n") <>)
