@@ -53,7 +53,7 @@ instance UnicodeSymbols LaTeX where
   toUnicodeSymbols lc
    | Just c <- Map.lookup lc mappingToUnicode    = [c]
    | lc==mempty  = ""
-   | otherwise   = "{{$"++Txt.unpack(render lc)++"$}}"
+   | otherwise   = "《"++Txt.unpack(render lc)++"》"
   
 mappingFromUnicode :: Map.HashMap Char LaTeX
 mappingToUnicode :: Map.HashMap LaTeX Char
