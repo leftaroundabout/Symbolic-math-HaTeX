@@ -84,8 +84,8 @@ evalTests = go False 1
                                 else ("| Haskell | LaTeX | pdf |\
                                     \\n| ---: | --- | :--- |\n"<>)) $
            "| `"<>Txt.pack ec
-           <>"` | `"<>s
-           <>"` | ![pdflatex-rendered version of `"<>s
+           <>"` | `"<>mkGithubtablesaveCode s
+           <>"` | ![pdflatex-rendered version of `"<>mkGithubtablesaveCode s
                             <>"`]("<>Txt.pack(snipName<.>"png")<>") |\n"
         | otherwise    = error $ "Got "<>show s'<>"; expected "
                                   <> show s<>", when rendering "<>ec
@@ -111,3 +111,8 @@ encode = concatMap enc
        enc '^' = "TOTHE"
        enc '|' = "PIPE"
        enc c = error $ "Unencodable character '"++[c]++"'"
+
+mkGithubtablesaveCode :: Text -> Text
+mkGithubtablesaveCode = Txt.concatMap esc
+ where esc '|' = "\\|"
+       esc c = Txt.singleton c
