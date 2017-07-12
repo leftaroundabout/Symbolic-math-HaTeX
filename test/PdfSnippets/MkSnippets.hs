@@ -53,6 +53,25 @@ tests = testGroup "Tests"
      , [mkLaTeXSnip|        (𝑎**𝑏)**𝑐 |] "\\left(a^{b}\\right)^{c}"
      , [mkLaTeXSnip|      sin (sin 𝑥) |] "\\sin{\\left(\\sin{x}\\right)}"
      ]
+  , testGroup "Operators"
+     [ testGroup "Arithmetic"
+        [ [mkLaTeXSnip| 𝑎 + 𝑏 |] "a+b"
+        , [mkLaTeXSnip| 𝑎 - 𝑏 |] "a-b"
+        , [mkLaTeXSnip| 𝑎 * 𝑏 |] "a{\\cdot}b"
+        , [mkLaTeXSnip| 𝑎 × 𝑏 |] "a\\times{}b"
+        , [mkLaTeXSnip| 𝑎 ± 𝑏 |] "a\\pm{}b"
+        , [mkLaTeXSnip| 𝑎 ∓ 𝑏 |] "a\\mp{}b"
+        , [mkLaTeXSnip| 𝑎 ⊕ 𝑏 |] "a\\oplus{}b"
+        , [mkLaTeXSnip| 𝑎 ⊗ 𝑏 |] "a\\otimes{}b"
+        ]
+     , testGroup "Logical"
+        [ [mkLaTeXSnip| 𝑝 ∨ 𝑞 |] "p\\vee{}q"
+        , [mkLaTeXSnip| 𝑝 ∧ 𝑞 |] "p\\wedge{}q"
+        , [mkLaTeXSnip| 𝑝==>𝑞 |] "p\\Longrightarrow q"
+        , [mkLaTeXSnip| 𝑝<==𝑞 |] "p\\Longleftarrow q"
+        , [mkLaTeXSnip| 𝑝<=>𝑞 |] "p\\Longleftrightarrow q"
+        ]
+     ]
   ]
 
 
@@ -110,6 +129,7 @@ encode = concatMap enc
        enc ')' = "CPAREN"
        enc '^' = "TOTHE"
        enc '|' = "PIPE"
+       enc ' ' = "SPACE"
        enc c = error $ "Unencodable character '"++[c]++"'"
 
 mkGithubtablesaveCode :: Text -> Text

@@ -16,6 +16,7 @@
 module Math.LaTeX.Internal.MathExpr where
 
 import qualified Text.LaTeX as LaTeX
+import Text.LaTeX (raw)
 import Text.LaTeX.Base.Class (LaTeXC, fromLaTeX)
 import qualified Text.LaTeX.Base.Class as LaTeX
 import qualified Text.LaTeX.Base.Types as LaTeX
@@ -38,15 +39,48 @@ type MathsInfix = ∀ γ s⁰ l . LaTeXC l
    => CAS' γ (Infix l) (Encapsulation l) s⁰ -> CAS' γ (Infix l) (Encapsulation l) s⁰
               -> CAS' γ (Infix l) (Encapsulation l) s⁰
 
-opL :: LaTeXC l => Int -> l
+opL, opR, opN :: LaTeXC l => Int -> l
     -> CAS' γ (Infix l) (Encapsulation l) s⁰ -> CAS' γ (Infix l) (Encapsulation l) s⁰
               -> CAS' γ (Infix l) (Encapsulation l) s⁰
 opL fxty iop = symbolInfix (Infix (Hs.Fixity fxty Hs.InfixL) iop)
+opR fxty iop = symbolInfix (Infix (Hs.Fixity fxty Hs.InfixR) iop)
+opN fxty iop = symbolInfix (Infix (Hs.Fixity fxty Hs.InfixN) iop)
 
-infixl 6 ±, ∓
-(±), (∓) :: MathsInfix
+opL', opR', opN' :: LaTeXC l => Int -> (l->l->l)
+    -> CAS' γ (Infix l) (Encapsulation l) s⁰ -> CAS' γ (Infix l) (Encapsulation l) s⁰
+              -> CAS' γ (Infix l) (Encapsulation l) s⁰
+opL' fxty iop = symbolInfix (Infix (Hs.Fixity fxty Hs.InfixL) $ iop mempty mempty)
+opR' fxty iop = symbolInfix (Infix (Hs.Fixity fxty Hs.InfixR) $ iop mempty mempty)
+opN' fxty iop = symbolInfix (Infix (Hs.Fixity fxty Hs.InfixN) $ iop mempty mempty)
+
+infixl 6 ±, ∓, ⊕
+(±), (∓), (⊕) :: MathsInfix
 (±) = opL 6 LaTeX.pm
 (∓) = opL 6 LaTeX.mp
+(⊕) = opL' 6 LaTeX.oplus
+
+infixl 7 ×, ∘, ⊗
+(×), (⊗), (∘) :: MathsInfix
+(×) = opL' 7 LaTeX.times
+(⊗) = opL' 7 LaTeX.otimes
+(∘) = opL' 7 LaTeX.circ
+
+infixr 3 ∧, ∨
+(∧), (∨) :: MathsInfix
+(∧) = opR 3 $ raw"\\wedge{}"
+(∨) = opR 3 $ raw"\\vee{}"
+
+infixr 5 ⸪, -→, ↪
+(⸪), (-→), (↪) :: MathsInfix
+(⸪) = opR 5 ":"
+(-→) = opR 5 LaTeX.to
+(↪) = opR 5 $ raw"\\hookrightarrow{}"
+
+infixl 1 ==>, <=>, <==
+(==>), (<=>), (<==) :: MathsInfix
+(==>) = opL 1 $ raw"\\Longrightarrow "
+(<==) = opL 1 $ raw"\\Longleftarrow "
+(<=>) = opL 1 $ raw"\\Longleftrightarrow "
 
 
 toMathLaTeX :: ∀ σ l . (LaTeXC l, Num l, SymbolClass σ, SCConstraint σ l)
