@@ -111,10 +111,12 @@ instance ∀ σ γ . (SymbolClass σ, SCConstraint σ LaTeX)
   fromInteger n
    | n<0        = negate . fromInteger $ -n
    | otherwise  = Symbol $ NatSymbol n
-  (+) = symbolInfix (Infix (Hs.Fixity 6 Hs.InfixL) $ fcs '+')
+  (+) = chainableInfixL (==plusOp) plusOp
    where fcs = fromCharSymbol ([]::[σ])
-  (*) = symbolInfix (Infix (Hs.Fixity 7 Hs.InfixL) $ fcs '*')
+         plusOp = Infix (Hs.Fixity 6 Hs.InfixL) $ fcs '+'
+  (*) = chainableInfixL (==mulOp) mulOp
    where fcs = fromCharSymbol ([]::[σ])
+         mulOp = Infix (Hs.Fixity 7 Hs.InfixL) $ fcs '*'
   (-) = symbolInfix (Infix (Hs.Fixity 6 Hs.InfixL) $ fcs '-')
    where fcs = fromCharSymbol ([]::[σ])
   abs = encapsulation (raw "\\left|") (raw "\\right|")
