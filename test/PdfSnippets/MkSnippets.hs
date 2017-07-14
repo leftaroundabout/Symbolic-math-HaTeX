@@ -86,6 +86,8 @@ tests = testGroup "Tests"
         [ [mkLaTeXSnip| (-1,1)∫d 𝑥 (𝑥**2) |] "\\int\\limits_{-1}^{1}\\mathrm{d}x\\ x^{2}"
         , [mkLaTeXSnip| ω◞∫d 𝑥 (exp $ -(𝑥**2)) |]
               "\\int_{\\omega{}}\\!\\!\\!\\mathrm{d}x\\ \\exp{\\left(-x^{2}\\right)}"
+        , [mkLaTeXSnip| (0,1)∫d 𝑥 ((0,1)∫d 𝑦 (𝑥*𝑦)) |]
+              "\\int\\limits_{0}^{1}\\mathrm{d}x\\ \\int\\limits_{0}^{1}\\mathrm{d}y\\ \\left(x{\\cdot}y\\right)"
         ]
      ]
   ]
@@ -136,21 +138,21 @@ encode :: String -> String
 encode = concatMap enc
  where enc c
         | isAlphaNum c = [c]
-       enc '+' = "PLUS"
-       enc '-' = "MINUS"
-       enc '\\' = "BACKSLASH"
-       enc '{' = "OBRACE"
-       enc '}' = "CBRACE"
-       enc '(' = "OPAREN"
-       enc ')' = "CPAREN"
-       enc '^' = "TOTHE"
-       enc '_' = "SUBSCRIPT"
-       enc '|' = "PIPE"
-       enc '!' = "BANG"
-       enc '=' = "EQUALS"
-       enc '<' = "LESSER"
-       enc '>' = "GREATER"
-       enc ' ' = "SPACE"
+       enc '+' = "⼦"
+       enc '-' = "⼀"
+       enc '\\' = "ᓭ"
+       enc '{' = "ⶈ"
+       enc '}' = "ⶉ"
+       enc '(' = "ᑕ"
+       enc ')' = "ᑐ"
+       enc '^' = "ᐞ"
+       enc '_' = "⣀"
+       enc '|' = "ᛁ"
+       enc '!' = "⢘"
+       enc '=' = "〧"
+       enc '<' = "ᐸ"
+       enc '>' = "ᐳ"
+       enc ' ' = "ᐧ"
        enc c = error $ "Unencodable character '"++[c]++"'"
 
 mkGithubtablesaveCode :: Text -> Text
