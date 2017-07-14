@@ -79,13 +79,14 @@ infixr 5 ⸪, -→, ↪
 (-→) = opR 5 LaTeX.to
 (↪) = opR 5 $ raw"\\hookrightarrow{}"
 
-infixl 1 ==>, <=>, <==
-(==>), (<=>), (<==) :: MathsInfix
-(==>) = opL 1 $ raw"\\Longrightarrow "
-(<==) = opL 1 $ raw"\\Longleftarrow "
-(<=>) = opL 1 $ raw"\\Longleftrightarrow "
-
-
+makeOperatorCaste "implicationOperators"
+                  (''MathsInfix, ''LaTeX)
+                  (Fixity 1 InfixL)
+                  True
+                  [ ("==>", [e|raw"\\Longrightarrow "|])
+                  , ("<==", [e|raw"\\Longleftarrow "|])
+                  , ("<=>", [e|raw"\\Longleftrightarrow "|])
+                  ]
 
 makeOperatorCaste "relationOperators"
                   (''MathsInfix, ''LaTeX)

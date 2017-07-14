@@ -70,6 +70,7 @@ tests = testGroup "Tests"
         , [mkLaTeXSnip| 𝑝==>𝑞 |] "p\\Longrightarrow q"
         , [mkLaTeXSnip| 𝑝<==𝑞 |] "p\\Longleftarrow q"
         , [mkLaTeXSnip| 𝑝<=>𝑞 |] "p\\Longleftrightarrow q"
+        , [mkLaTeXSnip| 𝑝==>𝑞==>𝑟 |] "p\\Longrightarrow q\\Longrightarrow r"
         ]
      , testGroup "Relations"
         [ [mkLaTeXSnip| 𝑎 ⩵ 𝑏 |] "a=b"
