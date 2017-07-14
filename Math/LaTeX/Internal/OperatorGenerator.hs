@@ -22,22 +22,42 @@ import Language.Haskell.TH
 import Language.Haskell.Meta.Parse
 import Data.Char
 
+import qualified Data.HashSet as HS
+import qualified Data.Hashable as HS
+
 operatorExpression :: Fixity -> s² -> CAS' γ (Infix s²) s¹ s⁰
                 -> CAS' γ (Infix s²) s¹ s⁰ -> CAS' γ (Infix s²) s¹ s⁰
 operatorExpression fxty iop = symbolInfix (Infix fxty iop)
 
+chainOperatorExpression :: (Eq s², HS.Hashable s²)
+          => Fixity -> HS.HashSet s² -> s² -> CAS' γ (Infix s²) s¹ s⁰
+                -> CAS' γ (Infix s²) s¹ s⁰ -> CAS' γ (Infix s²) s¹ s⁰
+chainOperatorExpression fxty caste iop = chainableInfix isInCaste (Infix fxty iop)
+ where isInCaste (Infix _ iop') = iop' `HS.member` caste
+
 makeOperatorCaste :: String   -- ^ What to call the collection of operators
-                  -> Name     -- ^ Type of the operators
+                  -> (Name, Name)
+                              -- ^ Haskell type of the final operators
+                              --   and of the infix primitives therein
                   -> Fixity
                   -> Bool     -- ^ Should the ops in this caste be chainable?
                   -> [(String, ExpQ)]
                               -- ^ The operator symbols with corresponding implementation
                   -> DecsQ
-makeOperatorCaste caste typeSig fxty isChainable ops
+makeOperatorCaste caste (typeSig, opType) fxty isChainable ops
                 = fmap concat $ (:) <$> mkCollection
                                     <*> mapM mkOp ops
  where mkCollection
-        | isChainable  = undefined
+        | isChainable  = do
+           opRenditions <- mapM snd ops
+           return
+            [ SigD casteName $ ConT ''HS.HashSet `AppT` ConT opType
+            , ValD (VarP casteName)
+                   (NormalB
+                     $ VarE 'HS.fromList
+                        `AppE` ListE opRenditions )
+                   []
+            ]
         | otherwise    = return []
        mkOp (op, implementation) = do
         impExp <- implementation
@@ -46,10 +66,14 @@ makeOperatorCaste caste typeSig fxty isChainable ops
          , SigD opName $ ConT typeSig
          , ValD (VarP opName)
                 (NormalB
-                   $ VarE 'operatorExpression `AppE` fxtyE `AppE` impExp)
+                   $ if isChainable
+                      then VarE 'chainOperatorExpression
+                             `AppE` fxtyE `AppE` VarE casteName `AppE` impExp
+                      else VarE 'operatorExpression `AppE` fxtyE `AppE` impExp)
                 [] ]
         where opName = mkName op
               fxtyE = case parseExp $ show fxty of
                  Right fe -> fe
                  Left err -> error err
+       casteName = mkName caste
 

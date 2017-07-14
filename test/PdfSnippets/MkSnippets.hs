@@ -74,6 +74,9 @@ tests = testGroup "Tests"
      , testGroup "Relations"
         [ [mkLaTeXSnip| 𝑎 ⩵ 𝑏 |] "a=b"
         , [mkLaTeXSnip| 𝑎 ≥ 𝑐 |] "a\\geq{}c"
+        , [mkLaTeXSnip| 𝑎 ⪡ ρ |] "a<\\rho{}"
+        , [mkLaTeXSnip| 𝑥 ⩵ 𝑦 ⩵ 𝑧 |] "x=y=z"
+        , [mkLaTeXSnip| 𝑠 ⊂ 𝑡 ⊆ 𝑢 |] "s\\subset{}t\\subseteq{}u"
         ]
      ]
   ]
@@ -134,6 +137,8 @@ encode = concatMap enc
        enc '^' = "TOTHE"
        enc '|' = "PIPE"
        enc '=' = "EQUALS"
+       enc '<' = "LESSER"
+       enc '>' = "GREATER"
        enc ' ' = "SPACE"
        enc c = error $ "Unencodable character '"++[c]++"'"
 

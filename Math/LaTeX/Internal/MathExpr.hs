@@ -38,9 +38,9 @@ import Data.Monoid ((<>))
 import qualified Language.Haskell.TH.Syntax as Hs
 import Language.Haskell.TH.Syntax (Fixity(..), FixityDirection(..))
 
-type MathsInfix = ∀ γ s⁰ l . LaTeXC l
-   => CAS' γ (Infix l) (Encapsulation l) s⁰ -> CAS' γ (Infix l) (Encapsulation l) s⁰
-              -> CAS' γ (Infix l) (Encapsulation l) s⁰
+type MathsInfix = ∀ γ s⁰ .
+      CAS' γ (Infix LaTeX) (Encapsulation LaTeX) s⁰ -> CAS' γ (Infix LaTeX) (Encapsulation LaTeX) s⁰
+              -> CAS' γ (Infix LaTeX) (Encapsulation LaTeX) s⁰
 
 opL, opR, opN :: LaTeXC l => Int -> l
     -> CAS' γ (Infix l) (Encapsulation l) s⁰ -> CAS' γ (Infix l) (Encapsulation l) s⁰
@@ -88,9 +88,9 @@ infixl 1 ==>, <=>, <==
 
 
 makeOperatorCaste "relationOperators"
-                  ''MathsInfix
+                  (''MathsInfix, ''LaTeX)
                   (Fixity 4 InfixL)
-                  False
+                  True
                   [ ("⩵", [e|""LaTeX.=:""|])
                   , ("∶=", [e|raw"{:=}"|])
                   , ("⩵:", [e|raw"{=:}"|])

@@ -37,3 +37,6 @@ _This file was generated automatically from [MkSnippets.hs](test/PdfSnippets/MkS
 | ---: | --- | :--- |
 | ` 𝑎 ⩵ 𝑏 ` | `a=b` | ![pdflatex-rendered version of `a=b`](test/PdfSnippets/aEQUALSb.png) |
 | ` 𝑎 ≥ 𝑐 ` | `a\geq{}c` | ![pdflatex-rendered version of `a\geq{}c`](test/PdfSnippets/aBACKSLASHgeqOBRACECBRACEc.png) |
+| ` 𝑎 ⪡ ρ ` | `a<\rho{}` | ![pdflatex-rendered version of `a<\rho{}`](test/PdfSnippets/aLESSERBACKSLASHrhoOBRACECBRACE.png) |
+| ` 𝑥 ⩵ 𝑦 ⩵ 𝑧 ` | `x=y=z` | ![pdflatex-rendered version of `x=y=z`](test/PdfSnippets/xEQUALSyEQUALSz.png) |
+| ` 𝑠 ⊂ 𝑡 ⊆ 𝑢 ` | `s\subset{}t\subseteq{}u` | ![pdflatex-rendered version of `s\subset{}t\subseteq{}u`](test/PdfSnippets/sBACKSLASHsubsetOBRACECBRACEtBACKSLASHsubseteqOBRACECBRACEu.png) |
