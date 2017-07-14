@@ -52,6 +52,7 @@ tests = testGroup "Tests"
      , [mkLaTeXSnip|          𝑎**𝑏**𝑐 |] "a^{b^{c}}"
      , [mkLaTeXSnip|        (𝑎**𝑏)**𝑐 |] "\\left(a^{b}\\right)^{c}"
      , [mkLaTeXSnip|      sin (sin 𝑥) |] "\\sin{\\left(\\sin{x}\\right)}"
+     , [mkLaTeXSnip|       (𝑖⩵0,3)∑ 𝑖 |] "\\sum_{i=0}^{3} i"
      ]
   , testGroup "Operators"
      [ testGroup "Arithmetic"
@@ -78,6 +79,13 @@ tests = testGroup "Tests"
         , [mkLaTeXSnip| 𝑎 ⪡ ρ |] "a<\\rho{}"
         , [mkLaTeXSnip| 𝑥 ⩵ 𝑦 ⩵ 𝑧 |] "x=y=z"
         , [mkLaTeXSnip| 𝑠 ⊂ 𝑡 ⊆ 𝑢 |] "s\\subset{}t\\subseteq{}u"
+        ]
+     ]
+  , testGroup "Calculus"
+     [ testGroup "Integration"
+        [ [mkLaTeXSnip| (-1,1)∫d 𝑥 (𝑥**2) |] "\\int\\limits_{-1}^{1}\\mathrm{d}x\\ x^{2}"
+        , [mkLaTeXSnip| ω◞∫d 𝑥 (exp $ -(𝑥**2)) |]
+              "\\int_{\\omega{}}\\!\\!\\!\\mathrm{d}x\\ \\exp{\\left(-x^{2}\\right)}"
         ]
      ]
   ]
@@ -136,7 +144,9 @@ encode = concatMap enc
        enc '(' = "OPAREN"
        enc ')' = "CPAREN"
        enc '^' = "TOTHE"
+       enc '_' = "SUBSCRIPT"
        enc '|' = "PIPE"
+       enc '!' = "BANG"
        enc '=' = "EQUALS"
        enc '<' = "LESSER"
        enc '>' = "GREATER"

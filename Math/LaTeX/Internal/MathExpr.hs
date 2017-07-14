@@ -38,9 +38,13 @@ import Data.Monoid ((<>))
 import qualified Language.Haskell.TH.Syntax as Hs
 import Language.Haskell.TH.Syntax (Fixity(..), FixityDirection(..))
 
+
 type MathsInfix = ∀ γ s⁰ .
       CAS' γ (Infix LaTeX) (Encapsulation LaTeX) s⁰ -> CAS' γ (Infix LaTeX) (Encapsulation LaTeX) s⁰
               -> CAS' γ (Infix LaTeX) (Encapsulation LaTeX) s⁰
+
+atom :: l -> CAS' γ s² s¹ (SymbolD σ l)
+atom = Symbol . StringSymbol
 
 opL, opR, opN :: LaTeXC l => Int -> l
     -> CAS' γ (Infix l) (Encapsulation l) s⁰ -> CAS' γ (Infix l) (Encapsulation l) s⁰
@@ -119,6 +123,96 @@ makeOperatorCaste "relationOperators"
                   , ("↦", [e|LaTeX.mapsto|])
                   ]
 
+del, nabla, infty :: (SymbolClass σ, SCConstraint σ LaTeX)
+          => CAS' γ s² s¹ (SymbolD σ LaTeX)
+del = atom LaTeX.partial
+nabla = atom $ raw "\\nabla{}\\!"
+infty = atom LaTeX.infty
+
+
+
+newtype Integrand γ s² s¹ s⁰ = Integrand { getIntgrand :: CAS' γ s² s¹ s⁰ }
+
+d :: LaTeXC l => CAS' γ (Infix l) (Encapsulation l) s⁰
+              -> CAS' γ (Infix l) (Encapsulation l) s⁰
+              -> Integrand γ (Infix l) (Encapsulation l) s⁰
+d x f = Integrand $ opR 7 (raw "\\ ") x f
+
+infixr 8 ∫, ◞∫, ◞∮, ∑, ◞∑, ∏, ◞∏
+
+(∫) :: LaTeXC l
+  => ( CAS' γ (Infix l) (Encapsulation l) (SymbolD σ l)
+     , CAS' γ (Infix l) (Encapsulation l) (SymbolD σ l) )
+              -> Integrand γ (Infix l) (Encapsulation l) (SymbolD σ l)
+              -> CAS' γ (Infix l) (Encapsulation l) (SymbolD σ l)
+(l,r)∫Integrand i
+    = Operator (Infix (Hs.Fixity 7 Hs.InfixR) $ LaTeX.mathrm "d")
+             (Operator (Infix (Hs.Fixity 9 Hs.InfixN) $ raw "^")
+                (encapsulation (raw "\\int\\limits_{") (raw "}") l)
+                (encapsulation (raw "{") (raw "}") r) )
+             i
+
+(◞∫) :: LaTeXC l
+  => CAS' γ (Infix l) (Encapsulation l) (SymbolD σ l)
+              -> Integrand γ (Infix l) (Encapsulation l) (SymbolD σ l)
+              -> CAS' γ (Infix l) (Encapsulation l) (SymbolD σ l)
+ω◞∫Integrand i
+    = Operator (Infix (Hs.Fixity 7 Hs.InfixR) $ LaTeX.mathrm "d")
+             (encapsulation (raw "\\int_{") (raw "}\\!\\!\\!") ω)
+             i
+
+(◞∮) :: LaTeXC l
+  => CAS' γ (Infix l) (Encapsulation l) (SymbolD σ l)
+              -> Integrand γ (Infix l) (Encapsulation l) (SymbolD σ l)
+              -> CAS' γ (Infix l) (Encapsulation l) (SymbolD σ l)
+ω◞∮Integrand i
+    = Operator (Infix (Hs.Fixity 7 Hs.InfixR) $ LaTeX.mathrm "d")
+             (encapsulation (raw "\\oint_{") (raw "}\\!\\!\\!") ω)
+             i
+
+(∑) :: LaTeXC l
+  => ( CAS' γ (Infix l) (Encapsulation l) (SymbolD σ l)
+     , CAS' γ (Infix l) (Encapsulation l) (SymbolD σ l) )
+              -> CAS' γ (Infix l) (Encapsulation l) (SymbolD σ l)
+              -> CAS' γ (Infix l) (Encapsulation l) (SymbolD σ l)
+(l,r)∑m
+    = Operator (Infix (Hs.Fixity 7 Hs.InfixR) $ raw" ")
+             (Operator (Infix (Hs.Fixity 9 Hs.InfixN) $ raw "^")
+                (encapsulation (raw "\\sum_{") (raw "}") l)
+                (encapsulation (raw "{") (raw "}") r) )
+             m
+
+(◞∑) :: LaTeXC l
+  => CAS' γ (Infix l) (Encapsulation l) (SymbolD σ l)
+              -> CAS' γ (Infix l) (Encapsulation l) (SymbolD σ l)
+              -> CAS' γ (Infix l) (Encapsulation l) (SymbolD σ l)
+ω◞∑m
+    = Operator (Infix (Hs.Fixity 7 Hs.InfixR) $ raw " ")
+             (encapsulation (raw "\\sum_{") (raw "}") ω)
+             m
+
+(∏) :: LaTeXC l
+  => ( CAS' γ (Infix l) (Encapsulation l) (SymbolD σ l)
+     , CAS' γ (Infix l) (Encapsulation l) (SymbolD σ l) )
+              -> CAS' γ (Infix l) (Encapsulation l) (SymbolD σ l)
+              -> CAS' γ (Infix l) (Encapsulation l) (SymbolD σ l)
+(l,r)∏m
+    = Operator (Infix (Hs.Fixity 7 Hs.InfixR) $ raw" ")
+             (Operator (Infix (Hs.Fixity 9 Hs.InfixN) $ raw "^")
+                (encapsulation (raw "\\prod_{") (raw "}") l)
+                (encapsulation (raw "{") (raw "}") r) )
+             m
+
+(◞∏) :: LaTeXC l
+  => CAS' γ (Infix l) (Encapsulation l) (SymbolD σ l)
+              -> CAS' γ (Infix l) (Encapsulation l) (SymbolD σ l)
+              -> CAS' γ (Infix l) (Encapsulation l) (SymbolD σ l)
+ω◞∏m
+    = Operator (Infix (Hs.Fixity 7 Hs.InfixR) $ raw " ")
+             (encapsulation (raw "\\prod_{") (raw "}") ω)
+             m
+
+
 toMathLaTeX :: ∀ σ l . (LaTeXC l, Num l, SymbolClass σ, SCConstraint σ l)
                 => CAS (Infix l) (Encapsulation l) (SymbolD σ l) -> l
 toMathLaTeX = renderSymbolExpression (AtLHS $ Hs.Fixity 0 Hs.InfixL) ρ
@@ -134,3 +228,8 @@ showLParen :: LaTeXC l => Bool -> l -> l
 showLParen True  = LaTeX.autoParens
 showLParen False = id
 
+
+encapsulation :: l -> l
+              -> (CAS' γ (Infix l) (Encapsulation l) (SymbolD σ l))
+              -> (CAS' γ (Infix l) (Encapsulation l) (SymbolD σ l))
+encapsulation l r = Function $ Encapsulation False True l r

@@ -12,6 +12,7 @@ _This file was generated automatically from [MkSnippets.hs](test/PdfSnippets/MkS
 | `          𝑎**𝑏**𝑐 ` | `a^{b^{c}}` | ![pdflatex-rendered version of `a^{b^{c}}`](test/PdfSnippets/aTOTHEOBRACEbTOTHEOBRACEcCBRACECBRACE.png) |
 | `        (𝑎**𝑏)**𝑐 ` | `\left(a^{b}\right)^{c}` | ![pdflatex-rendered version of `\left(a^{b}\right)^{c}`](test/PdfSnippets/BACKSLASHleftOPARENaTOTHEOBRACEbCBRACEBACKSLASHrightCPARENTOTHEOBRACEcCBRACE.png) |
 | `      sin (sin 𝑥) ` | `\sin{\left(\sin{x}\right)}` | ![pdflatex-rendered version of `\sin{\left(\sin{x}\right)}`](test/PdfSnippets/BACKSLASHsinOBRACEBACKSLASHleftOPARENBACKSLASHsinOBRACExCBRACEBACKSLASHrightCPARENCBRACE.png) |
+| `       (𝑖⩵0,3)∑ 𝑖 ` | `\sum_{i=0}^{3} i` | ![pdflatex-rendered version of `\sum_{i=0}^{3} i`](test/PdfSnippets/BACKSLASHsumSUBSCRIPTOBRACEiEQUALS0CBRACETOTHEOBRACE3CBRACESPACEi.png) |
 ## Operators
 ### Arithmetic
 | Haskell | LaTeX | pdf |
@@ -41,3 +42,9 @@ _This file was generated automatically from [MkSnippets.hs](test/PdfSnippets/MkS
 | ` 𝑎 ⪡ ρ ` | `a<\rho{}` | ![pdflatex-rendered version of `a<\rho{}`](test/PdfSnippets/aLESSERBACKSLASHrhoOBRACECBRACE.png) |
 | ` 𝑥 ⩵ 𝑦 ⩵ 𝑧 ` | `x=y=z` | ![pdflatex-rendered version of `x=y=z`](test/PdfSnippets/xEQUALSyEQUALSz.png) |
 | ` 𝑠 ⊂ 𝑡 ⊆ 𝑢 ` | `s\subset{}t\subseteq{}u` | ![pdflatex-rendered version of `s\subset{}t\subseteq{}u`](test/PdfSnippets/sBACKSLASHsubsetOBRACECBRACEtBACKSLASHsubseteqOBRACECBRACEu.png) |
+## Calculus
+### Integration
+| Haskell | LaTeX | pdf |
+| ---: | --- | :--- |
+| ` (-1,1)∫d 𝑥 (𝑥**2) ` | `\int\limits_{-1}^{1}\mathrm{d}x\ x^{2}` | ![pdflatex-rendered version of `\int\limits_{-1}^{1}\mathrm{d}x\ x^{2}`](test/PdfSnippets/BACKSLASHintBACKSLASHlimitsSUBSCRIPTOBRACEMINUS1CBRACETOTHEOBRACE1CBRACEBACKSLASHmathrmOBRACEdCBRACExBACKSLASHSPACExTOTHEOBRACE2CBRACE.png) |
+| ` ω◞∫d 𝑥 (exp $ -(𝑥**2)) ` | `\int_{\omega{}}\!\!\!\mathrm{d}x\ \exp{\left(-x^{2}\right)}` | ![pdflatex-rendered version of `\int_{\omega{}}\!\!\!\mathrm{d}x\ \exp{\left(-x^{2}\right)}`](test/PdfSnippets/BACKSLASHintSUBSCRIPTOBRACEBACKSLASHomegaOBRACECBRACECBRACEBACKSLASHBANGBACKSLASHBANGBACKSLASHBANGBACKSLASHmathrmOBRACEdCBRACExBACKSLASHSPACEBACKSLASHexpOBRACEBACKSLASHleftOPARENMINUSxTOTHEOBRACE2CBRACEBACKSLASHrightCPARENCBRACE.png) |
