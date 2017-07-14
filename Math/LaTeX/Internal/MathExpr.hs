@@ -12,6 +12,7 @@
 {-# LANGUAGE RankNTypes          #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE UnicodeSyntax       #-}
+{-# LANGUAGE TemplateHaskell     #-}
 
 module Math.LaTeX.Internal.MathExpr where
 
@@ -29,11 +30,13 @@ import CAS.Dumb
 import CAS.Dumb.Tree
 import CAS.Dumb.Symbols
 import CAS.Dumb.LaTeX.Symbols
+import Math.LaTeX.Internal.OperatorGenerator
 
 import Data.Foldable (fold)
 import Data.Monoid ((<>))
 
 import qualified Language.Haskell.TH.Syntax as Hs
+import Language.Haskell.TH.Syntax (Fixity(..), FixityDirection(..))
 
 type MathsInfix = ∀ γ s⁰ l . LaTeXC l
    => CAS' γ (Infix l) (Encapsulation l) s⁰ -> CAS' γ (Infix l) (Encapsulation l) s⁰
@@ -82,6 +85,38 @@ infixl 1 ==>, <=>, <==
 (<==) = opL 1 $ raw"\\Longleftarrow "
 (<=>) = opL 1 $ raw"\\Longleftrightarrow "
 
+
+
+makeOperatorCaste "relationOperators"
+                  ''MathsInfix
+                  (Fixity 4 InfixL)
+                  False
+                  [ ("⩵", [e|""LaTeX.=:""|])
+                  , ("∶=", [e|raw"{:=}"|])
+                  , ("⩵:", [e|raw"{=:}"|])
+                  , ("≡", [e|raw" \\equiv "|])
+                  , ("⩵!", [e|raw" \\overset{!}{=} "|])
+                  , ("≠", [e|""LaTeX./=:""|])
+                  , ("≈", [e|raw" \\approx "|])
+                  , ("∼", [e|raw" \\sim "|])
+                  , ("⪡", [e|""LaTeX.<:""|])
+                  , ("⪢", [e|""LaTeX.>:""|])
+                  , ("≤", [e|""LaTeX.<=:""|])
+                  , ("≥", [e|""LaTeX.>=:""|])
+                  , ("≪", [e|LaTeX.ll""""|])
+                  , ("≫", [e|LaTeX.gg""""|])
+                  , ("⊂", [e|LaTeX.subset""""|])
+                  , ("/⊂", [e|raw" \\not\\subset "|])
+                  , ("⊃", [e|LaTeX.supset""""|])
+                  , ("⊆", [e|raw"\\subseteq{}"|])
+                  , ("⊇", [e|raw"\\supseteq{}"|])
+                  , ("∋", [e|LaTeX.ni""""|])
+                  , ("∌", [e|raw"\\not\\ni{}"|])
+                  , ("=→", [e|LaTeX.to|])
+                  , ("∈", [e|LaTeX.in_""""|])
+                  , ("∉", [e|raw"\\not\\in{}"|])
+                  , ("↦", [e|LaTeX.mapsto|])
+                  ]
 
 toMathLaTeX :: ∀ σ l . (LaTeXC l, Num l, SymbolClass σ, SCConstraint σ l)
                 => CAS (Infix l) (Encapsulation l) (SymbolD σ l) -> l

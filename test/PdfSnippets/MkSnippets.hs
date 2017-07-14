@@ -71,6 +71,10 @@ tests = testGroup "Tests"
         , [mkLaTeXSnip| 𝑝<==𝑞 |] "p\\Longleftarrow q"
         , [mkLaTeXSnip| 𝑝<=>𝑞 |] "p\\Longleftrightarrow q"
         ]
+     , testGroup "Relations"
+        [ [mkLaTeXSnip| 𝑎 ⩵ 𝑏 |] "a=b"
+        , [mkLaTeXSnip| 𝑎 ≥ 𝑐 |] "a\\geq{}c"
+        ]
      ]
   ]
 
@@ -129,6 +133,7 @@ encode = concatMap enc
        enc ')' = "CPAREN"
        enc '^' = "TOTHE"
        enc '|' = "PIPE"
+       enc '=' = "EQUALS"
        enc ' ' = "SPACE"
        enc c = error $ "Unencodable character '"++[c]++"'"
 

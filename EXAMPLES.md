@@ -32,3 +32,8 @@ _This file was generated automatically from [MkSnippets.hs](test/PdfSnippets/MkS
 | ` 𝑝==>𝑞 ` | `p\Longrightarrow q` | ![pdflatex-rendered version of `p\Longrightarrow q`](test/PdfSnippets/pBACKSLASHLongrightarrowSPACEq.png) |
 | ` 𝑝<==𝑞 ` | `p\Longleftarrow q` | ![pdflatex-rendered version of `p\Longleftarrow q`](test/PdfSnippets/pBACKSLASHLongleftarrowSPACEq.png) |
 | ` 𝑝<=>𝑞 ` | `p\Longleftrightarrow q` | ![pdflatex-rendered version of `p\Longleftrightarrow q`](test/PdfSnippets/pBACKSLASHLongleftrightarrowSPACEq.png) |
+### Relations
+| Haskell | LaTeX | pdf |
+| ---: | --- | :--- |
+| ` 𝑎 ⩵ 𝑏 ` | `a=b` | ![pdflatex-rendered version of `a=b`](test/PdfSnippets/aEQUALSb.png) |
+| ` 𝑎 ≥ 𝑐 ` | `a\geq{}c` | ![pdflatex-rendered version of `a\geq{}c`](test/PdfSnippets/aBACKSLASHgeqOBRACECBRACEc.png) |

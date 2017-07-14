@@ -46,10 +46,11 @@ Library
                      , text
                      , void
                      , hashable, unordered-containers
-                     , template-haskell
+                     , template-haskell, haskell-src-meta
   Exposed-modules:   Math.LaTeX.Prelude
                      Math.LaTeX.Internal.MathExpr
   Other-modules:     CAS.Dumb.LaTeX.Symbols
+                     Math.LaTeX.Internal.OperatorGenerator
   Default-Language:    Haskell2010
 
 test-suite makeSnippets
