@@ -26,6 +26,16 @@ _This file was generated automatically from [MkSnippets.hs](test/PdfSnippets/MkS
 | ` 𝑎 ∓ 𝑏 ` | `a\mp{}b` | ![pdflatex-rendered version of `a\mp{}b`](test/PdfSnippets/aᓭmpⶈⶉb.png) |
 | ` 𝑎 ⊕ 𝑏 ` | `a\oplus{}b` | ![pdflatex-rendered version of `a\oplus{}b`](test/PdfSnippets/aᓭoplusⶈⶉb.png) |
 | ` 𝑎 ⊗ 𝑏 ` | `a\otimes{}b` | ![pdflatex-rendered version of `a\otimes{}b`](test/PdfSnippets/aᓭotimesⶈⶉb.png) |
+### Sub/superscripts
+| Haskell | LaTeX | pdf |
+| ---: | --- | :--- |
+| `         𝑎◞𝑏 ` | `a_{b}` | ![pdflatex-rendered version of `a_{b}`](test/PdfSnippets/a⣀ⶈbⶉ.png) |
+| `    𝑎◞◝(𝑏,𝑐) ` | `a_{b}^{c}` | ![pdflatex-rendered version of `a_{b}^{c}`](test/PdfSnippets/a⣀ⶈbⶉᐞⶈcⶉ.png) |
+### Function application
+| Haskell | LaTeX | pdf |
+| ---: | --- | :--- |
+| `         𝑓°𝑥 ` | `f\left(x\right)` | ![pdflatex-rendered version of `f\left(x\right)`](test/PdfSnippets/fᓭleftᑕxᓭrightᑐ.png) |
+| `     𝑓°(𝑥،𝑦) ` | `f\left(x,y\right)` | ![pdflatex-rendered version of `f\left(x,y\right)`](test/PdfSnippets/fᓭleftᑕx،yᓭrightᑐ.png) |
 ### Logical
 | Haskell | LaTeX | pdf |
 | ---: | --- | :--- |

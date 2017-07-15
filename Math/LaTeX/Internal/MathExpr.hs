@@ -40,9 +40,10 @@ import qualified Language.Haskell.TH.Syntax as Hs
 import Language.Haskell.TH.Syntax (Fixity(..), FixityDirection(..))
 
 
-type MathsInfix = ∀ γ s⁰ .
-      CAS' γ (Infix LaTeX) (Encapsulation LaTeX) s⁰ -> CAS' γ (Infix LaTeX) (Encapsulation LaTeX) s⁰
-              -> CAS' γ (Infix LaTeX) (Encapsulation LaTeX) s⁰
+type MathsInfix = ∀ γ σ .
+      CAS' γ (Infix LaTeX) (Encapsulation LaTeX) (SymbolD σ LaTeX)
+       -> CAS' γ (Infix LaTeX) (Encapsulation LaTeX) (SymbolD σ LaTeX)
+              -> CAS' γ (Infix LaTeX) (Encapsulation LaTeX) (SymbolD σ LaTeX)
 
 atom :: l -> CAS' γ s² s¹ (SymbolD σ l)
 atom = Symbol . StringSymbol
@@ -88,6 +89,37 @@ infixr 5 ⸪, -→, ↪
 (⸪) = opR 5 ":"
 (-→) = opR 5 LaTeX.to
 (↪) = opR 5 $ raw"\\hookrightarrow{}"
+
+infixl 7 °
+infixr 9 ◝, ◝⁀
+infixr 9 ◞, ⁀
+infixl 8 |◞, |◝, |◞◝
+infixl 8 ◞◝
+(°), (⁀), (◝), (◝⁀), (◞), (|◞) :: MathsInfix
+f°x = opL 7 mempty f (encapsulation (raw"\\left(") (raw"\\right)") x)
+(⁀) = opL 9 mempty
+l◝⁀s = opR 9 mempty l $ encapsulation (raw"\\left(") (raw"\\right)^") s
+l◝s = Operator (Infix (Hs.Fixity 9 Hs.InfixR) mempty)
+             l (encapsulation (raw "^{") (raw "}") s)
+l◞s = Operator (Infix (Hs.Fixity 9 Hs.InfixR) mempty)
+             l (encapsulation (raw "_{") (raw "}") s)
+l◞◝(s,p) = Operator (Infix (Hs.Fixity 9 Hs.InfixR) mempty)
+             l
+           $ Operator (Infix (Hs.Fixity 9 Hs.InfixR) mempty)
+                   (encapsulation (raw "_{") (raw "}") s)
+                   (encapsulation (raw "^{") (raw "}") p)
+l|◝s = Operator (Infix (Hs.Fixity 8 Hs.InfixR) mempty)
+             (encapsulation (raw "left.") (raw "right|") l)
+             (encapsulation (raw "^{") (raw "}") s)
+l|◞s = Operator (Infix (Hs.Fixity 8 Hs.InfixR) mempty)
+             (encapsulation (raw "left.") (raw "right|") l)
+             (encapsulation (raw "_{") (raw "}") s)
+l|◞◝(s,p) = Operator (Infix (Hs.Fixity 8 Hs.InfixR) mempty)
+             (encapsulation (raw "left.") (raw "right|") l)
+           $ Operator (Infix (Hs.Fixity 8 Hs.InfixR) mempty)
+                   (encapsulation (raw "_{") (raw "}") s)
+                   (encapsulation (raw "^{") (raw "}") p)
+
 
 makeOperatorCaste "implicationOperators"
                   (''MathsInfix, ''LaTeX)

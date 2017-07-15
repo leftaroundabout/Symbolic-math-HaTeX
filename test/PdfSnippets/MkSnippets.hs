@@ -69,6 +69,14 @@ tests = testGroup "Tests"
         , [mkLaTeXSnip| 𝑎 ⊕ 𝑏 |] "a\\oplus{}b"
         , [mkLaTeXSnip| 𝑎 ⊗ 𝑏 |] "a\\otimes{}b"
         ]
+     , testGroup "Sub/superscripts"
+        [ [mkLaTeXSnip|         𝑎◞𝑏 |] "a_{b}"
+        , [mkLaTeXSnip|    𝑎◞◝(𝑏,𝑐) |] "a_{b}^{c}"
+        ]
+     , testGroup "Function application"
+        [ [mkLaTeXSnip|         𝑓°𝑥 |] "f\\left(x\\right)"
+        , [mkLaTeXSnip|     𝑓°(𝑥،𝑦) |] "f\\left(x,y\\right)"
+        ]
      , testGroup "Logical"
         [ [mkLaTeXSnip| 𝑝 ∨ 𝑞 |] "p\\vee{}q"
         , [mkLaTeXSnip| 𝑝 ∧ 𝑞 |] "p\\wedge{}q"
@@ -159,6 +167,7 @@ encode = concatMap enc
        enc '=' = "〧"
        enc '<' = "ᐸ"
        enc '>' = "ᐳ"
+       enc ',' = "،"
        enc ' ' = "ᐧ"
        enc c = error $ "Unencodable character '"++[c]++"'"
 
