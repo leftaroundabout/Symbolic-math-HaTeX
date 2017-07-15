@@ -47,6 +47,11 @@ type MathsInfix = ∀ γ s⁰ .
 atom :: l -> CAS' γ s² s¹ (SymbolD σ l)
 atom = Symbol . StringSymbol
 
+encapsulation :: l -> l
+              -> (CAS' γ (Infix l) (Encapsulation l) (SymbolD σ l))
+              -> (CAS' γ (Infix l) (Encapsulation l) (SymbolD σ l))
+encapsulation l r = Function $ Encapsulation False True l r
+
 opL, opR, opN :: LaTeXC l => Int -> l
     -> CAS' γ (Infix l) (Encapsulation l) s⁰ -> CAS' γ (Infix l) (Encapsulation l) s⁰
               -> CAS' γ (Infix l) (Encapsulation l) s⁰
@@ -216,6 +221,33 @@ infixr 8 ∫, ◞∫, ◞∮, ∑, ◞∑, ∏, ◞∏
              m
 
 
+
+makeOperatorCaste "juxtapositionOperators"
+                  (''MathsInfix, ''LaTeX)
+                  (Fixity 0 InfixR)
+                  True
+                  [ ("␣", [e|raw"\\ "|])
+                  , ("...", [e|raw"{\\ldots}"|])
+#if __GLASGOW_HASKELL__ > 802
+                  , ("،", [e|raw","|])
+                  , ("،..،", [e|raw",\\ldots,"|])
+#endif
+                  , ("+..+", [e|raw"+\\ldots+"|])
+                  , ("*..*", [e|raw"{\\cdot\\ldots\\cdot}"|])
+                  ]
+
+
+
+set :: LaTeXC l
+  => CAS' γ (Infix l) (Encapsulation l) (SymbolD σ l)
+    -> CAS' γ (Infix l) (Encapsulation l) (SymbolD σ l)
+set = encapsulation (raw"\\left\\{") (raw"\\right\\}")
+
+
+
+
+
+
 toMathLaTeX :: ∀ σ l . (LaTeXC l, Num l, SymbolClass σ, SCConstraint σ l)
                 => CAS (Infix l) (Encapsulation l) (SymbolD σ l) -> l
 toMathLaTeX = renderSymbolExpression (AtLHS $ Hs.Fixity 0 Hs.InfixL) ρ
@@ -231,8 +263,3 @@ showLParen :: LaTeXC l => Bool -> l -> l
 showLParen True  = LaTeX.autoParens
 showLParen False = id
 
-
-encapsulation :: l -> l
-              -> (CAS' γ (Infix l) (Encapsulation l) (SymbolD σ l))
-              -> (CAS' γ (Infix l) (Encapsulation l) (SymbolD σ l))
-encapsulation l r = Function $ Encapsulation False True l r
