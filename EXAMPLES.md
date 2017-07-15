@@ -4,6 +4,7 @@ _This file was generated automatically from [MkSnippets.hs](test/PdfSnippets/MkS
 | Haskell | LaTeX | pdf |
 | ---: | --- | :--- |
 | `        𝑎 + 𝑏 * 𝑐 ` | `a+b{\cdot}c` | ![pdflatex-rendered version of `a+b{\cdot}c`](test/PdfSnippets/a⼦bⶈᓭcdotⶉc.png) |
+| `        𝐴 * 𝐵 + 𝐶 ` | `A{\cdot}B+C` | ![pdflatex-rendered version of `A{\cdot}B+C`](test/PdfSnippets/AⶈᓭcdotⶉB⼦C.png) |
 | `      (𝑎 + 𝑏) * 𝑐 ` | `\left(a+b\right){\cdot}c` | ![pdflatex-rendered version of `\left(a+b\right){\cdot}c`](test/PdfSnippets/ᓭleftᑕa⼦bᓭrightᑐⶈᓭcdotⶉc.png) |
 | `(𝑎 + 𝑏) / (𝑥 - 𝑦) ` | `\frac{a+b}{x-y}` | ![pdflatex-rendered version of `\frac{a+b}{x-y}`](test/PdfSnippets/ᓭfracⶈa⼦bⶉⶈx⼀yⶉ.png) |
 | ` (𝑎 + 𝑏)**(𝑥 - 𝑦) ` | `\left(a+b\right)^{x-y}` | ![pdflatex-rendered version of `\left(a+b\right)^{x-y}`](test/PdfSnippets/ᓭleftᑕa⼦bᓭrightᑐᐞⶈx⼀yⶉ.png) |
@@ -42,6 +43,7 @@ _This file was generated automatically from [MkSnippets.hs](test/PdfSnippets/MkS
 | ` 𝑎 ⪡ ρ ` | `a<\rho{}` | ![pdflatex-rendered version of `a<\rho{}`](test/PdfSnippets/aᐸᓭrhoⶈⶉ.png) |
 | ` 𝑥 ⩵ 𝑦 ⩵ 𝑧 ` | `x=y=z` | ![pdflatex-rendered version of `x=y=z`](test/PdfSnippets/x〧y〧z.png) |
 | ` 𝑠 ⊂ 𝑡 ⊆ 𝑢 ` | `s\subset{}t\subseteq{}u` | ![pdflatex-rendered version of `s\subset{}t\subseteq{}u`](test/PdfSnippets/sᓭsubsetⶈⶉtᓭsubseteqⶈⶉu.png) |
+| ` 𝑝 ∈ ℚ ⊂ ℝ ` | `p\in{}\mathbb{Q}\subset{}\mathbb{R}` | ![pdflatex-rendered version of `p\in{}\mathbb{Q}\subset{}\mathbb{R}`](test/PdfSnippets/pᓭinⶈⶉᓭmathbbⶈQⶉᓭsubsetⶈⶉᓭmathbbⶈRⶉ.png) |
 ## Calculus
 ### Integration
 | Haskell | LaTeX | pdf |

@@ -9,6 +9,7 @@
 -- 
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE QuasiQuotes       #-}
+{-# LANGUAGE CPP               #-}
 
 module Main where
 
@@ -44,6 +45,9 @@ tests :: TestTree
 tests = testGroup "Tests"
   [ testGroup "Simple expressions"
      [ [mkLaTeXSnip|        𝑎 + 𝑏 * 𝑐 |] "a+b{\\cdot}c"
+#if __GLASGOW_HASKELL__ > 802
+     , [mkLaTeXSnip|        𝐴 * 𝐵 + 𝐶 |] "A{\\cdot}B+C"
+#endif
      , [mkLaTeXSnip|      (𝑎 + 𝑏) * 𝑐 |] "\\left(a+b\\right){\\cdot}c"
      , [mkLaTeXSnip|(𝑎 + 𝑏) / (𝑥 - 𝑦) |] "\\frac{a+b}{x-y}"
      , [mkLaTeXSnip| (𝑎 + 𝑏)**(𝑥 - 𝑦) |] "\\left(a+b\\right)^{x-y}"
@@ -79,6 +83,9 @@ tests = testGroup "Tests"
         , [mkLaTeXSnip| 𝑎 ⪡ ρ |] "a<\\rho{}"
         , [mkLaTeXSnip| 𝑥 ⩵ 𝑦 ⩵ 𝑧 |] "x=y=z"
         , [mkLaTeXSnip| 𝑠 ⊂ 𝑡 ⊆ 𝑢 |] "s\\subset{}t\\subseteq{}u"
+#if __GLASGOW_HASKELL__ > 802
+        , [mkLaTeXSnip| 𝑝 ∈ ℚ ⊂ ℝ |] "p\\in{}\\mathbb{Q}\\subset{}\\mathbb{R}"
+#endif
         ]
      ]
   , testGroup "Calculus"
@@ -118,8 +125,8 @@ evalTests = go False 1
                                       , "-background","grey", "-alpha","remove"
                                       , "expression.pdf", snipName<.>"png" ]
          return . (if hasHeader then id
-                                else ("| Haskell | LaTeX | pdf |\
-                                    \\n| ---: | --- | :--- |\n"<>)) $
+                                else (("| Haskell | LaTeX | pdf |"
+                                   <>"\n| ---: | --- | :--- |\n")<>)) $
            "| `"<>Txt.pack ec
            <>"` | `"<>mkGithubtablesaveCode s
            <>"` | ![pdflatex-rendered version of `"<>mkGithubtablesaveCode s
