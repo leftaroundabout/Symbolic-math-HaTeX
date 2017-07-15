@@ -13,6 +13,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE UnicodeSyntax       #-}
 {-# LANGUAGE TemplateHaskell     #-}
+{-# LANGUAGE TupleSections       #-}
 {-# LANGUAGE CPP                 #-}
 
 module Math.LaTeX.Internal.MathExpr where
@@ -292,12 +293,42 @@ makeOperatorCaste "juxtapositionOperators"
                   ]
 
 
+matrix :: LaTeXC l =>
+        [[CAS' γ (Infix l) (Encapsulation l) (SymbolD σ l)]]
+          -> CAS' γ (Infix l) (Encapsulation l) (SymbolD σ l)
+matrix [] = set (Symbol $ StringSymbol mempty)
+matrix mlines = encapsulation (raw"\\begin{pmatrix}")
+                                   (raw"\\end{pmatrix}")
+     . OperatorChain le₀ $ (Infix (Hs.Fixity 0 Hs.InfixL) LaTeX.lnbk, ) <$> les
+ where (le₀:les) = map (\(c₀:cs) -> OperatorChain c₀
+                          $ (Infix (Hs.Fixity 1 Hs.InfixL) $ raw"&", ) <$> cs) mlines
 
-set :: LaTeXC l
+cases :: LaTeXC l
+     => [(CAS' γ (Infix l) (Encapsulation l) (SymbolD σ l), LaTeX)]
+         -> CAS' γ (Infix l) (Encapsulation l) (SymbolD σ l)
+cases clauses = encapsulation (raw"\\begin{cases}") (raw"\\end{cases}")
+           . OperatorChain cl₀ $ (Infix (Hs.Fixity 0 Hs.InfixL) LaTeX.lnbk, ) <$> cls
+ where (cl₀:cls) = map (\(r,co) -> Operator (Infix (Hs.Fixity 1 Hs.InfixL) $ raw"&")
+                                     r $ Symbol (StringSymbol . LaTeX.comm1 "text"
+                                                     $ fromLaTeX co)
+                       ) clauses
+
+
+set, tup, intv, nobreaks :: LaTeXC l
   => CAS' γ (Infix l) (Encapsulation l) (SymbolD σ l)
     -> CAS' γ (Infix l) (Encapsulation l) (SymbolD σ l)
 set = encapsulation (raw"\\left\\{") (raw"\\right\\}")
+tup = encapsulation (raw"\\left(") (raw"\\right)")
+intv = encapsulation (raw"\\left[") (raw"\\right]")
+nobreaks = encapsulation (raw"{") (raw"}")
 
+
+infix 5 <.<, ≤.<, <.≤, ≤.≤
+(<.<), (≤.<), (<.≤), (≤.≤) :: MathsInfix
+l <.< r = encapsulation (raw"\\left]") (raw"\\right[") $ opN 0 (raw",") l r
+l ≤.< r = encapsulation (raw"\\left[") (raw"\\right[") $ opN 0 (raw",") l r
+l <.≤ r = encapsulation (raw"\\left]") (raw"\\right]") $ opN 0 (raw",") l r
+l ≤.≤ r = encapsulation (raw"\\left[") (raw"\\right]") $ opN 0 (raw",") l r
 
 
 

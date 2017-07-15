@@ -57,6 +57,8 @@ tests = testGroup "Tests"
      , [mkLaTeXSnip|        (𝑎**𝑏)**𝑐 |] "\\left(a^{b}\\right)^{c}"
      , [mkLaTeXSnip|      sin (sin 𝑥) |] "\\sin{\\left(\\sin{x}\\right)}"
      , [mkLaTeXSnip|       (𝑖⩵0,3)∑ 𝑖 |] "\\sum_{i=0}^{3} i"
+     , [mkLaTeXSnip|   matrix[[ 0,1]
+                             ,[-1,0]] |] "\\begin{pmatrix}0&1\\\\-1&0\\end{pmatrix}"
      ]
   , testGroup "Operators"
      [ testGroup "Arithmetic"
@@ -84,6 +86,8 @@ tests = testGroup "Tests"
         , [mkLaTeXSnip| 𝑝<==𝑞 |] "p\\Longleftarrow q"
         , [mkLaTeXSnip| 𝑝<=>𝑞 |] "p\\Longleftrightarrow q"
         , [mkLaTeXSnip| 𝑝==>𝑞==>𝑟 |] "p\\Longrightarrow q\\Longrightarrow r"
+        , [mkLaTeXSnip| cases[(1, "Today"), (2, "Else")] |]
+                           "\\begin{cases}1&\\text{Today}\\\\2&\\text{Else}\\end{cases}"
         ]
      , testGroup "Relations"
         [ [mkLaTeXSnip| 𝑎 ⩵ 𝑏 |] "a=b"
@@ -164,6 +168,7 @@ encode = concatMap enc
        enc '_' = "⣀"
        enc '|' = "ᛁ"
        enc '!' = "⢘"
+       enc '&' = "ತ"
        enc '=' = "〧"
        enc '<' = "ᐸ"
        enc '>' = "ᐳ"

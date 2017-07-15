@@ -14,6 +14,8 @@ _This file was generated automatically from [MkSnippets.hs](test/PdfSnippets/MkS
 | `        (𝑎**𝑏)**𝑐 ` | `\left(a^{b}\right)^{c}` | ![pdflatex-rendered version of `\left(a^{b}\right)^{c}`](test/PdfSnippets/ᓭleftᑕaᐞⶈbⶉᓭrightᑐᐞⶈcⶉ.png) |
 | `      sin (sin 𝑥) ` | `\sin{\left(\sin{x}\right)}` | ![pdflatex-rendered version of `\sin{\left(\sin{x}\right)}`](test/PdfSnippets/ᓭsinⶈᓭleftᑕᓭsinⶈxⶉᓭrightᑐⶉ.png) |
 | `       (𝑖⩵0,3)∑ 𝑖 ` | `\sum_{i=0}^{3} i` | ![pdflatex-rendered version of `\sum_{i=0}^{3} i`](test/PdfSnippets/ᓭsum⣀ⶈi〧0ⶉᐞⶈ3ⶉᐧi.png) |
+| `   matrix[[ 0,1]
+                             ,[-1,0]] ` | `\begin{pmatrix}0&1\\-1&0\end{pmatrix}` | ![pdflatex-rendered version of `\begin{pmatrix}0&1\\-1&0\end{pmatrix}`](test/PdfSnippets/ᓭbeginⶈpmatrixⶉ0ತ1ᓭᓭ⼀1ತ0ᓭendⶈpmatrixⶉ.png) |
 ## Operators
 ### Arithmetic
 | Haskell | LaTeX | pdf |
@@ -45,6 +47,7 @@ _This file was generated automatically from [MkSnippets.hs](test/PdfSnippets/MkS
 | ` 𝑝<==𝑞 ` | `p\Longleftarrow q` | ![pdflatex-rendered version of `p\Longleftarrow q`](test/PdfSnippets/pᓭLongleftarrowᐧq.png) |
 | ` 𝑝<=>𝑞 ` | `p\Longleftrightarrow q` | ![pdflatex-rendered version of `p\Longleftrightarrow q`](test/PdfSnippets/pᓭLongleftrightarrowᐧq.png) |
 | ` 𝑝==>𝑞==>𝑟 ` | `p\Longrightarrow q\Longrightarrow r` | ![pdflatex-rendered version of `p\Longrightarrow q\Longrightarrow r`](test/PdfSnippets/pᓭLongrightarrowᐧqᓭLongrightarrowᐧr.png) |
+| ` cases[(1, "Today"), (2, "Else")] ` | `\begin{cases}1&\text{Today}\\2&\text{Else}\end{cases}` | ![pdflatex-rendered version of `\begin{cases}1&\text{Today}\\2&\text{Else}\end{cases}`](test/PdfSnippets/ᓭbeginⶈcasesⶉ1ತᓭtextⶈTodayⶉᓭᓭ2ತᓭtextⶈElseⶉᓭendⶈcasesⶉ.png) |
 ### Relations
 | Haskell | LaTeX | pdf |
 | ---: | --- | :--- |

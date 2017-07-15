@@ -25,7 +25,9 @@ module Math.LaTeX.Prelude (
    , (∀:), (∃:)
    , (-→), (↦), (↪), (==>), (<==), (<=>), (∧), (∨)
    , (∫), (◞∫), (◞∮), d, (∑), (◞∑), (∏), (◞∏), del, nabla
+   , (<.<), (≤.<), (<.≤), (≤.≤), (±), (∓), set, tup, intv
    , infty
+   , nobreaks, matrix, cases
    ) where
 
 import CAS.Dumb.Symbols.Unicode.MathLatin_RomanGreek__BopomofoGaps hiding ((%$>))
