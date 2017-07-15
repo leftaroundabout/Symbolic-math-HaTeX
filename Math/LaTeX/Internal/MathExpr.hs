@@ -13,6 +13,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE UnicodeSyntax       #-}
 {-# LANGUAGE TemplateHaskell     #-}
+{-# LANGUAGE CPP                 #-}
 
 module Math.LaTeX.Internal.MathExpr where
 
@@ -97,8 +98,10 @@ makeOperatorCaste "relationOperators"
                   (Fixity 4 InfixL)
                   True
                   [ ("⩵", [e|""LaTeX.=:""|])
-                  , ("∶=", [e|raw"{:=}"|])
-                  , ("⩵:", [e|raw"{=:}"|])
+#if __GLASGOW_HASKELL__ > 802
+                  , ("⸪=", [e|raw"{:=}"|])
+                  , ("=⸪", [e|raw"{=:}"|])
+#endif
                   , ("≡", [e|raw" \\equiv "|])
                   , ("⩵!", [e|raw" \\overset{!}{=} "|])
                   , ("≠", [e|""LaTeX./=:""|])
