@@ -81,10 +81,25 @@ infixl 7 ×, ∘, ⊗, *..*
 (∘) = opL' 7 LaTeX.circ
 (*..*) = opL 7 $ raw"{\\cdot\\ldots\\cdot}"
 
+factorial :: LaTeXC l
+         => CAS' γ (Infix l) (Encapsulation l) (SymbolD σ l)
+          -> CAS' γ (Infix l) (Encapsulation l) (SymbolD σ l)
+factorial n = Operator (Infix (Hs.Fixity 8 Hs.InfixR) $ raw"!")
+                 n (Symbol $ StringSymbol mempty)
+
+
 infixr 3 ∧, ∨
 (∧), (∨) :: MathsInfix
 (∧) = opR 3 $ raw"\\wedge{}"
 (∨) = opR 3 $ raw"\\vee{}"
+
+(∩), (∪), (-\-) :: MathsInfix
+infixr 3 ∩
+(∩) = opR' 3 LaTeX.cap
+infixr 2 ∪
+(∪) = opR' 2 LaTeX.cup
+infixl 2 -\-
+(-\-) = opL' 2 LaTeX.setminus
 
 infixr 5 ⸪, -→, ↪
 (⸪), (-→), (↪) :: MathsInfix
@@ -92,12 +107,17 @@ infixr 5 ⸪, -→, ↪
 (-→) = opR 5 LaTeX.to
 (↪) = opR 5 $ raw"\\hookrightarrow{}"
 
+infix 2 ∀:, ∃:
+(∀:), (∃:) :: MathsInfix
+(∀:) = opN 2 $ raw"\\ \\:\\forall{}"
+(∃:) = opN 2 $ raw"\\ \\:\\exists{}"
+
 infixl 7 °
 infixr 9 ◝, ◝⁀
-infixr 9 ◞, ⁀
+infixr 9 ◞
 infixl 8 |◞, |◝, |◞◝
-infixl 8 ◞◝
-(°), (⁀), (◝), (◝⁀), (◞), (|◞) :: MathsInfix
+infixl 8 ◞◝, ₌₌
+(°), (⁀), (◝), (◝⁀), (◞), (|◞), (₌₌) :: MathsInfix
 f°x = opL 7 mempty f (encapsulation (raw"\\left(") (raw"\\right)") x)
 (⁀) = opL 9 mempty
 l◝⁀s = opR 9 mempty l $ encapsulation (raw"\\left(") (raw"\\right)^") s
@@ -105,6 +125,9 @@ l◝s = Operator (Infix (Hs.Fixity 9 Hs.InfixR) mempty)
              l (encapsulation (raw "^{") (raw "}") s)
 l◞s = Operator (Infix (Hs.Fixity 9 Hs.InfixR) mempty)
              l (encapsulation (raw "_{") (raw "}") s)
+l₌₌s = Operator (Infix (Hs.Fixity 8 Hs.InfixR) mempty)
+             (encapsulation (raw "\\underbrace{") (raw "}") l)
+             (encapsulation (raw "_{") (raw "}") s)
 l◞◝(s,p) = Operator (Infix (Hs.Fixity 9 Hs.InfixR) mempty)
              l
            $ Operator (Infix (Hs.Fixity 9 Hs.InfixR) mempty)
