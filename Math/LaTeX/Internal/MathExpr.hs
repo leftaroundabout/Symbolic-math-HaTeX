@@ -67,17 +67,19 @@ opL' fxty iop = symbolInfix (Infix (Hs.Fixity fxty Hs.InfixL) $ iop mempty mempt
 opR' fxty iop = symbolInfix (Infix (Hs.Fixity fxty Hs.InfixR) $ iop mempty mempty)
 opN' fxty iop = symbolInfix (Infix (Hs.Fixity fxty Hs.InfixN) $ iop mempty mempty)
 
-infixl 6 ±, ∓, ⊕
-(±), (∓), (⊕) :: MathsInfix
+infixl 6 ±, ∓, ⊕, +..+
+(±), (∓), (⊕), (+..+) :: MathsInfix
 (±) = opL 6 LaTeX.pm
 (∓) = opL 6 LaTeX.mp
 (⊕) = opL' 6 LaTeX.oplus
+(+..+) = opL 6 $ raw"+\\ldots+"
 
-infixl 7 ×, ∘, ⊗
-(×), (⊗), (∘) :: MathsInfix
+infixl 7 ×, ∘, ⊗, *..*
+(×), (⊗), (∘), (*..*) :: MathsInfix
 (×) = opL' 7 LaTeX.times
 (⊗) = opL' 7 LaTeX.otimes
 (∘) = opL' 7 LaTeX.circ
+(*..*) = opL 7 $ raw"{\\cdot\\ldots\\cdot}"
 
 infixr 3 ∧, ∨
 (∧), (∨) :: MathsInfix
@@ -264,8 +266,6 @@ makeOperatorCaste "juxtapositionOperators"
                   , ("،", [e|raw","|])
                   , ("،..،", [e|raw",\\ldots,"|])
 #endif
-                  , ("+..+", [e|raw"+\\ldots+"|])
-                  , ("*..*", [e|raw"{\\cdot\\ldots\\cdot}"|])
                   ]
 
 
