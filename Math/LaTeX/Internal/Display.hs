@@ -42,15 +42,43 @@ import Data.String (fromString)
 infixl 1 >$
 (>$) :: (LaTeXC r, SymbolClass σ, SCConstraint σ LaTeX)
         => r -> CAS (Infix LaTeX) (Encapsulation LaTeX) (SymbolD σ LaTeX) -> r
-s >$ m = s <> toMathLaTeX' m
+s >$ m = s <> " " <> toMathLaTeX' m
 
+-- | Include a formula / equation system as a LaTeX display. If it's a single
+--   equation, automatic line breaks are inserted (requires the
+--   <https://www.ctan.org/pkg/breqn?lang=en breqn LaTeX package>).
 dmaths :: (LaTeXC r, SymbolClass σ, SCConstraint σ LaTeX)
-   => [[CAS (Infix LaTeX) (Encapsulation LaTeX) (SymbolD σ LaTeX)]] -> String -> r
+   => [[CAS (Infix LaTeX) (Encapsulation LaTeX) (SymbolD σ LaTeX)]]
+               -- ^ Equations to show.
+    -> String  -- ^ “Terminator” – this can include punctuation (when an equation
+               --   is at the end of a sentence in the preceding text).
+    -> r
 dmaths [[e]] garnish = case eqnum of
     Nothing -> fromLaTeX . TeXEnv "dmath*" [] $ toMathLaTeX e <> terminator
     Just n  -> fromLaTeX . TeXEnv "equation" [] $ n <> toMathLaTeX e <> terminator
  where (eqnum, terminator) = parseEqnum garnish
 dmaths eqLines garnish = fromLaTeX . TeXEnv
+           (case eqnum of{Nothing->"align*";Just _->"align"}) [] $ stack eqLines
+ where stack [singline] = fold eqnum <> aliLine singline <> terminator
+       stack (line : lines) = aliLine line <> LaTeX.lnbk <> stack lines
+       aliLine [] = mempty
+       aliLine [q] = contentsWithAlignAnchor q
+       aliLine (q : cols)
+             = contentsWithAlignAnchor q LaTeX.& aliLine cols
+       (eqnum, terminator) = parseEqnum garnish
+
+-- | Include a formula / equation system as a LaTeX display.
+maths :: (LaTeXC r, SymbolClass σ, SCConstraint σ LaTeX)
+  => [[CAS (Infix LaTeX) (Encapsulation LaTeX) (SymbolD σ LaTeX)]]
+              -- ^ Equations to show.
+   -> String  -- ^ “Terminator” – this can include punctuation (when an equation
+              --   is at the end of a sentence in the preceding text).
+   -> r
+maths [[e]] garnish = case eqnum of
+   Nothing -> fromLaTeX . TeXEnv "equation*" [] $ toMathLaTeX e <> terminator
+   Just n  -> fromLaTeX . TeXEnv "equation" [] $ n <> toMathLaTeX e <> terminator
+ where (eqnum, terminator) = parseEqnum garnish
+maths eqLines garnish = fromLaTeX . TeXEnv
            (case eqnum of{Nothing->"align*";Just _->"align"}) [] $ stack eqLines
  where stack [singline] = fold eqnum <> aliLine singline <> terminator
        stack (line : lines) = aliLine line <> LaTeX.lnbk <> stack lines

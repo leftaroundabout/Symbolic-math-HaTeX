@@ -12,7 +12,7 @@
 
 module Math.LaTeX.Prelude (
    -- * Use in documents
-     toMathLaTeX, (>$), dmaths
+     toMathLaTeX, (>$), dmaths, maths
    -- * Primitive symbols
    , module CAS.Dumb.Symbols.Unicode.MathLatin_RomanGreek__BopomofoGaps
    -- ** Modifiers
