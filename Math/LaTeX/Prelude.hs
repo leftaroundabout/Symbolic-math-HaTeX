@@ -29,7 +29,7 @@ module Math.LaTeX.Prelude (
    , infty
    , nobreaks, matrix, cases
    -- * Algebraic manipulation
-   , (&~~)
+   , (&~~!)
    ) where
 
 import CAS.Dumb.Symbols.Unicode.MathLatin_RomanGreek__BopomofoGaps hiding ((%$>))

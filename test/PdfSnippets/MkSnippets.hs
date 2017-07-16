@@ -116,11 +116,11 @@ tests = testGroup "Tests"
         ]
      ]
   , testGroup "Algebraic manipulation"
-     [ [mkLaTeXSnip| 𝑎 + 𝑏 + 𝑐 &~~ [𝑏 ⩵ 𝑦] |]
+     [ [mkLaTeXSnip| 𝑎 + 𝑏 + 𝑐 &~~! [𝑏 ⩵ 𝑦] |]
          "a+b+c=a+y+c"
-     , [mkLaTeXSnip| 𝑎 + 𝑏 + 𝑐 &~~ [𝑏+𝑐 ⩵ 𝑐+𝑏, 𝑎+𝑐 ⩵ ξ] |]
+     , [mkLaTeXSnip| 𝑎 + 𝑏 + 𝑐 &~~! [𝑏+𝑐 ⩵ 𝑐+𝑏, 𝑎+𝑐 ⩵ ξ] |]
          "a+b+c=\\xi{}+b"
-     , [mkLaTeXSnip| 𝑎 - 𝑏 &~~ [𝑏 ⩵ 𝑦] &~~ [𝑎 ⩵ 𝑧] |]
+     , [mkLaTeXSnip| 𝑎 - 𝑏 &~~! [𝑏 ⩵ 𝑦] &~~! [𝑎 ⩵ 𝑧] |]
          "a-b=a-y=z-y"
      ]
   ]

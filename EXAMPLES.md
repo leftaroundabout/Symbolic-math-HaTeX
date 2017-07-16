@@ -68,6 +68,6 @@ _This file was generated automatically from [MkSnippets.hs](test/PdfSnippets/MkS
 ## Algebraic manipulation
 | Haskell | LaTeX | pdf |
 | ---: | --- | :--- |
-| `𝑎 + 𝑏 + 𝑐 &~~ [𝑏 ⩵ 𝑦] ` | `a+b+c=a+y+c` | ![pdflatex-rendered version of `a+b+c=a+y+c`](test/PdfSnippets/a⼦b⼦c〧a⼦y⼦c.png) |
-| `𝑎 + 𝑏 + 𝑐 &~~ [𝑏+𝑐 ⩵ 𝑐+𝑏, 𝑎+𝑐 ⩵ ξ] ` | `a+b+c=\xi{}+b` | ![pdflatex-rendered version of `a+b+c=\xi{}+b`](test/PdfSnippets/a⼦b⼦c〧ᓭxiⶈⶉ⼦b.png) |
-| `𝑎 - 𝑏 &~~ [𝑏 ⩵ 𝑦] &~~ [𝑎 ⩵ 𝑧] ` | `a-b=a-y=z-y` | ![pdflatex-rendered version of `a-b=a-y=z-y`](test/PdfSnippets/a⼀b〧a⼀y〧z⼀y.png) |
+| `𝑎 + 𝑏 + 𝑐 &~~! [𝑏 ⩵ 𝑦] ` | `a+b+c=a+y+c` | ![pdflatex-rendered version of `a+b+c=a+y+c`](test/PdfSnippets/a⼦b⼦c〧a⼦y⼦c.png) |
+| `𝑎 + 𝑏 + 𝑐 &~~! [𝑏+𝑐 ⩵ 𝑐+𝑏, 𝑎+𝑐 ⩵ ξ] ` | `a+b+c=\xi{}+b` | ![pdflatex-rendered version of `a+b+c=\xi{}+b`](test/PdfSnippets/a⼦b⼦c〧ᓭxiⶈⶉ⼦b.png) |
+| `𝑎 - 𝑏 &~~! [𝑏 ⩵ 𝑦] &~~! [𝑎 ⩵ 𝑧] ` | `a-b=a-y=z-y` | ![pdflatex-rendered version of `a-b=a-y=z-y`](test/PdfSnippets/a⼀b〧a⼀y〧z⼀y.png) |
