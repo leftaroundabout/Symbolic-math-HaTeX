@@ -42,7 +42,7 @@ import Data.String (fromString)
 infixl 1 >$
 (>$) :: (LaTeXC r, SymbolClass σ, SCConstraint σ LaTeX)
         => r -> CAS (Infix LaTeX) (Encapsulation LaTeX) (SymbolD σ LaTeX) -> r
-s >$ m = s <> " " <> toMathLaTeX' m
+s >$ m = s <> " " <> LaTeX.math (toMathLaTeX' m)
 
 -- | Include a formula / equation system as a LaTeX display. If it's a single
 --   equation, automatic line breaks are inserted (requires the
