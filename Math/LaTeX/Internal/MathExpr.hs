@@ -10,6 +10,7 @@
 
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE RankNTypes          #-}
+{-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE UnicodeSyntax       #-}
 {-# LANGUAGE TemplateHaskell     #-}
@@ -352,3 +353,26 @@ showLParen :: LaTeXC l => Bool -> l -> l
 showLParen True  = LaTeX.autoParens
 showLParen False = id
 
+
+
+
+infixl 1 &~~
+
+(&~~) :: ( Eq l, Eq (Encapsulation l), SymbolClass σ, SCConstraint σ l
+         , Show (CAS (Infix l) (Encapsulation l) (SymbolD σ l))
+         , Show (CAS' GapId (Infix l) (Encapsulation l) (SymbolD σ l)) )
+    => CAS (Infix l) (Encapsulation l) (SymbolD σ l)
+        -> [CAS' GapId (Infix l) (Encapsulation l) (SymbolD σ l)]
+        -> CAS (Infix l) (Encapsulation l) (SymbolD σ l)
+e &~~ [] = e
+OperatorChain e₀ ((eo@(Infix (Hs.Fixity fte _) _), eΩ):es)
+     &~~ tfms@(OperatorChain p₀ [(to@(Infix (Hs.Fixity ftp _) _),p₁)] : _)
+   | fte<=ftp   = associativeOperator eo (OperatorChain e₀ es) (eΩ&~~tfms)
+e &~~ tfms@(OperatorChain _ [(tfmOp, _)] : _)
+  = OperatorChain e [(tfmOp, go e tfms)]
+ where go e' (OperatorChain p₀ [(tfmOp', p₁)] : tfms')
+          = case e' &~? (p₀:=:p₁) of
+              (alt:_) -> go alt tfms'
+              _ -> error $ "Unable to match pattern "++show p₀
+                          ++"\nin expression "++show e'
+       go e' [] = e'

@@ -179,3 +179,9 @@ instance ∀ σ γ . (SymbolClass σ, SCConstraint σ LaTeX)
   acosh = latexFunction "\\acosh"
   atanh = latexFunction "\\atanh"
 
+
+
+instance Eq (Encapsulation LaTeX) where
+  Encapsulation _ _ l r == Encapsulation _ _ l' r'
+         = l==l' && r==r'
+

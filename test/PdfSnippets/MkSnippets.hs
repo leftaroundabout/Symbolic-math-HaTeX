@@ -15,7 +15,8 @@ module Main where
 
 import LaTeXComparer
 
-import Math.LaTeX.Internal.MathExpr
+import Math.LaTeX.Prelude
+
 import Text.LaTeX (LaTeX, raw, Text)
 import qualified Text.LaTeX as LaTeX
 import qualified Data.Text as Txt
@@ -108,6 +109,14 @@ tests = testGroup "Tests"
         , [mkLaTeXSnip| (0,1)∫d 𝑥 ((0,1)∫d 𝑦 (𝑥*𝑦)) |]
               "\\int\\limits_{0}^{1}\\mathrm{d}x\\ \\int\\limits_{0}^{1}\\mathrm{d}y\\ \\left(x{\\cdot}y\\right)"
         ]
+     ]
+  , testGroup "Algebraic manipulation"
+     [ [mkLaTeXSnip| 𝑎 + 𝑏 + 𝑐 &~~ [𝑏 ⩵ 𝑦] |]
+         "a+b+c=a+y+c"
+     , [mkLaTeXSnip| 𝑎 + 𝑏 + 𝑐 &~~ [𝑏+𝑐 ⩵ 𝑐+𝑏, 𝑎+𝑐 ⩵ ξ] |]
+         "a+b+c=\\xi{}+b"
+     , [mkLaTeXSnip| 𝑎 - 𝑏 &~~ [𝑏 ⩵ 𝑦] &~~ [𝑎 ⩵ 𝑧] |]
+         "a-b=a-y=z-y"
      ]
   ]
 

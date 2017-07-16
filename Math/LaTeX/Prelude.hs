@@ -11,7 +11,7 @@
 
 module Math.LaTeX.Prelude (
    -- * Use in documents
-     (>$), dmaths
+     toMathLaTeX, (>$), dmaths
    -- * Primitive symbols
    , module CAS.Dumb.Symbols.Unicode.MathLatin_RomanGreek__BopomofoGaps
    -- ** Modifiers
@@ -28,6 +28,8 @@ module Math.LaTeX.Prelude (
    , (<.<), (≤.<), (<.≤), (≤.≤), (±), (∓), set, tup, intv
    , infty
    , nobreaks, matrix, cases
+   -- * Algebraic manipulation
+   , (&~~)
    ) where
 
 import CAS.Dumb.Symbols.Unicode.MathLatin_RomanGreek__BopomofoGaps hiding ((%$>))
