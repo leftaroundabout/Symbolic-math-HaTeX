@@ -16,6 +16,7 @@ module Main where
 import LaTeXComparer
 
 import Math.LaTeX.Prelude
+import Math.LaTeX.StringLiterals
 
 import Text.LaTeX (LaTeX, raw, Text)
 import qualified Text.LaTeX as LaTeX
@@ -75,6 +76,10 @@ tests = testGroup "Tests"
      , testGroup "Sub/superscripts"
         [ [mkLaTeXSnip|         𝑎◞𝑏 |] "a_{b}"
         , [mkLaTeXSnip|    𝑎◞◝(𝑏,𝑐) |] "a_{b}^{c}"
+        , [mkLaTeXSnip|     ψ◞"Foo" |] "\\psi{}_{\\mathrm{Foo}}"
+#if __GLASGOW_HASKELL__ > 802
+        , [mkLaTeXSnip|     ψ◞𝐹⁀𝑜⁀𝑜 |] "\\psi{}_{Foo}"
+#endif
         ]
      , testGroup "Function application"
         [ [mkLaTeXSnip|         𝑓°𝑥 |] "f\\left(x\\right)"

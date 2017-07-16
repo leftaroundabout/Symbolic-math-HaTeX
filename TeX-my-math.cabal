@@ -48,6 +48,7 @@ Library
                      , hashable, unordered-containers
                      , template-haskell, haskell-src-meta
   Exposed-modules:   Math.LaTeX.Prelude
+                     Math.LaTeX.StringLiterals
                      Math.LaTeX.Internal.MathExpr
                      Math.LaTeX.Internal.Display
   Other-modules:     CAS.Dumb.LaTeX.Symbols
