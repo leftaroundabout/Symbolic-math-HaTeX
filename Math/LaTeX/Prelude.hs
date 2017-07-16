@@ -8,6 +8,7 @@
 -- Portability : requires GHC>7 extensions
 -- 
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE CPP               #-}
 
 module Math.LaTeX.Prelude (
    -- * Use in documents
@@ -17,9 +18,13 @@ module Math.LaTeX.Prelude (
    -- ** Modifiers
    , (%$>), prime, LaTeX.bar, LaTeX.hat, LaTeX.vec, LaTeX.underline
    -- * Operators
-   , (°), (⁀), (...), (،..،), (،), (␣), (+..+), (*..*), (×), (⊗), (∘), factorial
+   , (°), (⁀), (...)
+#if __GLASGOW_HASKELL__ > 802
+   , (،..،), (،), (⸪=), (=⸪)
+#endif
+   , (␣), (+..+), (*..*), (×), (⊗), (∘), factorial
    , (◝), (◝⁀), (◞), (◞◝), (|◞), (|◝), (|◞◝)
-   , (⩵), (≡), (⸪=), (=⸪), (⩵!), (≠), (⪡), (⪢), (≤), (≥), (≪), (≫), (₌₌)
+   , (⩵), (≡), (⩵!), (≠), (⪡), (⪢), (≤), (≥), (≪), (≫), (₌₌)
    , (=→), (≈), (∼)
    , (⊂), (/⊂), (⊆), (⊃), (⊇), (∋), (∌), (∈), (∉), (∩), (∪), (-\-), (⸪), (⊕)
    , (∀:), (∃:)

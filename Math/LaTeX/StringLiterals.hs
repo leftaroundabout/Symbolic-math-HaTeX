@@ -10,8 +10,9 @@
 -- An orphan instance to the 'FromString' class, which allows maths expressions
 -- to include literal strings. These will be rendered in roman font.
 
-{-# LANGUAGE OverloadedStrings   #-}
-{-# LANGUAGE FlexibleInstances   #-}
+{-# LANGUAGE OverloadedStrings    #-}
+{-# LANGUAGE FlexibleInstances    #-}
+{-# LANGUAGE UndecidableInstances #-}
 
 module Math.LaTeX.StringLiterals where
 
