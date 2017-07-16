@@ -279,6 +279,10 @@ infixr 8 ∫, ◞∫, ◞∮, ∑, ◞∑, ∏, ◞∏
              (encapsulation (raw "\\prod_{") (raw "}") ω)
              m
 
+norm :: LaTeXC l => CAS' γ (Infix l) (Encapsulation l) (SymbolD σ l)
+            -> CAS' γ (Infix l) (Encapsulation l) (SymbolD σ l)
+norm = encapsulation (raw "\\left\\|") (raw "\\right\\|")
+    
 
 
 makeOperatorCaste "juxtapositionOperators"

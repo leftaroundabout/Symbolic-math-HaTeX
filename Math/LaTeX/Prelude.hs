@@ -31,7 +31,7 @@ module Math.LaTeX.Prelude (
    , (-→), (↦), (↪), (==>), (<==), (<=>), (∧), (∨)
    , (∫), (◞∫), (◞∮), d, (∑), (◞∑), (∏), (◞∏), del, nabla
    , (<.<), (≤.<), (<.≤), (≤.≤), (±), (∓), set, tup, intv
-   , infty
+   , infty, norm
    , nobreaks, matrix, cases
    -- * Algebraic manipulation
    , (&~~!)
