@@ -304,15 +304,17 @@ matrix :: LaTeXC l =>
 matrix [] = set (Symbol $ StringSymbol mempty)
 matrix mlines = encapsulation (raw"\\begin{pmatrix}")
                                    (raw"\\end{pmatrix}")
-     . OperatorChain le₀ $ (Infix (Hs.Fixity 0 Hs.InfixL) LaTeX.lnbk, ) <$> les
- where (le₀:les) = map (\(c₀:cs) -> OperatorChain c₀
+     . OperatorChain le₀ . reverse
+                $ (Infix (Hs.Fixity 0 Hs.InfixL) LaTeX.lnbk, ) <$> les
+ where (le₀:les) = map (\(c₀:cs) -> OperatorChain c₀ . reverse
                           $ (Infix (Hs.Fixity 1 Hs.InfixL) $ raw"&", ) <$> cs) mlines
 
 cases :: LaTeXC l
      => [(CAS' γ (Infix l) (Encapsulation l) (SymbolD σ l), LaTeX)]
          -> CAS' γ (Infix l) (Encapsulation l) (SymbolD σ l)
 cases clauses = encapsulation (raw"\\begin{cases}") (raw"\\end{cases}")
-           . OperatorChain cl₀ $ (Infix (Hs.Fixity 0 Hs.InfixL) LaTeX.lnbk, ) <$> cls
+           . OperatorChain cl₀ . reverse
+                    $ (Infix (Hs.Fixity 0 Hs.InfixL) LaTeX.lnbk, ) <$> cls
  where (cl₀:cls) = map (\(r,co) -> Operator (Infix (Hs.Fixity 1 Hs.InfixL) $ raw"&")
                                      r $ Symbol (StringSymbol . LaTeX.comm1 "text"
                                                      $ fromLaTeX co)
