@@ -35,6 +35,7 @@ module Math.LaTeX.Prelude (
    , nobreaks, matrix, cases
    -- * Algebraic manipulation
    , (&~~!), (&~~:), continueExpr, (&)
+   , (&~:), (&~?), (&~!), (|->)
    ) where
 
 import CAS.Dumb.Symbols.Unicode.MathLatin_RomanGreek__BopomofoGaps hiding ((%$>))
@@ -50,8 +51,13 @@ import qualified Text.LaTeX.Base.Commands as LaTeX
 import Data.Monoid
 import Data.Function ((&))
 
+import CAS.Dumb.Tree
+
 
 
 prime :: LaTeXC l => l -> l
 prime = (<>raw"'")
 
+infix 2 |->
+(|->) :: CAS' γ s² s¹ s⁰ -> CAS' γ s² s¹ s⁰ -> Equality' γ s² s¹ s⁰
+(|->) = (:=:)
