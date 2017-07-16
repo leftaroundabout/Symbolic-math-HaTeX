@@ -12,7 +12,7 @@
 
 module Math.LaTeX.Prelude (
    -- * Use in documents
-     toMathLaTeX, (>$), dmaths, maths
+     toMathLaTeX, (>$), dmaths, maths, dcalculation
    -- * Primitive symbols
    , module CAS.Dumb.Symbols.Unicode.MathLatin_RomanGreek__BopomofoGaps
    -- ** Modifiers
@@ -34,7 +34,7 @@ module Math.LaTeX.Prelude (
    , infty, norm
    , nobreaks, matrix, cases
    -- * Algebraic manipulation
-   , (&~~!)
+   , (&~~!), (&~~:), continueExpr, (&)
    ) where
 
 import CAS.Dumb.Symbols.Unicode.MathLatin_RomanGreek__BopomofoGaps hiding ((%$>))
@@ -48,6 +48,7 @@ import qualified Text.LaTeX.Packages.AMSMath as LaTeX
 import qualified Text.LaTeX.Base.Commands as LaTeX
 
 import Data.Monoid
+import Data.Function ((&))
 
 
 

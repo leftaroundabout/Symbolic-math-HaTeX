@@ -88,6 +88,24 @@ maths eqLines garnish = fromLaTeX . TeXEnv
              = contentsWithAlignAnchor q LaTeX.& aliLine cols
        (eqnum, terminator) = parseEqnum garnish
 
+-- | Display an equation and also extract the final result. As with 'dmaths', automatic
+--   line breaks are inserted by <https://www.ctan.org/pkg/breqn?lang=en breqn>.
+dcalculation :: (LaTeXC (m ()), SymbolClass σ, SCConstraint σ LaTeX, Functor m)
+  => CAS (Infix LaTeX) (Encapsulation LaTeX) (SymbolD σ LaTeX)
+              -- ^ Computation chain to display.
+   -> String  -- ^ “Terminator” – this can include punctuation (when an equation
+              --   is at the end of a sentence in the preceding text).
+   -> m (CAS (Infix LaTeX) (Encapsulation LaTeX) (SymbolD σ LaTeX))
+              -- ^ Yield the rightmost expression in the displayed computation
+              --   (i.e. usually the final result in a chain of algebraic equalities).
+dcalculation ch garnish = fmap (\() -> result) $ case eqnum of
+    Nothing -> fromLaTeX . TeXEnv "dmath*" [] $ toMathLaTeX ch <> terminator
+    Just n  -> fromLaTeX . TeXEnv "equation" [] $ n <> toMathLaTeX ch <> terminator
+ where (eqnum, terminator) = parseEqnum garnish
+       result = case ch of
+        OperatorChain _ ((_,r):_) -> r
+        r -> r
+
 parseEqnum :: LaTeXC r => String -> (Maybe r, r)
 parseEqnum [] = (Nothing, mempty)
 parseEqnum ('.':n) = second ("."<>) $ parseEqnum n
