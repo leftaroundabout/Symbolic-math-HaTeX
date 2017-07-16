@@ -31,6 +31,7 @@ import System.Directory
 import System.Process
 
 import Data.Monoid
+import Data.Function ((&))
 import Control.Monad
 
 
@@ -122,6 +123,10 @@ tests = testGroup "Tests"
          "a+b+c=\\xi{}+b"
      , [mkLaTeXSnip| 𝑎 - 𝑏 &~~! [𝑏 ⩵ 𝑦] &~~! [𝑎 ⩵ 𝑧] |]
          "a-b=a-y=z-y"
+     , [mkLaTeXSnip| 𝑥 + 𝑦
+                  & continueExpr (⩵) (&~: 𝑦 :=: 𝑥*(1+𝑥))
+                  & continueExpr (⩵) (&~: 𝑥 :=: 2◝𝑝) |]
+         "x+y=x+x{\\cdot}\\left(1+x\\right)=2^{p}+2^{p}{\\cdot}\\left(1+2^{p}\\right)"
      ]
   ]
 
