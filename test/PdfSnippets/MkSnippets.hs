@@ -84,7 +84,9 @@ tests = testGroup "Tests"
         ]
      , testGroup "Function application"
         [ [mkLaTeXSnip|         𝑓°𝑥 |] "f\\left(x\\right)"
+#if __GLASGOW_HASKELL__ > 802
         , [mkLaTeXSnip|     𝑓°(𝑥،𝑦) |] "f\\left(x,y\\right)"
+#endif
         ]
      , testGroup "Logical"
         [ [mkLaTeXSnip| 𝑝 ∨ 𝑞 |] "p\\vee{}q"
