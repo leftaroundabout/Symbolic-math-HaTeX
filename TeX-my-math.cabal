@@ -2,7 +2,9 @@ Name:                TeX-my-math
 Version:             0.201.0.0
 Category:            math
 Synopsis:            Render general Haskell math to LaTeX. Or: math typesetting with high signal-to-noise–ratio.
-Description:         This is an attempt to get convenient math syntax in HaTeX (i.e., in data structures
+Description:         For tl;dr: look at <https://github.com/leftaroundabout/Symbolic-math-HaTeX/blob/master/EXAMPLES.md>.
+                     .
+                     This is an attempt to get convenient math syntax in HaTeX (i.e., in data structures
                      compatible \/ convertable to those from <http://hackage.haskell.org/package/HaTeX>).
                      .
                      The idea is to combine these features:
