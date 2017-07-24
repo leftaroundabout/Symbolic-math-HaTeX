@@ -32,7 +32,7 @@ Description:         For tl;dr: look at <https://github.com/leftaroundabout/Symb
                      time, because the AST is fully precedence-aware, it is safely possible to transform
                      the expressions via e.g. Template Haskell, to actually compute concrete numerical
                      results, or apply exact symbolic-manipulation techniques.
-                     License:             GPL-3
+License:             GPL-3
 License-file:        COPYING
 Author:              Justus Sagemüller
 Maintainer:          (@) jsagemue $ uni-koeln.de
@@ -41,7 +41,7 @@ Build-Type:          Simple
 Cabal-Version:       >=1.10
 
 Library
-  Build-Depends:     base>=4.5
+  Build-Depends:     base>=4.8 && <4.11
                      , HaTeX>3.4
                      , vector-space
                      , dumb-cas >= 0.1 && < 0.2
