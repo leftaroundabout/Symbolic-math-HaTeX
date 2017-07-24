@@ -63,6 +63,15 @@ tests = testGroup "Tests"
      , [mkLaTeXSnip|   matrix[[ 0,1]
                              ,[-1,0]] |] "\\begin{pmatrix}0&1\\\\-1&0\\end{pmatrix}"
      ]
+  , testGroup "Number literals"
+     [ [mkLaTeXSnip| 25697325 |] "25697325"
+     , [mkLaTeXSnip|    4.718 |] "4.718"
+     , [mkLaTeXSnip|     1e-3 |] "1{\\cdot}10^{-3}"
+     , [mkLaTeXSnip| 257.35e9 |] "2.5735{\\cdot}10^{11}"
+     , [mkLaTeXSnip|  -5.1e-8 |] "-5.1{\\cdot}10^{-8}"
+     , [mkLaTeXSnip|     7/13 |] "\\frac{7}{13}"
+     , [mkLaTeXSnip|   -(1/2) |] "-\\frac{1}{2}"
+     ]
   , testGroup "Operators"
      [ testGroup "Arithmetic"
         [ [mkLaTeXSnip| 𝑎 + 𝑏 |] "a+b"
@@ -194,6 +203,7 @@ encode = concatMap enc
        enc '<' = "ᐸ"
        enc '>' = "ᐳ"
        enc ',' = "،"
+       enc '.' = "៰"
        enc ' ' = "ᐧ"
        enc c = error $ "Unencodable character '"++[c]++"'"
 

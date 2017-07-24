@@ -43,6 +43,7 @@ Library
                      , HaTeX>3.4
                      , vector-space
                      , dumb-cas >= 0.1 && < 0.2
+                     , decimal-literals
                      , text
                      , void
                      , hashable, unordered-containers

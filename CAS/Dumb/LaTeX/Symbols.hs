@@ -34,6 +34,7 @@ import Data.Char (isAlpha, isUpper, isLower)
 import Data.Tuple (swap)
 
 import Data.Ratio (denominator, numerator)
+import Numeric.Literals.Decimal
 
 import qualified Data.HashMap.Strict as Map
 import Data.Hashable
@@ -146,11 +147,14 @@ instance ∀ σ γ . (SymbolClass σ, SCConstraint σ LaTeX)
 
 instance ∀ σ γ . (SymbolClass σ, SCConstraint σ LaTeX)
      => Fractional (CAS' γ (Infix LaTeX) (Encapsulation LaTeX) (SymbolD σ LaTeX)) where
-  fromRational n
-   | n < 0                        = negate . fromRational $ -n
-   | denominator n `mod` 10 == 0  = undefined
-   | otherwise                    = fromInteger (numerator n)
-                                    / fromInteger (denominator n)
+  fromRational n = case fromRational n of
+     n:%d -> fromIntegral n / fromIntegral d
+     Scientific pc acs e -> let m = Symbol (StringSymbol . fromString
+                                     $ show pc++
+                                       if null acs then ""
+                                                   else "."++(show=<<acs))
+                            in if e==0 then m
+                                       else m * 10**fromIntegral e
   a / b = Operator (Infix (Hs.Fixity 8 Hs.InfixL) mempty)
              (encapsulation (raw "\\frac{") (raw "}") a)
              (encapsulation (raw       "{") (raw "}") b)
