@@ -65,7 +65,6 @@ InvertibleMap mappingFromUnicode mappingToUnicode
                            "abcdefghijklmnopqrstuvwxyz"
  <|> mapToLaTeXWith mathbf ['𝐚'..'𝐳']
                            ['a'..'z']
-#if __GLASGOW_HASKELL__ > 802
  <|> mapToLaTeXWith id     ['𝐴'..'𝑍']
                            ['A'..'Z']
  <|> mapToLaTeXWith mathbf ['𝐀'..'𝐙']
@@ -76,18 +75,15 @@ InvertibleMap mappingFromUnicode mappingToUnicode
                             ['A'..'Z']
  <|> mapToLaTeXWith mathfrak "𝔄𝔅ℭ𝔇𝔈𝔉𝔊ℌℑ𝔍𝔎𝔏𝔐𝔑𝔒𝔓𝔔ℜ𝔖𝔗𝔘𝔙𝔚𝔛𝔜"
                              "ABCDEFGHIJKLMNOPQRSTUVWXY"
-#endif
  <|> fromAssocList (zip
            ['α',  'β', 'γ',  'δ',  'ε',       'ζ', 'η','θ',  'ϑ',     'ι', 'κ',  'λ'   ]
            [alpha,beta,gamma,delta,varepsilon,zeta,eta,theta,vartheta,iota,kappa,lambda])
  <|> fromAssocList (zip
            ['μ','ν','ξ','π','ρ','ϱ',   'σ',  'ς',     'τ','υ',    'ϕ','φ',   'χ','ψ', 'ω' ]
            [mu, nu, xi, pi, rho,varrho,sigma,varsigma,tau,upsilon,phi,varphi,chi,psi,omega])
-#if __GLASGOW_HASKELL__ > 802
  <|> fromAssocList (zip
            ['Γ',   'Δ',   'Θ',   'Λ',    'Ξ','Π','Σ',   'Υ',     'Φ', 'Ψ', 'Ω'   ]
            [gammau,deltau,thetau,lambdau,xiu,piu,sigmau,upsilonu,phiu,psiu,omegau])
-#endif
  <|> fromAssocList (zip
            ['+', '-', '*',           '±',         '∓'        ]
            ["+", "-", raw"{\\cdot}", raw"{\\pm}", raw"{\\mp}"])
