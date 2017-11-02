@@ -162,7 +162,7 @@ makeOperatorCaste "relationOperators"
                   (Fixity 4 InfixL)
                   True
                   [ ("⩵", [e|""LaTeX.=:""|])
-#if __GLASGOW_HASKELL__ > 802
+#if __GLASGOW_HASKELL__ > 801
                   , ("⸪=", [e|raw"{:=}"|])
                   , ("=⸪", [e|raw"{=:}"|])
 #endif
@@ -291,7 +291,7 @@ makeOperatorCaste "juxtapositionOperators"
                   True
                   [ ("␣", [e|raw"\\ "|])
                   , ("...", [e|raw"{\\ldots}"|])
-#if __GLASGOW_HASKELL__ > 802
+#if __GLASGOW_HASKELL__ > 801
                   , ("،", [e|raw","|])
                   , ("،..،", [e|raw",\\ldots,"|])
 #endif

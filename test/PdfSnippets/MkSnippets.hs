@@ -48,7 +48,7 @@ tests :: TestTree
 tests = testGroup "Tests"
   [ testGroup "Simple expressions"
      [ [mkLaTeXSnip|        𝑎 + 𝑏 * 𝑐 |] "a+b{\\cdot}c"
-#if __GLASGOW_HASKELL__ > 802
+#if __GLASGOW_HASKELL__ > 801
      , [mkLaTeXSnip|        𝐴 * 𝐵 + 𝐶 |] "A{\\cdot}B+C"
 #endif
      , [mkLaTeXSnip|      (𝑎 + 𝑏) * 𝑐 |] "\\left(a+b\\right){\\cdot}c"
@@ -87,13 +87,13 @@ tests = testGroup "Tests"
         [ [mkLaTeXSnip|         𝑎◞𝑏 |] "a_{b}"
         , [mkLaTeXSnip|    𝑎◞◝(𝑏,𝑐) |] "a_{b}^{c}"
         , [mkLaTeXSnip|     ψ◞"Foo" |] "\\psi{}_{\\mathrm{Foo}}"
-#if __GLASGOW_HASKELL__ > 802
+#if __GLASGOW_HASKELL__ > 801
         , [mkLaTeXSnip|     ψ◞𝐹⁀𝑜⁀𝑜 |] "\\psi{}_{Foo}"
 #endif
         ]
      , testGroup "Function application"
         [ [mkLaTeXSnip|         𝑓°𝑥 |] "f\\left(x\\right)"
-#if __GLASGOW_HASKELL__ > 802
+#if __GLASGOW_HASKELL__ > 801
         , [mkLaTeXSnip|     𝑓°(𝑥،𝑦) |] "f\\left(x,y\\right)"
 #endif
         ]
@@ -113,7 +113,7 @@ tests = testGroup "Tests"
         , [mkLaTeXSnip| 𝑎 ⪡ ρ |] "a<\\rho{}"
         , [mkLaTeXSnip| 𝑥 ⩵ 𝑦 ⩵ 𝑧 |] "x=y=z"
         , [mkLaTeXSnip| 𝑠 ⊂ 𝑡 ⊆ 𝑢 |] "s\\subset{}t\\subseteq{}u"
-#if __GLASGOW_HASKELL__ > 802
+#if __GLASGOW_HASKELL__ > 801
         , [mkLaTeXSnip| 𝑝 ∈ ℚ ⊂ ℝ |] "p\\in{}\\mathbb{Q}\\subset{}\\mathbb{R}"
 #endif
         ]

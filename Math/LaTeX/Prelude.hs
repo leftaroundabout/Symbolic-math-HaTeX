@@ -19,7 +19,7 @@ module Math.LaTeX.Prelude (
    , (%$>), prime, LaTeX.bar, LaTeX.hat, LaTeX.vec, LaTeX.underline, LaTeX.tilde
    -- * Operators
    , (°), (⁀), (...)
-#if __GLASGOW_HASKELL__ > 802
+#if __GLASGOW_HASKELL__ > 801
    , (،..،), (،), (⸪=), (=⸪)
 #endif
    , (␣), (+..+), (*..*), (×), (⊗), (∘), factorial
