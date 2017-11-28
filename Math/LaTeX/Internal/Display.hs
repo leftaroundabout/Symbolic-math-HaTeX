@@ -52,6 +52,17 @@ infixl 1 >$
         => r -> CAS (Infix LaTeX) (Encapsulation LaTeX) (SymbolD σ LaTeX) -> r
 s >$ m = s <> " " <> LaTeX.math (toMathLaTeX' m)
 
+infixr 6 $<>
+-- | Embed inline maths in a semigroup/monoidal chain of document-components.
+--
+-- @
+--     "If "<>𝑎$<>" and "<>𝑏$<>" are the lengths of the legs and "<>𝑐$<>
+--      " of the cathete of a right triangle, then "<>(𝑎◝2+𝑏◝2 ⩵ 𝑐◝2)$<>" holds."
+-- @
+($<>) :: (LaTeXC r, SymbolClass σ, SCConstraint σ LaTeX)
+        => CAS (Infix LaTeX) (Encapsulation LaTeX) (SymbolD σ LaTeX) -> r -> r
+m $<> s = LaTeX.math (toMathLaTeX' m) <> s
+
 -- | Include a formula / equation system as a LaTeX display. If it's a single
 --   equation, automatic line breaks are inserted (requires the
 --   <https://www.ctan.org/pkg/breqn?lang=en breqn LaTeX package>).
