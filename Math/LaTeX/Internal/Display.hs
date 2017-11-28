@@ -40,6 +40,14 @@ import Data.String (fromString)
 
 
 infixl 1 >$
+-- | Embed inline maths in a monadic chain of document-components. Space before
+--   the math is included automatically.
+--
+-- @
+--   do
+--     "If">$𝑎;" and">$𝑏;" are the lengths of the legs and">$𝑐
+--     " of the cathete of a right triangle, then">$ 𝑎◝2+𝑏◝2 ⩵ 𝑐◝2;" holds."
+-- @
 (>$) :: (LaTeXC r, SymbolClass σ, SCConstraint σ LaTeX)
         => r -> CAS (Infix LaTeX) (Encapsulation LaTeX) (SymbolD σ LaTeX) -> r
 s >$ m = s <> " " <> LaTeX.math (toMathLaTeX' m)
