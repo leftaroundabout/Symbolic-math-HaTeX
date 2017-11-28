@@ -61,7 +61,7 @@ infixl 1 >$
 --
 -- @
 --   do
---     "If">$𝑎;" and">$𝑏;" are the lengths of the legs and">$𝑐
+--     \"If\">$𝑎;" and">$𝑏;" are the lengths of the legs and">$𝑐
 --     " of the cathete of a right triangle, then">$ 𝑎◝2+𝑏◝2 ⩵ 𝑐◝2;" holds."
 -- @
 --
