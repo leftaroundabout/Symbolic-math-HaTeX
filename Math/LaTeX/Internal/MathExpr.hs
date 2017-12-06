@@ -8,14 +8,16 @@
 -- Portability : requires GHC>7 extensions
 -- 
 
-{-# LANGUAGE OverloadedStrings   #-}
-{-# LANGUAGE RankNTypes          #-}
-{-# LANGUAGE FlexibleContexts    #-}
-{-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE UnicodeSyntax       #-}
-{-# LANGUAGE TemplateHaskell     #-}
-{-# LANGUAGE TupleSections       #-}
-{-# LANGUAGE CPP                 #-}
+{-# LANGUAGE OverloadedStrings      #-}
+{-# LANGUAGE RankNTypes             #-}
+{-# LANGUAGE FlexibleContexts       #-}
+{-# LANGUAGE FlexibleInstances      #-}
+{-# LANGUAGE UndecidableInstances   #-}
+{-# LANGUAGE ScopedTypeVariables    #-}
+{-# LANGUAGE UnicodeSyntax          #-}
+{-# LANGUAGE TemplateHaskell        #-}
+{-# LANGUAGE TupleSections          #-}
+{-# LANGUAGE CPP                    #-}
 
 module Math.LaTeX.Internal.MathExpr where
 
@@ -35,8 +37,10 @@ import CAS.Dumb.Symbols
 import CAS.Dumb.LaTeX.Symbols
 import Math.LaTeX.Internal.OperatorGenerator
 
-import Data.Foldable (fold)
-import Data.Monoid ((<>))
+import Data.Foldable (fold, toList)
+import Data.Semigroup
+import Data.Monoid hiding ((<>))
+import Data.String (IsString)
 
 import qualified Language.Haskell.TH.Syntax as Hs
 import Language.Haskell.TH.Syntax (Fixity(..), FixityDirection(..))
@@ -348,12 +352,12 @@ toMathLaTeX :: ∀ σ l . (LaTeXC l, Num l, SymbolClass σ, SCConstraint σ l)
                 => CAS (Infix l) (Encapsulation l) (SymbolD σ l) -> l
 toMathLaTeX = renderSymbolExpression (AtLHS $ Hs.Fixity 0 Hs.InfixL) ρ
  where ρ dop lctxt (StringSymbol sym) rctxt
-           = showLParen dop $ flip (foldr (<>)) lctxt $ foldl (<>) sym rctxt
+           = showLParen dop $ flip (foldr mappend) lctxt $ foldl mappend sym rctxt
        ρ dop lctxt (NatSymbol n) rctxt
-           = showLParen dop $ flip (foldr (<>)) lctxt $ foldl (<>) (fromInteger n) rctxt
+           = showLParen dop $ flip (foldr mappend) lctxt $ foldl mappend (fromInteger n) rctxt
        ρ dop lctxt (PrimitiveSymbol c) rctxt
            = case fromCharSymbol ([]::[σ]) of
-              fcs -> showLParen dop $ flip (foldr (<>)) lctxt $ foldl (<>) (fcs c) rctxt
+              fcs -> showLParen dop $ flip (foldr mappend) lctxt $ foldl mappend (fcs c) rctxt
 
 showLParen :: LaTeXC l => Bool -> l -> l
 showLParen True  = LaTeX.autoParens
@@ -361,3 +365,16 @@ showLParen False = id
 
 
 
+instance (SymbolClass σ, SCConstraint σ LaTeX)
+             => Semigroup (CAS (Infix LaTeX) (Encapsulation LaTeX) (SymbolD σ LaTeX)) where
+  l<>r = atom $ toMathLaTeX l <> toMathLaTeX r
+  sconcat = atom . mconcat . map toMathLaTeX . toList
+instance (SymbolClass σ, SCConstraint σ LaTeX)
+             => Monoid (CAS (Infix LaTeX) (Encapsulation LaTeX) (SymbolD σ LaTeX)) where
+  mempty = atom mempty
+  mappend = (<>)
+  mconcat = atom . mconcat . map toMathLaTeX
+instance ( SymbolClass σ, SCConstraint σ LaTeX
+         , IsString (CAS (Infix LaTeX) (Encapsulation LaTeX) (SymbolD σ LaTeX)) )
+             => LaTeXC (CAS (Infix LaTeX) (Encapsulation LaTeX) (SymbolD σ LaTeX)) where
+  liftListL f = atom . f . map toMathLaTeX
