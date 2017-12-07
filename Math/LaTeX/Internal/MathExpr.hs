@@ -12,6 +12,7 @@
 {-# LANGUAGE RankNTypes             #-}
 {-# LANGUAGE FlexibleContexts       #-}
 {-# LANGUAGE FlexibleInstances      #-}
+{-# LANGUAGE TypeFamilies           #-}
 {-# LANGUAGE UndecidableInstances   #-}
 {-# LANGUAGE ScopedTypeVariables    #-}
 {-# LANGUAGE UnicodeSyntax          #-}
@@ -40,6 +41,7 @@ import Math.LaTeX.Internal.OperatorGenerator
 import Data.Foldable (fold, toList)
 import Data.Semigroup
 import Data.Monoid hiding ((<>))
+import Data.Void
 import Data.String (IsString)
 
 import qualified Language.Haskell.TH.Syntax as Hs
@@ -378,3 +380,8 @@ instance ( SymbolClass σ, SCConstraint σ LaTeX
          , IsString (CAS (Infix LaTeX) (Encapsulation LaTeX) (SymbolD σ LaTeX)) )
              => LaTeXC (CAS (Infix LaTeX) (Encapsulation LaTeX) (SymbolD σ LaTeX)) where
   liftListL f = atom . f . map toMathLaTeX
+
+instance ( γ ~ Void, s² ~ Infix LaTeX, s¹ ~ Encapsulation LaTeX, s⁰ ~ SymbolD σ LaTeX
+         , SymbolClass σ, SCConstraint σ LaTeX )
+    => LaTeX.Texy (CAS' γ s² s¹ s⁰) where
+  texy = LaTeX.math . LaTeX.texy . toMathLaTeX
