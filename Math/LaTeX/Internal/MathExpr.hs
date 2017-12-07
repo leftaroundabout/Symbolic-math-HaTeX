@@ -183,6 +183,7 @@ makeOperatorCaste "relationOperators"
                   , ("≥", [e|""LaTeX.>=:""|])
                   , ("≪", [e|LaTeX.ll""""|])
                   , ("≫", [e|LaTeX.gg""""|])
+                  , ("∝", [e|LaTeX.propto""""|])
                   , ("⊂", [e|LaTeX.subset""""|])
                   , ("/⊂", [e|raw" \\not\\subset "|])
                   , ("⊃", [e|LaTeX.supset""""|])
