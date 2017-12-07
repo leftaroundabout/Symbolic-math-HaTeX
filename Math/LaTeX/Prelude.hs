@@ -11,8 +11,9 @@
 {-# LANGUAGE CPP               #-}
 
 module Math.LaTeX.Prelude (
+     LaTeXMath
    -- * Use in documents
-     (Math.LaTeX.Prelude.>$), (Math.LaTeX.Prelude.$<>)
+   , (Math.LaTeX.Prelude.>$), (Math.LaTeX.Prelude.$<>)
    , dmaths, maths, dcalculation, toMathLaTeX
    -- * Primitive symbols
    , module CAS.Dumb.Symbols.Unicode.MathLatin_RomanGreek__BopomofoGaps
@@ -55,6 +56,11 @@ import Data.Function ((&))
 import CAS.Dumb.Tree
 
 
+-- | Mathematical expressions to be typeset in LaTeX.
+--   Most of the functions in this library have more generic signatures, but
+--   all can be used with this concrete type.
+type LaTeXMath = CAS (Infix LaTeX) (Encapsulation LaTeX) (Symbol LaTeX)
+
 infixl 1 >$
 -- | Embed inline maths in a monadic chain of document-components. Space before
 --   the math is included automatically.
@@ -70,7 +76,7 @@ infixl 1 >$
 --   Use 'Math.LaTeX.Internal.Display.>$' or 'toMathLaTeX' if you want to work with
 --   e.g. "CAS.Dumb.Symbols.Unicode.ASCII" instead.
 (>$) :: LaTeXC r
-        => r -> CAS (Infix LaTeX) (Encapsulation LaTeX) (Symbol LaTeX) -> r
+        => r -> LaTeXMath -> r
 (>$) = (Math.LaTeX.Internal.Display.>$)
 
 infixr 6 $<>
@@ -84,7 +90,7 @@ infixr 6 $<>
 --   Use 'Math.LaTeX.Internal.Display.$<>' to work with e.g. ASCII symbols
 --   instead of "CAS.Dumb.Symbols.Unicode.MathLatin_RomanGreek__BopomofoGaps".
 ($<>) :: LaTeXC r
-        => CAS (Infix LaTeX) (Encapsulation LaTeX) (Symbol LaTeX) -> r -> r
+        => LaTeXMath -> r -> r
 ($<>) = (Math.LaTeX.Internal.Display.$<>)
 
 prime :: LaTeXC l => l -> l
