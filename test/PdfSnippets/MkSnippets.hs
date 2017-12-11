@@ -152,6 +152,8 @@ tests = testGroup "Tests"
          "m+pqr"
      , [mkLaTeXSnip| 𝑚 + (𝑝<>(2+𝑞)<>𝑟) |]
          "m+p2+qr"
+     , [mkLaTeXSnip| 𝑚 * ((1+2)<>(3+4)) |]
+         "m\\cdot\\left(1+23+4\\right)"
      ]
   ]
 
