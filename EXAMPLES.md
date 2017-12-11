@@ -82,3 +82,12 @@ _This file was generated automatically from [MkSnippets.hs](test/PdfSnippets/MkS
 | `𝑎 + 𝑏 + 𝑐 &~~! [𝑏+𝑐 ⩵ 𝑐+𝑏, 𝑎+𝑐 ⩵ ξ] ` | `a+b+c=\xi{}+b` | ![pdflatex-rendered version of `a+b+c=\xi{}+b`](test/PdfSnippets/a⼦b⼦c〧ᓭxiⶈⶉ⼦b.png) |
 | `𝑎 - 𝑏 &~~! [𝑏 ⩵ 𝑦] &~~! [𝑎 ⩵ 𝑧] ` | `a-b=a-y=z-y` | ![pdflatex-rendered version of `a-b=a-y=z-y`](test/PdfSnippets/a⼀b〧a⼀y〧z⼀y.png) |
 | `𝑥 + 𝑦` `& continueExpr (⩵) (&~: 𝑦 :=: 𝑥*(1+𝑥))` `& continueExpr (⩵) (&~: 𝑥 :=: 2◝𝑝) ` | `x+y=x+x{\cdot}\left(1+x\right)=2^{p}+2^{p}{\cdot}\left(1+2^{p}\right)` | ![pdflatex-rendered version of `x+y=x+x{\cdot}\left(1+x\right)=2^{p}+2^{p}{\cdot}\left(1+2^{p}\right)`](test/PdfSnippets/x⼦y〧x⼦xⶈᓭcdotⶉᓭleftᑕ1⼦xᓭrightᑐ〧2ᐞⶈpⶉ⼦2ᐞⶈpⶉⶈᓭcdotⶉᓭleftᑕ1⼦2ᐞⶈpⶉᓭrightᑐ.png) |
+## Juxtaposition
+| Haskell | LaTeX | pdf |
+| ---: | --- | :--- |
+| `𝑚 + 𝑝⁀𝑞⁀𝑟 ` | `m+pqr` | ![pdflatex-rendered version of `m+pqr`](test/PdfSnippets/m⼦pqr.png) |
+| `𝑚 + 𝑝⁀(2+𝑞)⁀𝑟 ` | `m+p\left(2+q\right)r` | ![pdflatex-rendered version of `m+p\left(2+q\right)r`](test/PdfSnippets/m⼦pᓭleftᑕ2⼦qᓭrightᑐr.png) |
+| `𝑚 + (𝑝␣𝑞␣𝑟) ` | `m+\left(p\ q\ r\right)` | ![pdflatex-rendered version of `m+\left(p\ q\ r\right)`](test/PdfSnippets/m⼦ᓭleftᑕpᓭᐧqᓭᐧrᓭrightᑐ.png) |
+| `𝑚 + (𝑝␣2+𝑞␣𝑟) ` | `m+\left(p\ 2+q\ r\right)` | ![pdflatex-rendered version of `m+\left(p\ 2+q\ r\right)`](test/PdfSnippets/m⼦ᓭleftᑕpᓭᐧ2⼦qᓭᐧrᓭrightᑐ.png) |
+| `𝑚 + (𝑝<>𝑞<>𝑟) ` | `m+pqr` | ![pdflatex-rendered version of `m+pqr`](test/PdfSnippets/m⼦pqr.png) |
+| `𝑚 + (𝑝<>(2+𝑞)<>𝑟) ` | `m+p2+qr` | ![pdflatex-rendered version of `m+p2+qr`](test/PdfSnippets/m⼦p2⼦qr.png) |

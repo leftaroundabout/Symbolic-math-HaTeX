@@ -139,6 +139,20 @@ tests = testGroup "Tests"
                   & continueExpr (⩵) (&~: 𝑥 :=: 2◝𝑝) |]
          "x+y=x+x{\\cdot}\\left(1+x\\right)=2^{p}+2^{p}{\\cdot}\\left(1+2^{p}\\right)"
      ]
+  , testGroup "Juxtaposition"
+     [ [mkLaTeXSnip| 𝑚 + 𝑝⁀𝑞⁀𝑟 |]
+         "m+pqr"
+     , [mkLaTeXSnip| 𝑚 + 𝑝⁀(2+𝑞)⁀𝑟 |]
+         "m+p\\left(2+q\\right)r"
+     , [mkLaTeXSnip| 𝑚 + (𝑝␣𝑞␣𝑟) |]
+         "m+\\left(p\\ q\\ r\\right)"
+     , [mkLaTeXSnip| 𝑚 + (𝑝␣2+𝑞␣𝑟) |]
+         "m+\\left(p\\ 2+q\\ r\\right)"
+     , [mkLaTeXSnip| 𝑚 + (𝑝<>𝑞<>𝑟) |]
+         "m+pqr"
+     , [mkLaTeXSnip| 𝑚 + (𝑝<>(2+𝑞)<>𝑟) |]
+         "m+p2+qr"
+     ]
   ]
 
 
