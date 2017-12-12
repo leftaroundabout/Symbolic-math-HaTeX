@@ -90,4 +90,5 @@ _This file was generated automatically from [MkSnippets.hs](test/PdfSnippets/MkS
 | `𝑚 + (𝑝␣𝑞␣𝑟) ` | `m+\left(p\ q\ r\right)` | ![pdflatex-rendered version of `m+\left(p\ q\ r\right)`](test/PdfSnippets/m⼦ᓭleftᑕpᓭᐧqᓭᐧrᓭrightᑐ.png) |
 | `𝑚 + (𝑝␣2+𝑞␣𝑟) ` | `m+\left(p\ 2+q\ r\right)` | ![pdflatex-rendered version of `m+\left(p\ 2+q\ r\right)`](test/PdfSnippets/m⼦ᓭleftᑕpᓭᐧ2⼦qᓭᐧrᓭrightᑐ.png) |
 | `𝑚 + (𝑝<>𝑞<>𝑟) ` | `m+pqr` | ![pdflatex-rendered version of `m+pqr`](test/PdfSnippets/m⼦pqr.png) |
-| `𝑚 + (𝑝<>(2+𝑞)<>𝑟) ` | `m+p2+qr` | ![pdflatex-rendered version of `m+p2+qr`](test/PdfSnippets/m⼦p2⼦qr.png) |
+| `𝑚 + (𝑝<>(2+𝑞)<>𝑟) ` | `m+\left(p2+qr\right)` | ![pdflatex-rendered version of `m+\left(p2+qr\right)`](test/PdfSnippets/m⼦ᓭleftᑕp2⼦qrᓭrightᑐ.png) |
+| `𝑚 * ((1+2)<>(3+4)) ` | `m{\cdot}\left(1+23+4\right)` | ![pdflatex-rendered version of `m{\cdot}\left(1+23+4\right)`](test/PdfSnippets/mⶈᓭcdotⶉᓭleftᑕ1⼦23⼦4ᓭrightᑐ.png) |

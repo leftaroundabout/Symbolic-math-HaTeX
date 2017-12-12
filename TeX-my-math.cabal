@@ -44,7 +44,7 @@ Library
   Build-Depends:     base>=4.8 && <4.11
                      , HaTeX>3.4
                      , vector-space
-                     , dumb-cas >= 0.1.1.1 && < 0.2
+                     , dumb-cas >= 0.1.2.0 && < 0.2
                      , decimal-literals
                      , text
                      , void

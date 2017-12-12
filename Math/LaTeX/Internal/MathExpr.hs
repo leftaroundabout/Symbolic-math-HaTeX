@@ -40,6 +40,7 @@ import Math.LaTeX.Internal.OperatorGenerator
 
 import Data.Foldable (fold, toList)
 import Data.Semigroup
+import qualified Data.List.NonEmpty as NE
 import Data.Monoid hiding ((<>))
 import Data.Void
 import Data.String (IsString)
@@ -367,16 +368,30 @@ showLParen True  = LaTeX.autoParens
 showLParen False = id
 
 
-
 instance (SymbolClass σ, SCConstraint σ LaTeX)
              => Semigroup (CAS (Infix LaTeX) (Encapsulation LaTeX) (SymbolD σ LaTeX)) where
-  l<>r = atom $ toMathLaTeX l <> toMathLaTeX r
-  sconcat = atom . mconcat . map toMathLaTeX . toList
+  l<>r = sconcat $ l NE.:|[r]
+  sconcat es = case don'tParenthesise <$> NE.toList es of
+           [l,r] -> symbolInfix (Infix loosestFixity mempty) l r
+           (l:rs) -> OperatorChain l [(Infix loosestFixity mempty, r) | r<-reverse rs]
+   where loosestFixity = case foldr1 looser $ expressionFixity <$> es of
+            Nothing -> Hs.Fixity 10 Hs.InfixR
+            Just fxty -> fxty
+         looser Nothing Nothing = Nothing
+         looser (Just fxty) Nothing = Just fxty
+         looser Nothing (Just fxty) = Just fxty 
+         looser (Just (Hs.Fixity fxtyL fdL)) (Just (Hs.Fixity fxtyR fdR))
+              | fxtyL > fxtyR    = Just $ Hs.Fixity fxtyR fdR
+              | fxtyL < fxtyR
+                || fdL == fdR    = Just $ Hs.Fixity fxtyL fdL
+              | otherwise        = Just $ Hs.Fixity fxtyL Hs.InfixN
+
 instance (SymbolClass σ, SCConstraint σ LaTeX)
              => Monoid (CAS (Infix LaTeX) (Encapsulation LaTeX) (SymbolD σ LaTeX)) where
   mempty = atom mempty
   mappend = (<>)
-  mconcat = atom . mconcat . map toMathLaTeX
+  mconcat [] = mempty
+  mconcat (l : m) = sconcat $ l NE.:| m
 instance ( SymbolClass σ, SCConstraint σ LaTeX
          , IsString (CAS (Infix LaTeX) (Encapsulation LaTeX) (SymbolD σ LaTeX)) )
              => LaTeXC (CAS (Infix LaTeX) (Encapsulation LaTeX) (SymbolD σ LaTeX)) where
