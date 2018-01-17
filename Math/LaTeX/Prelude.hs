@@ -18,7 +18,9 @@ module Math.LaTeX.Prelude (
    -- * Primitive symbols
    , module CAS.Dumb.Symbols.Unicode.MathLatin_RomanGreek__BopomofoGaps
    -- ** Modifiers
-   , (%$>), prime, LaTeX.bar, LaTeX.hat, LaTeX.vec, LaTeX.underline, LaTeX.tilde
+   , (%$>), prime
+   , LaTeX.dot, LaTeX.ddot, LaTeX.bar, LaTeX.hat
+   , LaTeX.vec, LaTeX.underline, LaTeX.tilde
    -- * Operators
    , (°), (⁀), (...)
 #if __GLASGOW_HASKELL__ > 801
