@@ -69,8 +69,8 @@ InvertibleMap mappingFromUnicode mappingToUnicode
                            ['A'..'Z']
  <|> mapToLaTeXWith mathbf ['𝐀'..'𝐙']
                            ['A'..'Z']
- <|> mapToLaTeXWith mathbb "ℂℍℚℝℤ"
-                           "CHQRZ"
+ <|> mapToLaTeXWith mathbb "ℂℍℚℝℤℕ"
+                           "CHQRZN"
  <|> mapToLaTeXWith mathcal ['𝓐'..'𝓩']
                             ['A'..'Z']
  <|> mapToLaTeXWith mathfrak "𝔄𝔅ℭ𝔇𝔈𝔉𝔊ℌℑ𝔍𝔎𝔏𝔐𝔑𝔒𝔓𝔔ℜ𝔖𝔗𝔘𝔙𝔚𝔛𝔜"
