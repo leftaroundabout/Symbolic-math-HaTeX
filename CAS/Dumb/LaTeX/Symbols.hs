@@ -14,6 +14,7 @@
 {-# LANGUAGE ScopedTypeVariables  #-}
 {-# LANGUAGE UnicodeSyntax        #-}
 {-# LANGUAGE FlexibleInstances    #-}
+{-# LANGUAGE TypeFamilies         #-}
 {-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE CPP                  #-}
 
@@ -40,8 +41,43 @@ import qualified Data.HashMap.Strict as Map
 import Data.Hashable
 
 import Control.Monad
+import Control.Arrow (second)
 
 import qualified Language.Haskell.TH as Hs
+
+
+type instance SpecialEncapsulation LaTeX = AlgebraicInvEncapsulation
+
+instance RenderableEncapsulations LaTeX where
+  fixateAlgebraEncaps (OperatorChain x
+                         ((o,Function (SpecialEncapsulation ι) z):ys))
+     | (Infix (Hs.Fixity 6 Hs.InfixL) "+", Negation) <- (o,ι)
+           = case fixateAlgebraEncaps $ OperatorChain x ys of
+               OperatorChain x' ys' -> OperatorChain x'
+                 $ (Infix (Hs.Fixity 6 Hs.InfixL) "-", fixateAlgebraEncaps z) : ys'
+     | (Infix (Hs.Fixity 7 Hs.InfixL) "*", Reciprocal) <- (o,ι)
+           = case fixateAlgebraEncaps $ OperatorChain x ys of
+               OperatorChain x' ys' -> OperatorChain x'
+                 $ (Infix (Hs.Fixity 7 Hs.InfixL) "/", fixateAlgebraEncaps z) : ys'
+  fixateAlgebraEncaps (Operator o x (Function (SpecialEncapsulation ι) y))
+     | (Infix (Hs.Fixity 6 Hs.InfixL) "+", Negation) <- (o,ι)
+           = Operator (Infix (Hs.Fixity 6 Hs.InfixL) "-")
+                    (fixateAlgebraEncaps x) (fixateAlgebraEncaps y)
+     | (Infix (Hs.Fixity 7 Hs.InfixL) "*", Reciprocal) <- (o,ι)
+           = Operator (Infix (Hs.Fixity 7 Hs.InfixL) "/")
+                    (fixateAlgebraEncaps x) (fixateAlgebraEncaps y)
+  fixateAlgebraEncaps (Function (SpecialEncapsulation Negation) e)
+            = Operator (Infix (Hs.Fixity 6 Hs.InfixL) "-")
+                (Symbol $ StringSymbol " ") $ fixateAlgebraEncaps e
+  fixateAlgebraEncaps (Function (SpecialEncapsulation Reciprocal) e)
+            = Operator (Infix (Hs.Fixity 7 Hs.InfixL) "/")
+                (Symbol $ NatSymbol 1) $ fixateAlgebraEncaps e
+  fixateAlgebraEncaps (Function f e) = Function f $ fixateAlgebraEncaps e
+  fixateAlgebraEncaps (Operator o x y)
+        = Operator o (fixateAlgebraEncaps x) (fixateAlgebraEncaps y)
+  fixateAlgebraEncaps (OperatorChain x₀ oys)
+        = OperatorChain (fixateAlgebraEncaps x₀) (second fixateAlgebraEncaps <$> oys)
+  fixateAlgebraEncaps e = e
 
 
 instance ASCIISymbols LaTeX where
@@ -133,13 +169,9 @@ instance ∀ σ γ . (SymbolClass σ, SCConstraint σ LaTeX)
   (*) = chainableInfixL (==mulOp) mulOp
    where fcs = fromCharSymbol ([]::[σ])
          mulOp = Infix (Hs.Fixity 7 Hs.InfixL) $ fcs '*'
-  (-) = symbolInfix (Infix (Hs.Fixity 6 Hs.InfixL) $ fcs '-')
-   where fcs = fromCharSymbol ([]::[σ])
   abs = encapsulation (raw "\\left|") (raw "\\right|")
   signum = latexFunction "\\signum"
-  negate = Operator (Infix (Hs.Fixity 6 Hs.InfixL) $ fcs '-')
-             . Symbol $ StringSymbol mempty
-   where fcs = fromCharSymbol ([]::[σ])
+  negate = Function $ SpecialEncapsulation Negation
 
 instance ∀ σ γ . (SymbolClass σ, SCConstraint σ LaTeX)
      => Fractional (CAS' γ (Infix LaTeX) (Encapsulation LaTeX) (SymbolD σ LaTeX)) where
@@ -151,9 +183,7 @@ instance ∀ σ γ . (SymbolClass σ, SCConstraint σ LaTeX)
                                                    else "."++(show=<<acs))
                             in if e==0 then m
                                        else m * 10**fromIntegral e
-  a / b = Operator (Infix (Hs.Fixity 8 Hs.InfixL) mempty)
-             (encapsulation (raw "\\frac{") (raw "}") a)
-             (encapsulation (raw       "{") (raw "}") b)
+  recip = Function $ SpecialEncapsulation Reciprocal
 
 
 instance ∀ σ γ . (SymbolClass σ, SCConstraint σ LaTeX)
