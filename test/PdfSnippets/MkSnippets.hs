@@ -61,16 +61,16 @@ tests = testGroup "Tests"
      , [mkLaTeXSnip|      sin (sin 𝑥) |] "\\sin{\\left(\\sin{x}\\right)}"
      , [mkLaTeXSnip|       (𝑖⩵0,3)∑ 𝑖 |] "\\sum_{i=0}^{3} i"
      , [mkLaTeXSnip|   matrix[[ 0,1]
-                             ,[-1,0]] |] "\\begin{pmatrix}0&1\\\\-1&0\\end{pmatrix}"
+                             ,[-1,0]] |] "\\begin{pmatrix}0&1\\\\ -1&0\\end{pmatrix}"
      ]
   , testGroup "Number literals"
      [ [mkLaTeXSnip| 25697325 |] "25697325"
      , [mkLaTeXSnip|    4.718 |] "4.718"
-     , [mkLaTeXSnip|     1e-3 |] "1{\\cdot}10^{-3}"
+     , [mkLaTeXSnip|     1e-3 |] "1{\\cdot}10^{ -3}"
      , [mkLaTeXSnip| 257.35e9 |] "2.5735{\\cdot}10^{11}"
-     , [mkLaTeXSnip|  -5.1e-8 |] "-5.1{\\cdot}10^{-8}"
+     , [mkLaTeXSnip|  -5.1e-8 |] " -5.1{\\cdot}10^{ -8}"
      , [mkLaTeXSnip|     7/13 |] "\\frac{7}{13}"
-     , [mkLaTeXSnip|   -(1/2) |] "-\\frac{1}{2}"
+     , [mkLaTeXSnip|   -(1/2) |] " -\\frac{1}{2}"
      ]
   , testGroup "Operators"
      [ testGroup "Arithmetic"
@@ -120,9 +120,9 @@ tests = testGroup "Tests"
      ]
   , testGroup "Calculus"
      [ testGroup "Integration"
-        [ [mkLaTeXSnip| (-1,1)∫d 𝑥 (𝑥**2) |] "\\int\\limits_{-1}^{1}\\mathrm{d}x\\ x^{2}"
+        [ [mkLaTeXSnip| (-1,1)∫d 𝑥 (𝑥**2) |] "\\int\\limits_{ -1}^{1}\\mathrm{d}x\\ x^{2}"
         , [mkLaTeXSnip| ω◞∫d 𝑥 (exp $ -(𝑥**2)) |]
-              "\\int_{\\omega{}}\\!\\!\\!\\mathrm{d}x\\ \\exp{\\left(-x^{2}\\right)}"
+              "\\int_{\\omega{}}\\!\\!\\!\\mathrm{d}x\\ \\exp{\\left( -x^{2}\\right)}"
         , [mkLaTeXSnip| (0,1)∫d 𝑥 ((0,1)∫d 𝑦 (𝑥*𝑦)) |]
               "\\int\\limits_{0}^{1}\\mathrm{d}x\\ \\int\\limits_{0}^{1}\\mathrm{d}y\\ \\left(x{\\cdot}y\\right)"
         ]
