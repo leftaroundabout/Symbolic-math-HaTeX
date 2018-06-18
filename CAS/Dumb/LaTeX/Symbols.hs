@@ -61,22 +61,25 @@ fixateLaTeXAlgebraEncaps (OperatorChain x
            = case fixateAlgebraEncaps $ OperatorChain x ys of
                OperatorChain x' ys' -> OperatorChain x'
                  $ (Infix (Hs.Fixity 6 Hs.InfixL) "-", z') : ys'
+               x' -> OperatorChain x' [(Infix (Hs.Fixity 6 Hs.InfixL) "-", z')]
      | (Infix (Hs.Fixity 7 Hs.InfixL) mulSym', Reciprocal) <- (o,ι)
      , mulSym' == mulSym
            = case fixateAlgebraEncaps $ OperatorChain x ys of
-               OperatorChain x' []
-                -> Operator (Infix (Hs.Fixity 8 Hs.InfixL) mempty)
+               x' -> Operator (Infix (Hs.Fixity 8 Hs.InfixL) mempty)
                   (encapsulation (raw "\\frac{") (raw "}") x')
                   (encapsulation (raw       "{") (raw "}") z')
    where [addSym, mulSym] = fromCharSymbol ([]::[σ]) <$> "+*" :: [LaTeX]
          z' = fixateAlgebraEncaps z
+fixateLaTeXAlgebraEncaps (OperatorChain x []) = fixateAlgebraEncaps x
 fixateLaTeXAlgebraEncaps (Operator o x (Function (SpecialEncapsulation ι) y))
      | (Infix (Hs.Fixity 6 Hs.InfixL) addSym', Negation) <- (o,ι)
      , addSym' == addSym
            = Operator (Infix (Hs.Fixity 6 Hs.InfixL) "-") x' y'
      | (Infix (Hs.Fixity 7 Hs.InfixL) mulSym', Reciprocal) <- (o,ι)
      , mulSym' == mulSym
-           = undefined
+           = Operator (Infix (Hs.Fixity 8 Hs.InfixL) mempty)
+                  (encapsulation (raw "\\frac{") (raw "}") x')
+                  (encapsulation (raw       "{") (raw "}") y')
    where [addSym, mulSym] = fromCharSymbol ([]::[σ]) <$> "+*" :: [LaTeX]
          [x',y'] = fixateAlgebraEncaps<$>[x,y]
 fixateLaTeXAlgebraEncaps (Function (SpecialEncapsulation Negation) e)
