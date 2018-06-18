@@ -231,4 +231,6 @@ instance ∀ σ γ . (SymbolClass σ, SCConstraint σ LaTeX)
 instance Eq (Encapsulation LaTeX) where
   Encapsulation _ _ l r == Encapsulation _ _ l' r'
          = l==l' && r==r'
+  SpecialEncapsulation e == SpecialEncapsulation e' = e==e'
+  _ == _ = False
 

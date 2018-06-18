@@ -97,3 +97,4 @@ _This file was generated automatically from [MkSnippets.hs](test/PdfSnippets/MkS
 | ---: | --- | :--- |
 | `3*𝑧 - 1 ` | `3{\cdot}z-1` | ![pdflatex-rendered version of `3{\cdot}z-1`](test/PdfSnippets/3ⶈᓭcdotⶉz⼀1.png) |
 | `𝑎-𝑏+𝑐 ` | `a-b+c` | ![pdflatex-rendered version of `a-b+c`](test/PdfSnippets/a⼀b⼦c.png) |
+| `3 - 1 &~~! [ ㄒ-ㄗ ⩵ -(ㄗ-ㄒ) ]` | `3-1= -\left(1-3\right)` | ![pdflatex-rendered version of `3-1= -\left(1-3\right)`](test/PdfSnippets/3⼀1〧ᐧ⼀ᓭleftᑕ1⼀3ᓭrightᑐ.png) |
