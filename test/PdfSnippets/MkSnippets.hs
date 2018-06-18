@@ -155,6 +155,12 @@ tests = testGroup "Tests"
      , [mkLaTeXSnip| 𝑚 * ((1+2)<>(3+4)) |]
          "m{\\cdot}\\left(1+23+4\\right)"
      ]
+  , testGroup "Misc"
+     [ [mkLaTeXSnip| 3*𝑧 - 1 |]
+         "3{\\cdot}z-1"
+     , [mkLaTeXSnip| 𝑎-𝑏+𝑐 |]
+         "a-b+c"
+     ]
   ]
 
 

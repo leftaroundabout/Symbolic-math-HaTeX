@@ -92,3 +92,8 @@ _This file was generated automatically from [MkSnippets.hs](test/PdfSnippets/MkS
 | `𝑚 + (𝑝<>𝑞<>𝑟) ` | `m+pqr` | ![pdflatex-rendered version of `m+pqr`](test/PdfSnippets/m⼦pqr.png) |
 | `𝑚 + (𝑝<>(2+𝑞)<>𝑟) ` | `m+\left(p2+qr\right)` | ![pdflatex-rendered version of `m+\left(p2+qr\right)`](test/PdfSnippets/m⼦ᓭleftᑕp2⼦qrᓭrightᑐ.png) |
 | `𝑚 * ((1+2)<>(3+4)) ` | `m{\cdot}\left(1+23+4\right)` | ![pdflatex-rendered version of `m{\cdot}\left(1+23+4\right)`](test/PdfSnippets/mⶈᓭcdotⶉᓭleftᑕ1⼦23⼦4ᓭrightᑐ.png) |
+## Misc
+| Haskell | LaTeX | pdf |
+| ---: | --- | :--- |
+| `3*𝑧 - 1 ` | `3{\cdot}z-1` | ![pdflatex-rendered version of `3{\cdot}z-1`](test/PdfSnippets/3ⶈᓭcdotⶉz⼀1.png) |
+| `𝑎-𝑏+𝑐 ` | `a-b+c` | ![pdflatex-rendered version of `a-b+c`](test/PdfSnippets/a⼀b⼦c.png) |

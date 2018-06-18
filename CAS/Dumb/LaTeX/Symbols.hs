@@ -59,9 +59,7 @@ fixateLaTeXAlgebraEncaps (OperatorChain x
      | (Infix (Hs.Fixity 6 Hs.InfixL) addSym', Negation) <- (o,ι)
      , addSym' == addSym
            = case fixateAlgebraEncaps $ OperatorChain x ys of
-               OperatorChain x' ys' -> OperatorChain x'
-                 $ (Infix (Hs.Fixity 6 Hs.InfixL) "-", z') : ys'
-               x' -> OperatorChain x' [(Infix (Hs.Fixity 6 Hs.InfixL) "-", z')]
+               x' -> Operator (Infix (Hs.Fixity 6 Hs.InfixL) "-") x' z'
      | (Infix (Hs.Fixity 7 Hs.InfixL) mulSym', Reciprocal) <- (o,ι)
      , mulSym' == mulSym
            = case fixateAlgebraEncaps $ OperatorChain x ys of
@@ -71,6 +69,8 @@ fixateLaTeXAlgebraEncaps (OperatorChain x
    where [addSym, mulSym] = fromCharSymbol ([]::[σ]) <$> "+*" :: [LaTeX]
          z' = fixateAlgebraEncaps z
 fixateLaTeXAlgebraEncaps (OperatorChain x []) = fixateAlgebraEncaps x
+fixateLaTeXAlgebraEncaps (OperatorChain x ((o@(Infix (Hs.Fixity _ Hs.InfixL) _), z):ys))
+      = Operator o (fixateAlgebraEncaps $ OperatorChain x ys) (fixateAlgebraEncaps z)
 fixateLaTeXAlgebraEncaps (Operator o x (Function (SpecialEncapsulation ι) y))
      | (Infix (Hs.Fixity 6 Hs.InfixL) addSym', Negation) <- (o,ι)
      , addSym' == addSym
