@@ -14,6 +14,7 @@
 {-# LANGUAGE ScopedTypeVariables  #-}
 {-# LANGUAGE UnicodeSyntax        #-}
 {-# LANGUAGE FlexibleInstances    #-}
+{-# LANGUAGE TypeFamilies         #-}
 {-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE CPP                  #-}
 
@@ -40,8 +41,60 @@ import qualified Data.HashMap.Strict as Map
 import Data.Hashable
 
 import Control.Monad
+import Control.Arrow (second)
 
 import qualified Language.Haskell.TH as Hs
+
+
+type instance SpecialEncapsulation LaTeX = AlgebraicInvEncapsulation
+
+instance RenderableEncapsulations LaTeX where
+  fixateAlgebraEncaps = fixateLaTeXAlgebraEncaps
+
+fixateLaTeXAlgebraEncaps :: ∀ σ γ . (SymbolClass σ, SCConstraint σ LaTeX)
+         => CAS' γ (Infix LaTeX) (Encapsulation LaTeX) (SymbolD σ LaTeX)
+          -> CAS' γ (Infix LaTeX) (Encapsulation LaTeX) (SymbolD σ LaTeX)
+fixateLaTeXAlgebraEncaps (OperatorChain x
+                         ((o,Function (SpecialEncapsulation ι) z):ys))
+     | (Infix (Hs.Fixity 6 Hs.InfixL) addSym', Negation) <- (o,ι)
+     , addSym' == addSym
+           = case fixateAlgebraEncaps $ OperatorChain x ys of
+               x' -> Operator (Infix (Hs.Fixity 6 Hs.InfixL) "-") x' z'
+     | (Infix (Hs.Fixity 7 Hs.InfixL) mulSym', Reciprocal) <- (o,ι)
+     , mulSym' == mulSym
+           = case fixateAlgebraEncaps $ OperatorChain x ys of
+               x' -> Operator (Infix (Hs.Fixity 8 Hs.InfixL) mempty)
+                  (encapsulation (raw "\\frac{") (raw "}") x')
+                  (encapsulation (raw       "{") (raw "}") z')
+   where [addSym, mulSym] = fromCharSymbol ([]::[σ]) <$> "+*" :: [LaTeX]
+         z' = fixateAlgebraEncaps z
+fixateLaTeXAlgebraEncaps (OperatorChain x []) = fixateAlgebraEncaps x
+fixateLaTeXAlgebraEncaps (OperatorChain x ((o@(Infix (Hs.Fixity _ Hs.InfixL) _), z):ys))
+      = Operator o (fixateAlgebraEncaps $ OperatorChain x ys) (fixateAlgebraEncaps z)
+fixateLaTeXAlgebraEncaps (Operator o x (Function (SpecialEncapsulation ι) y))
+     | (Infix (Hs.Fixity 6 Hs.InfixL) addSym', Negation) <- (o,ι)
+     , addSym' == addSym
+           = Operator (Infix (Hs.Fixity 6 Hs.InfixL) "-") x' y'
+     | (Infix (Hs.Fixity 7 Hs.InfixL) mulSym', Reciprocal) <- (o,ι)
+     , mulSym' == mulSym
+           = Operator (Infix (Hs.Fixity 8 Hs.InfixL) mempty)
+                  (encapsulation (raw "\\frac{") (raw "}") x')
+                  (encapsulation (raw       "{") (raw "}") y')
+   where [addSym, mulSym] = fromCharSymbol ([]::[σ]) <$> "+*" :: [LaTeX]
+         [x',y'] = fixateAlgebraEncaps<$>[x,y]
+fixateLaTeXAlgebraEncaps (Function (SpecialEncapsulation Negation) e)
+            = Operator (Infix (Hs.Fixity 6 Hs.InfixL) "-")
+                (Symbol $ StringSymbol " ") $ fixateAlgebraEncaps e
+fixateLaTeXAlgebraEncaps (Function (SpecialEncapsulation Reciprocal) e)
+            = Operator (Infix (Hs.Fixity 8 Hs.InfixL) mempty)
+               (encapsulation (raw "\\frac{") (raw "}") . Symbol $ NatSymbol 1)
+               (encapsulation (raw       "{") (raw "}") $ fixateAlgebraEncaps e)
+fixateLaTeXAlgebraEncaps (Function f e) = Function f $ fixateAlgebraEncaps e
+fixateLaTeXAlgebraEncaps (Operator o x y)
+        = Operator o (fixateAlgebraEncaps x) (fixateAlgebraEncaps y)
+fixateLaTeXAlgebraEncaps (OperatorChain x₀ oys)
+        = OperatorChain (fixateAlgebraEncaps x₀) (second fixateAlgebraEncaps <$> oys)
+fixateLaTeXAlgebraEncaps e = e
 
 
 instance ASCIISymbols LaTeX where
@@ -133,13 +186,9 @@ instance ∀ σ γ . (SymbolClass σ, SCConstraint σ LaTeX)
   (*) = chainableInfixL (==mulOp) mulOp
    where fcs = fromCharSymbol ([]::[σ])
          mulOp = Infix (Hs.Fixity 7 Hs.InfixL) $ fcs '*'
-  (-) = symbolInfix (Infix (Hs.Fixity 6 Hs.InfixL) $ fcs '-')
-   where fcs = fromCharSymbol ([]::[σ])
   abs = encapsulation (raw "\\left|") (raw "\\right|")
   signum = latexFunction "\\signum"
-  negate = Operator (Infix (Hs.Fixity 6 Hs.InfixL) $ fcs '-')
-             . Symbol $ StringSymbol mempty
-   where fcs = fromCharSymbol ([]::[σ])
+  negate = Function $ SpecialEncapsulation Negation
 
 instance ∀ σ γ . (SymbolClass σ, SCConstraint σ LaTeX)
      => Fractional (CAS' γ (Infix LaTeX) (Encapsulation LaTeX) (SymbolD σ LaTeX)) where
@@ -151,9 +200,7 @@ instance ∀ σ γ . (SymbolClass σ, SCConstraint σ LaTeX)
                                                    else "."++(show=<<acs))
                             in if e==0 then m
                                        else m * 10**fromIntegral e
-  a / b = Operator (Infix (Hs.Fixity 8 Hs.InfixL) mempty)
-             (encapsulation (raw "\\frac{") (raw "}") a)
-             (encapsulation (raw       "{") (raw "}") b)
+  recip = Function $ SpecialEncapsulation Reciprocal
 
 
 instance ∀ σ γ . (SymbolClass σ, SCConstraint σ LaTeX)
@@ -184,4 +231,6 @@ instance ∀ σ γ . (SymbolClass σ, SCConstraint σ LaTeX)
 instance Eq (Encapsulation LaTeX) where
   Encapsulation _ _ l r == Encapsulation _ _ l' r'
          = l==l' && r==r'
+  SpecialEncapsulation e == SpecialEncapsulation e' = e==e'
+  _ == _ = False
 

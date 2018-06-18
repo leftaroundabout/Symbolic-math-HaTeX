@@ -14,17 +14,17 @@ _This file was generated automatically from [MkSnippets.hs](test/PdfSnippets/MkS
 | `(𝑎**𝑏)**𝑐 ` | `\left(a^{b}\right)^{c}` | ![pdflatex-rendered version of `\left(a^{b}\right)^{c}`](test/PdfSnippets/ᓭleftᑕaᐞⶈbⶉᓭrightᑐᐞⶈcⶉ.png) |
 | `sin (sin 𝑥) ` | `\sin{\left(\sin{x}\right)}` | ![pdflatex-rendered version of `\sin{\left(\sin{x}\right)}`](test/PdfSnippets/ᓭsinⶈᓭleftᑕᓭsinⶈxⶉᓭrightᑐⶉ.png) |
 | `(𝑖⩵0,3)∑ 𝑖 ` | `\sum_{i=0}^{3} i` | ![pdflatex-rendered version of `\sum_{i=0}^{3} i`](test/PdfSnippets/ᓭsum⣀ⶈi〧0ⶉᐞⶈ3ⶉᐧi.png) |
-| `matrix[[ 0,1]` `,[-1,0]] ` | `\begin{pmatrix}0&1\\-1&0\end{pmatrix}` | ![pdflatex-rendered version of `\begin{pmatrix}0&1\\-1&0\end{pmatrix}`](test/PdfSnippets/ᓭbeginⶈpmatrixⶉ0ತ1ᓭᓭ⼀1ತ0ᓭendⶈpmatrixⶉ.png) |
+| `matrix[[ 0,1]` `,[-1,0]] ` | `\begin{pmatrix}0&1\\ -1&0\end{pmatrix}` | ![pdflatex-rendered version of `\begin{pmatrix}0&1\\ -1&0\end{pmatrix}`](test/PdfSnippets/ᓭbeginⶈpmatrixⶉ0ತ1ᓭᓭᐧ⼀1ತ0ᓭendⶈpmatrixⶉ.png) |
 ## Number literals
 | Haskell | LaTeX | pdf |
 | ---: | --- | :--- |
 | `25697325 ` | `25697325` | ![pdflatex-rendered version of `25697325`](test/PdfSnippets/25697325.png) |
 | `4.718 ` | `4.718` | ![pdflatex-rendered version of `4.718`](test/PdfSnippets/4៰718.png) |
-| `1e-3 ` | `1{\cdot}10^{-3}` | ![pdflatex-rendered version of `1{\cdot}10^{-3}`](test/PdfSnippets/1ⶈᓭcdotⶉ10ᐞⶈ⼀3ⶉ.png) |
+| `1e-3 ` | `1{\cdot}10^{ -3}` | ![pdflatex-rendered version of `1{\cdot}10^{ -3}`](test/PdfSnippets/1ⶈᓭcdotⶉ10ᐞⶈᐧ⼀3ⶉ.png) |
 | `257.35e9 ` | `2.5735{\cdot}10^{11}` | ![pdflatex-rendered version of `2.5735{\cdot}10^{11}`](test/PdfSnippets/2៰5735ⶈᓭcdotⶉ10ᐞⶈ11ⶉ.png) |
-| `-5.1e-8 ` | `-5.1{\cdot}10^{-8}` | ![pdflatex-rendered version of `-5.1{\cdot}10^{-8}`](test/PdfSnippets/⼀5៰1ⶈᓭcdotⶉ10ᐞⶈ⼀8ⶉ.png) |
+| `-5.1e-8 ` | ` -5.1{\cdot}10^{ -8}` | ![pdflatex-rendered version of ` -5.1{\cdot}10^{ -8}`](test/PdfSnippets/ᐧ⼀5៰1ⶈᓭcdotⶉ10ᐞⶈᐧ⼀8ⶉ.png) |
 | `7/13 ` | `\frac{7}{13}` | ![pdflatex-rendered version of `\frac{7}{13}`](test/PdfSnippets/ᓭfracⶈ7ⶉⶈ13ⶉ.png) |
-| `-(1/2) ` | `-\frac{1}{2}` | ![pdflatex-rendered version of `-\frac{1}{2}`](test/PdfSnippets/⼀ᓭfracⶈ1ⶉⶈ2ⶉ.png) |
+| `-(1/2) ` | ` -\frac{1}{2}` | ![pdflatex-rendered version of ` -\frac{1}{2}`](test/PdfSnippets/ᐧ⼀ᓭfracⶈ1ⶉⶈ2ⶉ.png) |
 ## Operators
 ### Arithmetic
 | Haskell | LaTeX | pdf |
@@ -72,8 +72,8 @@ _This file was generated automatically from [MkSnippets.hs](test/PdfSnippets/MkS
 ### Integration
 | Haskell | LaTeX | pdf |
 | ---: | --- | :--- |
-| `(-1,1)∫d 𝑥 (𝑥**2) ` | `\int\limits_{-1}^{1}\mathrm{d}x\ x^{2}` | ![pdflatex-rendered version of `\int\limits_{-1}^{1}\mathrm{d}x\ x^{2}`](test/PdfSnippets/ᓭintᓭlimits⣀ⶈ⼀1ⶉᐞⶈ1ⶉᓭmathrmⶈdⶉxᓭᐧxᐞⶈ2ⶉ.png) |
-| `ω◞∫d 𝑥 (exp $ -(𝑥**2)) ` | `\int_{\omega{}}\!\!\!\mathrm{d}x\ \exp{\left(-x^{2}\right)}` | ![pdflatex-rendered version of `\int_{\omega{}}\!\!\!\mathrm{d}x\ \exp{\left(-x^{2}\right)}`](test/PdfSnippets/ᓭint⣀ⶈᓭomegaⶈⶉⶉᓭ⢘ᓭ⢘ᓭ⢘ᓭmathrmⶈdⶉxᓭᐧᓭexpⶈᓭleftᑕ⼀xᐞⶈ2ⶉᓭrightᑐⶉ.png) |
+| `(-1,1)∫d 𝑥 (𝑥**2) ` | `\int\limits_{ -1}^{1}\mathrm{d}x\ x^{2}` | ![pdflatex-rendered version of `\int\limits_{ -1}^{1}\mathrm{d}x\ x^{2}`](test/PdfSnippets/ᓭintᓭlimits⣀ⶈᐧ⼀1ⶉᐞⶈ1ⶉᓭmathrmⶈdⶉxᓭᐧxᐞⶈ2ⶉ.png) |
+| `ω◞∫d 𝑥 (exp $ -(𝑥**2)) ` | `\int_{\omega{}}\!\!\!\mathrm{d}x\ \exp{\left( -x^{2}\right)}` | ![pdflatex-rendered version of `\int_{\omega{}}\!\!\!\mathrm{d}x\ \exp{\left( -x^{2}\right)}`](test/PdfSnippets/ᓭint⣀ⶈᓭomegaⶈⶉⶉᓭ⢘ᓭ⢘ᓭ⢘ᓭmathrmⶈdⶉxᓭᐧᓭexpⶈᓭleftᑕᐧ⼀xᐞⶈ2ⶉᓭrightᑐⶉ.png) |
 | `(0,1)∫d 𝑥 ((0,1)∫d 𝑦 (𝑥*𝑦)) ` | `\int\limits_{0}^{1}\mathrm{d}x\ \int\limits_{0}^{1}\mathrm{d}y\ \left(x{\cdot}y\right)` | ![pdflatex-rendered version of `\int\limits_{0}^{1}\mathrm{d}x\ \int\limits_{0}^{1}\mathrm{d}y\ \left(x{\cdot}y\right)`](test/PdfSnippets/ᓭintᓭlimits⣀ⶈ0ⶉᐞⶈ1ⶉᓭmathrmⶈdⶉxᓭᐧᓭintᓭlimits⣀ⶈ0ⶉᐞⶈ1ⶉᓭmathrmⶈdⶉyᓭᐧᓭleftᑕxⶈᓭcdotⶉyᓭrightᑐ.png) |
 ## Algebraic manipulation
 | Haskell | LaTeX | pdf |
@@ -92,3 +92,9 @@ _This file was generated automatically from [MkSnippets.hs](test/PdfSnippets/MkS
 | `𝑚 + (𝑝<>𝑞<>𝑟) ` | `m+pqr` | ![pdflatex-rendered version of `m+pqr`](test/PdfSnippets/m⼦pqr.png) |
 | `𝑚 + (𝑝<>(2+𝑞)<>𝑟) ` | `m+\left(p2+qr\right)` | ![pdflatex-rendered version of `m+\left(p2+qr\right)`](test/PdfSnippets/m⼦ᓭleftᑕp2⼦qrᓭrightᑐ.png) |
 | `𝑚 * ((1+2)<>(3+4)) ` | `m{\cdot}\left(1+23+4\right)` | ![pdflatex-rendered version of `m{\cdot}\left(1+23+4\right)`](test/PdfSnippets/mⶈᓭcdotⶉᓭleftᑕ1⼦23⼦4ᓭrightᑐ.png) |
+## Misc
+| Haskell | LaTeX | pdf |
+| ---: | --- | :--- |
+| `3*𝑧 - 1 ` | `3{\cdot}z-1` | ![pdflatex-rendered version of `3{\cdot}z-1`](test/PdfSnippets/3ⶈᓭcdotⶉz⼀1.png) |
+| `𝑎-𝑏+𝑐 ` | `a-b+c` | ![pdflatex-rendered version of `a-b+c`](test/PdfSnippets/a⼀b⼦c.png) |
+| `3 - 1 &~~! [ ㄒ-ㄗ ⩵ -(ㄗ-ㄒ) ]` | `3-1= -\left(1-3\right)` | ![pdflatex-rendered version of `3-1= -\left(1-3\right)`](test/PdfSnippets/3⼀1〧ᐧ⼀ᓭleftᑕ1⼀3ᓭrightᑐ.png) |

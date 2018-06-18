@@ -1,5 +1,5 @@
 Name:                TeX-my-math
-Version:             0.201.1.1
+Version:             0.201.2.0
 Category:            math
 Synopsis:            Render general Haskell math to LaTeX. Or: math typesetting with high signal-to-noise–ratio.
 Description:         For tl;dr: look at <https://github.com/leftaroundabout/Symbolic-math-HaTeX/blob/master/EXAMPLES.md>.
@@ -44,7 +44,7 @@ Library
   Build-Depends:     base>=4.8 && <4.11
                      , HaTeX>3.4
                      , vector-space
-                     , dumb-cas >= 0.1.2.0 && < 0.2
+                     , dumb-cas >= 0.2 && < 0.3
                      , decimal-literals
                      , text
                      , void

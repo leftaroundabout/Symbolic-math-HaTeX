@@ -352,9 +352,11 @@ toMathLaTeX' :: ∀ σ l . (LaTeXC l, SymbolClass σ, SCConstraint σ LaTeX)
      => CAS (Infix LaTeX) (Encapsulation LaTeX) (SymbolD σ LaTeX) -> l
 toMathLaTeX' = fromLaTeX . toMathLaTeX
 
-toMathLaTeX :: ∀ σ l . (LaTeXC l, Num l, SymbolClass σ, SCConstraint σ l)
+toMathLaTeX :: ∀ σ l . ( LaTeXC l, Num l, SymbolClass σ
+                       , SCConstraint σ l, RenderableEncapsulations l )
                 => CAS (Infix l) (Encapsulation l) (SymbolD σ l) -> l
 toMathLaTeX = renderSymbolExpression (AtLHS $ Hs.Fixity 0 Hs.InfixL) ρ
+              . fixateAlgebraEncaps
  where ρ dop lctxt (StringSymbol sym) rctxt
            = showLParen dop $ flip (foldr mappend) lctxt $ foldl mappend sym rctxt
        ρ dop lctxt (NatSymbol n) rctxt
