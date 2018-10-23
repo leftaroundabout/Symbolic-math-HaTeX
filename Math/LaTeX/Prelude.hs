@@ -14,7 +14,7 @@ module Math.LaTeX.Prelude (
      LaTeXMath
    -- * Use in documents
    , (Math.LaTeX.Prelude.>$), (Math.LaTeX.Prelude.$<>)
-   , dmaths, maths, dcalculation, toMathLaTeX
+   , dmaths, maths, equations, dcalculation, toMathLaTeX
    -- * Primitive symbols
    , module CAS.Dumb.Symbols.Unicode.MathLatin_RomanGreek__BopomofoGaps
    -- ** Modifiers

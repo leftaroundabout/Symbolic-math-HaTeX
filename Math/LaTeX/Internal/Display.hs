@@ -23,7 +23,7 @@ import Text.LaTeX.Base.Class (LaTeXC, fromLaTeX)
 import qualified Text.LaTeX.Base.Class as LaTeX
 import qualified Text.LaTeX.Base.Types as LaTeX
 import qualified Text.LaTeX.Base.Commands as LaTeX
-import Text.LaTeX.Base.Syntax (LaTeX(TeXEnv))
+import Text.LaTeX.Base.Syntax (LaTeX(TeXEnv, TeXComm))
 import qualified Text.LaTeX.Packages.AMSMath as LaTeX
 import qualified Text.LaTeX.Packages.AMSFonts as LaTeX
 
@@ -37,6 +37,7 @@ import Data.Foldable (fold)
 import Data.Monoid ((<>))
 import Control.Arrow
 import Data.String (fromString)
+import Data.Char (isAlpha)
 
 
 infixl 1 >$
@@ -85,6 +86,29 @@ dmaths eqLines garnish = fromLaTeX . TeXEnv
        aliLine (q : cols)
              = contentsWithAlignAnchor q LaTeX.& aliLine cols
        (eqnum, terminator) = parseEqnum garnish
+
+-- | Include a set of equations or formulas, each with a LaTeX label that can be
+--   referenced with 'LaTeX.ref'. (The label name will /not/ appear in the rendered
+--   document output; by default it will be just a number but you can tweak it with
+--   the terminator by including the desired tag in parentheses.)
+equations :: (LaTeXC r, SymbolClass σ, SCConstraint σ LaTeX)
+  => [(CAS (Infix LaTeX) (Encapsulation LaTeX) (SymbolD σ LaTeX), String)]
+              -- ^ Equations to show, with label name.
+   -> String  -- ^ “Terminator” – this can include punctuation (when an equation
+              --   is at the end of a sentence in the preceding text).
+   -> r
+equations [(e,lbl)] garnish = fromLaTeX . TeXEnv "equation" []
+          $ maybe mempty id eqnum <> toMathLaTeX e <> terminator <> asSafeLabel lbl
+ where (eqnum, terminator) = parseEqnum garnish
+equations eqLines garnish = fromLaTeX . TeXEnv "align" [] $ stack eqLines
+ where stack [singline] = fold eqnum <> aliLine singline <> terminator
+       stack (line : lines) = aliLine line <> LaTeX.lnbk <> stack lines
+       aliLine (q, lbl) = contentsWithAlignAnchor q <> asSafeLabel lbl
+       terminator :: LaTeX
+       (eqnum, terminator) = parseEqnum garnish
+
+asSafeLabel :: String -> LaTeX
+asSafeLabel = LaTeX.label . fromString . filter isAlpha
 
 -- | Include a formula / equation system as a LaTeX display.
 maths :: (LaTeXC r, SymbolClass σ, SCConstraint σ LaTeX)
