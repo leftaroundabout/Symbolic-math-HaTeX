@@ -12,18 +12,20 @@
 
 module Math.LaTeX.Prelude (
      LaTeXMath
-   -- * Use in documents
-   , (Math.LaTeX.Prelude.>$), (Math.LaTeX.Prelude.$<>)
-   , dmaths, maths, equations, dcalculation, toMathLaTeX
    -- * Primitive symbols
    , LaTeXSymbol
+   -- ** Unicode literals
    , module CAS.Dumb.Symbols.Unicode.MathLatin_RomanGreek__BopomofoGaps
+   -- $unicodeLiterals
    , LaTeXMath__MathLatin_RomanGreek__BopomofoGaps
-   -- ** Modifiers
+   -- ** Custom symbol-literals
+   -- $nonunicodeLiterals
+
+   -- ** Symbol modifiers
    , (%$>), prime
    , LaTeX.dot, LaTeX.ddot, LaTeX.bar, LaTeX.hat
    , LaTeX.vec, LaTeX.underline, LaTeX.tilde
-   -- * Operators
+   -- * Maths operators
    , (°), (⁀), (...)
 #if __GLASGOW_HASKELL__ > 801
    , (،..،), (،), (⸪=), (=⸪)
@@ -40,8 +42,12 @@ module Math.LaTeX.Prelude (
    , infty, norm
    , nobreaks, matrix, cases
    -- * Algebraic manipulation
+   -- #algebraManip
    , (&~~!), (&~~:), continueExpr, (&)
    , (&~:), (&~?), (&~!), (|->)
+   -- * Use in documents
+   , (Math.LaTeX.Prelude.$<>), (Math.LaTeX.Prelude.>$)
+   , dmaths, maths, equations, dcalculation, toMathLaTeX
    ) where
 
 import CAS.Dumb.Symbols.Unicode.MathLatin_RomanGreek__BopomofoGaps hiding ((%$>))
@@ -72,12 +78,11 @@ infixl 1 >$
 --     " of the cathete of a right triangle, then">$ 𝑎◝2+𝑏◝2 ⩵ 𝑐◝2;" holds."
 -- @
 --
---   Note: this version of the operator has a signature that's monomorphic
---   to symbols from "CAS.Dumb.Symbols.Unicode.MathLatin_RomanGreek__BopomofoGaps".
+--   Note: these versions of the '$<>' and '>$' operators have a signature that's
+--   monomorphic to unicode symbol-literals.
 --   (This restriction is to avoid ambiguous types when writing maths /without/ any
---   symbols in it, like simply embedding a fraction in inline text.)
---   Use 'Math.LaTeX.Internal.Display.>$' or 'toMathLaTeX' if you want to work with
---   e.g. "CAS.Dumb.Symbols.Unicode.ASCII" instead.
+--   symbols in it, like simply embedding a fraction in inline text.) See 
+--   [Custom literals](#nonunicodeLiteralsHowto) if this is a problem for you.
 (>$) :: LaTeXC r
         => r -> LaTeXMath__MathLatin_RomanGreek__BopomofoGaps -> r
 (>$) = (Math.LaTeX.Internal.Display.>$)
@@ -90,11 +95,42 @@ infixr 6 $<>
 --      " of the cathete of a right triangle, then "<>(𝑎◝2+𝑏◝2 ⩵ 𝑐◝2)$<>" holds."
 -- @
 --
---   Use 'Math.LaTeX.Internal.Display.$<>' to work with e.g. ASCII symbols
---   instead of "CAS.Dumb.Symbols.Unicode.MathLatin_RomanGreek__BopomofoGaps".
+--   This will be rendered as: If \(a\) and \(b\) are the lengths of the legs and \(c\)
+--   of the cathete of a right triangle, then \(a^2+b^2=c^2\) holds.
 ($<>) :: LaTeXC r
         => LaTeXMath__MathLatin_RomanGreek__BopomofoGaps -> r -> r
 ($<>) = (Math.LaTeX.Internal.Display.$<>)
+
+-- $unicodeLiterals
+-- This module offers a “WYSiWYG” style, with italic Unicode math symbols
+-- (@U+1d44e 𝑎@ - @U+1d467 𝑧@) coming out as standard italic symbols \(a\) - \(z\),
+-- bold Unicode math symbols (@U+1d41a 𝐚@ - @U+1d433 𝐳@) coming out as bold
+-- \(\mathbf{a}\) - \(\mathbf{z}\) and so on.
+-- Greek letters can be used from the standard block
+-- (@U+3b1 α@ → \(\alpha\) - @U+3c9 ω@ → \(\omega\)).
+-- All of this also works for uppercase letters (it circumvents Haskell syntax
+-- restrictions by using the @PatternSynonyms@ extension).
+-- 
+-- Upright (roman) symbols are not directly supported, but if you import
+-- "Math.LaTeX.StringLiterals" they can be written as strings.
+-- 
+-- Example: @𝑎 + 𝐛 + 𝐶 + \"D\" + ε + Φ ∈ ℝ@ is rendered as
+-- \(a + \mathbf{b} + C + \text{D} + \varepsilon + \Phi \in \mathbb{R}\).
+-- 
+-- The Bopomofo symbols here are not exported for use in documents but
+-- for [Algebraic manipulation](#algebraManip).
+
+-- $nonunicodeLiterals
+-- If you prefer using instead e.g. ASCII letters @A@ - @z@ for simple symbols
+-- \(A\) - \(z\), use this import list:
+--
+-- @
+-- import Math.LaTeX.Prelude hiding ((>$), (<>$))
+-- import "Math.LaTeX.Internal.Display" ((>$), (<>$))
+-- import "CAS.Dumb.Symbols.ASCII"
+-- @
+-- 
+-- We give no guarantee that this will work without name clashes or type ambiguities.
 
 prime :: LaTeXC l => l -> l
 prime = (<>raw"'")

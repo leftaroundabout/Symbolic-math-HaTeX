@@ -8,7 +8,8 @@
 -- Portability : requires GHC>7 extensions
 -- 
 -- An orphan instance to the 'FromString' class, which allows maths expressions
--- to include literal strings. These will be rendered in roman font.
+-- to include literal strings if you enable @{-# LANGUAGE OverloadedStrings #-}@.
+-- These will be rendered in roman font.
 
 {-# LANGUAGE OverloadedStrings    #-}
 {-# LANGUAGE FlexibleInstances    #-}

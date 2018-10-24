@@ -54,10 +54,11 @@ import Language.Haskell.TH.Syntax (Fixity(..), FixityDirection(..))
 --   all can be used with this type.
 --   
 --   The @σ@ parameter specifies how single-symbol “literals” are used in your
---   Haskell code. By default, we export the literals
---   from "CAS.Dumb.Symbols.Unicode.MathLatin_RomanGreek__BopomofoGaps".
+--   Haskell code.
 type LaTeXMath σ = CAS (Infix LaTeX) (Encapsulation LaTeX) (SymbolD σ LaTeX)
 
+-- | The @CAS.Dumb.Symbols.Unicode.*@ modules offer symbols that can be rendered
+--   in LaTeX.
 type LaTeXSymbol σ = (SymbolClass σ, SCConstraint σ LaTeX)
   
 type MathsInfix = ∀ γ σ .
