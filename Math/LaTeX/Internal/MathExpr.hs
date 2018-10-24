@@ -143,7 +143,7 @@ infixl 8 ◞◝, ₌₌
 (°), (⁀), (◝), (◝⁀), (◞), (|◞), (₌₌) :: MathsInfix
 f°x = opL 7 mempty f (encapsulation (raw"\\left(") (raw"\\right)") x)
 (⁀) = opR 9 mempty
-l◝⁀s = opR 9 mempty l $ encapsulation (raw"\\left(") (raw"\\right)^") s
+l◝⁀s = opR 9 mempty l $ encapsulation (raw"^{\\left(") (raw"\\right)}") s
 l◝s = Operator (Infix (Hs.Fixity 9 Hs.InfixR) mempty)
              l (encapsulation (raw "^{") (raw "}") s)
 l◞s = Operator (Infix (Hs.Fixity 9 Hs.InfixR) mempty)

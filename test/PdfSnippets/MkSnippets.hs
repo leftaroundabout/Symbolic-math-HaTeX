@@ -89,6 +89,7 @@ tests = testGroup "Tests"
         , [mkLaTeXSnip|     ψ◞"Foo" |] "\\psi{}_{\\mathrm{Foo}}"
 #if __GLASGOW_HASKELL__ > 801
         , [mkLaTeXSnip|     ψ◞𝐹⁀𝑜⁀𝑜 |] "\\psi{}_{Foo}"
+        , [mkLaTeXSnip|      𝑓◝⁀3°𝑥 |] "f^{\\left(3\\right)}\\left(x\\right)"
 #endif
         ]
      , testGroup "Function application"

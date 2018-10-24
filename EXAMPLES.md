@@ -44,6 +44,7 @@ _This file was generated automatically from [MkSnippets.hs](test/PdfSnippets/MkS
 | `𝑎◞◝(𝑏,𝑐) ` | `a_{b}^{c}` | ![pdflatex-rendered version of `a_{b}^{c}`](test/PdfSnippets/a⣀ⶈbⶉᐞⶈcⶉ.png) |
 | `ψ◞"Foo" ` | `\psi{}_{\mathrm{Foo}}` | ![pdflatex-rendered version of `\psi{}_{\mathrm{Foo}}`](test/PdfSnippets/ᓭpsiⶈⶉ⣀ⶈᓭmathrmⶈFooⶉⶉ.png) |
 | `ψ◞𝐹⁀𝑜⁀𝑜 ` | `\psi{}_{Foo}` | ![pdflatex-rendered version of `\psi{}_{Foo}`](test/PdfSnippets/ᓭpsiⶈⶉ⣀ⶈFooⶉ.png) |
+| `𝑓◝⁀3°𝑥 ` | `f^{\left(3\right)}\left(x\right)` | ![pdflatex-rendered version of `f^{\left(3\right)}\left(x\right)`](test/PdfSnippets/fᐞⶈᓭleftᑕ3ᓭrightᑐⶉᓭleftᑕxᓭrightᑐ.png) |
 ### Function application
 | Haskell | LaTeX | pdf |
 | ---: | --- | :--- |
