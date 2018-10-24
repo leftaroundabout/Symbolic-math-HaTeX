@@ -429,5 +429,5 @@ instance LaTeXSymbol σ => VectorSpace (LaTeXMath σ) where
   (*^) = (*)
 
 instance LaTeXSymbol σ => InnerSpace (LaTeXMath σ) where
-  l <.> r = encapsulation (raw"\\left\\langle") (raw"\\right\\rangle")
+  l <.> r = encapsulation (raw"\\left\\langle{") (raw"}\\right\\rangle")
                 $ opN 0 (raw",") l r
