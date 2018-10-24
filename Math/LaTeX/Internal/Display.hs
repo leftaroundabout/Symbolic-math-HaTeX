@@ -49,8 +49,8 @@ infixl 1 >$
 --     \"If\">$𝑎;" and">$𝑏;" are the lengths of the legs and">$𝑐
 --     " of the cathete of a right triangle, then">$ 𝑎◝2+𝑏◝2 ⩵ 𝑐◝2;" holds."
 -- @
-(>$) :: (LaTeXC r, SymbolClass σ, SCConstraint σ LaTeX)
-        => r -> CAS (Infix LaTeX) (Encapsulation LaTeX) (SymbolD σ LaTeX) -> r
+(>$) :: (LaTeXC r, LaTeXSymbol σ)
+        => r -> LaTeXMath σ -> r
 s >$ m = s <> " " <> LaTeX.math (toMathLaTeX' m)
 
 infixr 6 $<>
@@ -60,15 +60,15 @@ infixr 6 $<>
 --     "If "<>𝑎$<>" and "<>𝑏$<>" are the lengths of the legs and "<>𝑐$<>
 --      " of the cathete of a right triangle, then "<>(𝑎◝2+𝑏◝2 ⩵ 𝑐◝2)$<>" holds."
 -- @
-($<>) :: (LaTeXC r, SymbolClass σ, SCConstraint σ LaTeX)
-        => CAS (Infix LaTeX) (Encapsulation LaTeX) (SymbolD σ LaTeX) -> r -> r
+($<>) :: (LaTeXC r, LaTeXSymbol σ)
+        => LaTeXMath σ -> r -> r
 m $<> s = LaTeX.math (toMathLaTeX' m) <> s
 
 -- | Include a formula / equation system as a LaTeX display. If it's a single
 --   equation, automatic line breaks are inserted (requires the
 --   <https://www.ctan.org/pkg/breqn?lang=en breqn LaTeX package>).
-dmaths :: (LaTeXC r, SymbolClass σ, SCConstraint σ LaTeX)
-   => [[CAS (Infix LaTeX) (Encapsulation LaTeX) (SymbolD σ LaTeX)]]
+dmaths :: (LaTeXC r, LaTeXSymbol σ)
+   => [[LaTeXMath σ]]
                -- ^ Equations to show.
     -> String  -- ^ “Terminator” – this can include punctuation (when an equation
                --   is at the end of a sentence in the preceding text).
@@ -91,8 +91,8 @@ dmaths eqLines garnish = fromLaTeX . TeXEnv
 --   referenced with 'LaTeX.ref'. (The label name will /not/ appear in the rendered
 --   document output; by default it will be just a number but you can tweak it with
 --   the terminator by including the desired tag in parentheses.)
-equations :: (LaTeXC r, SymbolClass σ, SCConstraint σ LaTeX)
-  => [(CAS (Infix LaTeX) (Encapsulation LaTeX) (SymbolD σ LaTeX), String)]
+equations :: (LaTeXC r, LaTeXSymbol σ)
+  => [(LaTeXMath σ, String)]
               -- ^ Equations to show, with label name.
    -> String  -- ^ “Terminator” – this can include punctuation (when an equation
               --   is at the end of a sentence in the preceding text).
@@ -111,8 +111,8 @@ asSafeLabel :: String -> LaTeX
 asSafeLabel = LaTeX.label . fromString . filter isAlpha
 
 -- | Include a formula / equation system as a LaTeX display.
-maths :: (LaTeXC r, SymbolClass σ, SCConstraint σ LaTeX)
-  => [[CAS (Infix LaTeX) (Encapsulation LaTeX) (SymbolD σ LaTeX)]]
+maths :: (LaTeXC r, LaTeXSymbol σ)
+  => [[LaTeXMath σ]]
               -- ^ Equations to show.
    -> String  -- ^ “Terminator” – this can include punctuation (when an equation
               --   is at the end of a sentence in the preceding text).
@@ -133,12 +133,12 @@ maths eqLines garnish = fromLaTeX . TeXEnv
 
 -- | Display an equation and also extract the final result. As with 'dmaths', automatic
 --   line breaks are inserted by <https://www.ctan.org/pkg/breqn?lang=en breqn>.
-dcalculation :: (LaTeXC (m ()), SymbolClass σ, SCConstraint σ LaTeX, Functor m)
-  => CAS (Infix LaTeX) (Encapsulation LaTeX) (SymbolD σ LaTeX)
+dcalculation :: (LaTeXC (m ()), LaTeXSymbol σ, Functor m)
+  => LaTeXMath σ
               -- ^ Computation chain to display.
    -> String  -- ^ “Terminator” – this can include punctuation (when an equation
               --   is at the end of a sentence in the preceding text).
-   -> m (CAS (Infix LaTeX) (Encapsulation LaTeX) (SymbolD σ LaTeX))
+   -> m (LaTeXMath σ)
               -- ^ Yield the rightmost expression in the displayed computation
               --   (i.e. usually the final result in a chain of algebraic equalities).
 dcalculation ch garnish = fmap (\() -> result) $ case eqnum of
@@ -162,9 +162,8 @@ parseEqnum ('(':n) = ( Just $ raw"\\tag{"<>fromString num<>raw"}"
  where (num,')':r) = break (==')') n
 parseEqnum (c:n) = parseEqnum n
 
-
-contentsWithAlignAnchor :: (LaTeXC c, SymbolClass σ, SCConstraint σ LaTeX)
-      => CAS (Infix LaTeX) (Encapsulation LaTeX) (SymbolD σ LaTeX) -> c
+contentsWithAlignAnchor :: (LaTeXC c, LaTeXSymbol σ)
+      => LaTeXMath σ -> c
 contentsWithAlignAnchor (OperatorChain lc rcs@(_:_))
     = toMathLaTeX' lc <> fromLaTeX op
          <> raw"\\:"LaTeX.&toMathLaTeX' (OperatorChain rc₀ $ init rcs)
