@@ -196,7 +196,9 @@ evalTests = go False 1
          return . (if hasHeader then id
                                 else (("| Haskell | LaTeX | pdf |"
                                    <>"\n| ---: | --- | :--- |\n")<>)) $
-           "| "<>mconcat["`"<>Txt.pack (dropWhile (==' ') ecl)<>"` " | ecl<-lines ec]
+           "| "<>mconcat["`"
+                  <>mkGithubtablesaveCode(Txt.pack (dropWhile (==' ') ecl))
+                          <>"` " | ecl<-lines ec]
            <>"| `"<>mkGithubtablesaveCode s
            <>"` | ![pdflatex-rendered version of `"<>mkGithubtablesaveCode s
                             <>"`]("<>Txt.pack(snipName<.>"png")<>") |\n"
