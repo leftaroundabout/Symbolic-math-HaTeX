@@ -16,7 +16,9 @@ module Math.LaTeX.Prelude (
    , (Math.LaTeX.Prelude.>$), (Math.LaTeX.Prelude.$<>)
    , dmaths, maths, equations, dcalculation, toMathLaTeX
    -- * Primitive symbols
+   , LaTeXSymbol
    , module CAS.Dumb.Symbols.Unicode.MathLatin_RomanGreek__BopomofoGaps
+   , LaTeXMath__MathLatin_RomanGreek__BopomofoGaps
    -- ** Modifiers
    , (%$>), prime
    , LaTeX.dot, LaTeX.ddot, LaTeX.bar, LaTeX.hat
@@ -57,11 +59,8 @@ import Data.Function ((&))
 
 import CAS.Dumb.Tree
 
-
--- | Mathematical expressions to be typeset in LaTeX.
---   Most of the functions in this library have more generic signatures, but
---   all can be used with this concrete type.
-type LaTeXMath = CAS (Infix LaTeX) (Encapsulation LaTeX) (Symbol LaTeX)
+type LaTeXMath__MathLatin_RomanGreek__BopomofoGaps
+   = CAS (Infix LaTeX) (Encapsulation LaTeX) (Symbol LaTeX)
 
 infixl 1 >$
 -- | Embed inline maths in a monadic chain of document-components. Space before
@@ -73,12 +72,14 @@ infixl 1 >$
 --     " of the cathete of a right triangle, then">$ 𝑎◝2+𝑏◝2 ⩵ 𝑐◝2;" holds."
 -- @
 --
---   Note: this version of the operator has a simplified signature that's constrained
+--   Note: this version of the operator has a signature that's monomorphic
 --   to symbols from "CAS.Dumb.Symbols.Unicode.MathLatin_RomanGreek__BopomofoGaps".
+--   (This restriction is to avoid ambiguous types when writing maths /without/ any
+--   symbols in it, like simply embedding a fraction in inline text.)
 --   Use 'Math.LaTeX.Internal.Display.>$' or 'toMathLaTeX' if you want to work with
 --   e.g. "CAS.Dumb.Symbols.Unicode.ASCII" instead.
 (>$) :: LaTeXC r
-        => r -> LaTeXMath -> r
+        => r -> LaTeXMath__MathLatin_RomanGreek__BopomofoGaps -> r
 (>$) = (Math.LaTeX.Internal.Display.>$)
 
 infixr 6 $<>
@@ -92,7 +93,7 @@ infixr 6 $<>
 --   Use 'Math.LaTeX.Internal.Display.$<>' to work with e.g. ASCII symbols
 --   instead of "CAS.Dumb.Symbols.Unicode.MathLatin_RomanGreek__BopomofoGaps".
 ($<>) :: LaTeXC r
-        => LaTeXMath -> r -> r
+        => LaTeXMath__MathLatin_RomanGreek__BopomofoGaps -> r -> r
 ($<>) = (Math.LaTeX.Internal.Display.$<>)
 
 prime :: LaTeXC l => l -> l

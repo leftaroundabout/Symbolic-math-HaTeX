@@ -18,6 +18,7 @@
 {-# LANGUAGE UnicodeSyntax          #-}
 {-# LANGUAGE TemplateHaskell        #-}
 {-# LANGUAGE TupleSections          #-}
+{-# LANGUAGE ConstraintKinds        #-}
 {-# LANGUAGE CPP                    #-}
 
 module Math.LaTeX.Internal.MathExpr where
@@ -47,8 +48,18 @@ import Data.String (IsString)
 
 import qualified Language.Haskell.TH.Syntax as Hs
 import Language.Haskell.TH.Syntax (Fixity(..), FixityDirection(..))
+ 
+-- | Mathematical expressions to be typeset in LaTeX.
+--   Most of the functions in this library have more generic signatures, but
+--   all can be used with this type.
+--   
+--   The @σ@ parameter specifies how single-symbol “literals” are used in your
+--   Haskell code. By default, we export the literals
+--   from "CAS.Dumb.Symbols.Unicode.MathLatin_RomanGreek__BopomofoGaps".
+type LaTeXMath σ = CAS (Infix LaTeX) (Encapsulation LaTeX) (SymbolD σ LaTeX)
 
-
+type LaTeXSymbol σ = (SymbolClass σ, SCConstraint σ LaTeX)
+  
 type MathsInfix = ∀ γ σ .
       CAS' γ (Infix LaTeX) (Encapsulation LaTeX) (SymbolD σ LaTeX)
        -> CAS' γ (Infix LaTeX) (Encapsulation LaTeX) (SymbolD σ LaTeX)
