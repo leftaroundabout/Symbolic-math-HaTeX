@@ -161,6 +161,8 @@ tests = testGroup "Tests"
          "3{\\cdot}z-1"
      , [mkLaTeXSnip| 𝑎-𝑏+𝑐 |]
          "a-b+c"
+     , [mkLaTeXSnip| (𝑥/2)|◞◝(𝑥⩵0,1) |]
+         "\\left.\\frac{x}{2}\\right|_{x=0}^{1}"
      , TestCase (3 - 1 &~~! [ ㄒ-ㄗ ⩵ -(ㄗ-ㄒ) ])
           "3 - 1 &~~! [ ㄒ-ㄗ ⩵ -(ㄗ-ㄒ) ]" "3-1= -\\left(1-3\\right)"
      ]
