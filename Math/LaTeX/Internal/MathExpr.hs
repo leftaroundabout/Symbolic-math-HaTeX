@@ -44,6 +44,8 @@ import Data.Semigroup
 import qualified Data.List.NonEmpty as NE
 import Data.Monoid hiding ((<>))
 import Data.Void
+import Data.AdditiveGroup
+import Data.VectorSpace
 import Data.String (IsString)
 
 import qualified Language.Haskell.TH.Syntax as Hs
@@ -415,3 +417,17 @@ instance ( γ ~ Void, s² ~ Infix LaTeX, s¹ ~ Encapsulation LaTeX, s⁰ ~ Symbo
          , SymbolClass σ, SCConstraint σ LaTeX )
     => LaTeX.Texy (CAS' γ s² s¹ s⁰) where
   texy = LaTeX.math . LaTeX.texy . toMathLaTeX
+
+instance LaTeXSymbol σ => AdditiveGroup (LaTeXMath σ) where
+  zeroV = 0
+  (^+^) = (+)
+  (^-^) = (-)
+  negateV = negate
+
+instance LaTeXSymbol σ => VectorSpace (LaTeXMath σ) where
+  type Scalar (LaTeXMath σ) = LaTeXMath σ
+  (*^) = (*)
+
+instance LaTeXSymbol σ => InnerSpace (LaTeXMath σ) where
+  l <.> r = encapsulation (raw"\\left\\langle") (raw"\\right\\rangle")
+                $ opN 0 (raw",") l r
