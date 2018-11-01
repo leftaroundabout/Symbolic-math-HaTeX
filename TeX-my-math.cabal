@@ -42,7 +42,7 @@ Cabal-Version:       >=1.10
 
 Library
   Build-Depends:     base>=4.8 && <4.11
-                     , HaTeX>3.4
+                     , HaTeX>3.19
                      , vector-space
                      , dumb-cas >= 0.2 && < 0.3
                      , decimal-literals

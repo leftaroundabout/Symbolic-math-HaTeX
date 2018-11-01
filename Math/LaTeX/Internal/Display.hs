@@ -97,7 +97,8 @@ equations :: (LaTeXC r, LaTeXSymbol σ)
    -> String  -- ^ “Terminator” – this can include punctuation (when an equation
               --   is at the end of a sentence in the preceding text).
    -> r
-equations [(e,lbl)] garnish = fromLaTeX . TeXEnv "equation" []
+equations [(e,lbl)] garnish = fromLaTeX
+                             . TeXEnv ("equation"<>maybe mempty (const"*") eqnum) []
           $ maybe mempty id eqnum <> toMathLaTeX e <> terminator <> asSafeLabel lbl
  where (eqnum, terminator) = parseEqnum garnish
 equations eqLines garnish = fromLaTeX . TeXEnv "align" [] $ stack eqLines

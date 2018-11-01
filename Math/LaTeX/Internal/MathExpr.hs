@@ -31,6 +31,7 @@ import qualified Text.LaTeX.Base.Types as LaTeX
 import qualified Text.LaTeX.Base.Commands as LaTeX
 import Text.LaTeX.Base.Syntax (LaTeX(TeXEnv))
 import qualified Text.LaTeX.Packages.AMSMath as LaTeX
+import qualified Text.LaTeX.Packages.AMSSymb as LaTeX
 import qualified Text.LaTeX.Packages.AMSFonts as LaTeX
 
 import CAS.Dumb
@@ -173,9 +174,9 @@ makeOperatorCaste "implicationOperators"
                   (''MathsInfix, ''LaTeX)
                   (Fixity 1 InfixL)
                   True
-                  [ ("==>", [e|raw"\\Longrightarrow "|])
-                  , ("<==", [e|raw"\\Longleftarrow "|])
-                  , ("<=>", [e|raw"\\Longleftrightarrow "|])
+                  [ ("==>", [e|LaTeX.longrightarrow2|])
+                  , ("<==", [e|LaTeX.longleftarrow2|])
+                  , ("<=>", [e|LaTeX.longleftrightarrow2|])
                   ]
 
 makeOperatorCaste "relationOperators"
@@ -207,6 +208,7 @@ makeOperatorCaste "relationOperators"
                   , ("∋", [e|LaTeX.ni""""|])
                   , ("∌", [e|raw"\\not\\ni{}"|])
                   , ("=→", [e|LaTeX.to|])
+                  , ("←=", [e|LaTeX.leftarrow|])
                   , ("∈", [e|LaTeX.in_""""|])
                   , ("∉", [e|raw"\\not\\in{}"|])
                   , ("↦", [e|LaTeX.mapsto|])

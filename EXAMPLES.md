@@ -55,10 +55,10 @@ _This file was generated automatically from [MkSnippets.hs](test/PdfSnippets/MkS
 | ---: | --- | :--- |
 | `𝑝 ∨ 𝑞 ` | `p\vee{}q` | ![pdflatex-rendered version of `p\vee{}q`](test/PdfSnippets/pᓭveeⶈⶉq.png) |
 | `𝑝 ∧ 𝑞 ` | `p\wedge{}q` | ![pdflatex-rendered version of `p\wedge{}q`](test/PdfSnippets/pᓭwedgeⶈⶉq.png) |
-| `𝑝==>𝑞 ` | `p\Longrightarrow q` | ![pdflatex-rendered version of `p\Longrightarrow q`](test/PdfSnippets/pᓭLongrightarrowᐧq.png) |
-| `𝑝<==𝑞 ` | `p\Longleftarrow q` | ![pdflatex-rendered version of `p\Longleftarrow q`](test/PdfSnippets/pᓭLongleftarrowᐧq.png) |
-| `𝑝<=>𝑞 ` | `p\Longleftrightarrow q` | ![pdflatex-rendered version of `p\Longleftrightarrow q`](test/PdfSnippets/pᓭLongleftrightarrowᐧq.png) |
-| `𝑝==>𝑞==>𝑟 ` | `p\Longrightarrow q\Longrightarrow r` | ![pdflatex-rendered version of `p\Longrightarrow q\Longrightarrow r`](test/PdfSnippets/pᓭLongrightarrowᐧqᓭLongrightarrowᐧr.png) |
+| `𝑝==>𝑞 ` | `p\Longrightarrow{}q` | ![pdflatex-rendered version of `p\Longrightarrow{}q`](test/PdfSnippets/pᓭLongrightarrowⶈⶉq.png) |
+| `𝑝<==𝑞 ` | `p\Longleftarrow{}q` | ![pdflatex-rendered version of `p\Longleftarrow{}q`](test/PdfSnippets/pᓭLongleftarrowⶈⶉq.png) |
+| `𝑝<=>𝑞 ` | `p\Longleftrightarrow{}q` | ![pdflatex-rendered version of `p\Longleftrightarrow{}q`](test/PdfSnippets/pᓭLongleftrightarrowⶈⶉq.png) |
+| `𝑝==>𝑞==>𝑟 ` | `p\Longrightarrow{}q\Longrightarrow{}r` | ![pdflatex-rendered version of `p\Longrightarrow{}q\Longrightarrow{}r`](test/PdfSnippets/pᓭLongrightarrowⶈⶉqᓭLongrightarrowⶈⶉr.png) |
 | `cases[(1, "Today"), (2, "Else")] ` | `\begin{cases}1&\text{Today}\\2&\text{Else}\end{cases}` | ![pdflatex-rendered version of `\begin{cases}1&\text{Today}\\2&\text{Else}\end{cases}`](test/PdfSnippets/ᓭbeginⶈcasesⶉ1ತᓭtextⶈTodayⶉᓭᓭ2ತᓭtextⶈElseⶉᓭendⶈcasesⶉ.png) |
 ### Relations
 | Haskell | LaTeX | pdf |
