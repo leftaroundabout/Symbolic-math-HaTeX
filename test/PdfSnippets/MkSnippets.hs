@@ -121,11 +121,11 @@ tests = testGroup "Tests"
      ]
   , testGroup "Calculus"
      [ testGroup "Integration"
-        [ [mkLaTeXSnip| (-1,1)∫d 𝑥 (𝑥**2) |] "\\int\\limits_{ -1}^{1}\\mathrm{d}x\\ x^{2}"
+        [ [mkLaTeXSnip| (-1,1)∫d 𝑥 (𝑥**2) |] "\\int\\limits_{ -1}^{1}\\mathrm{d}x\\ {}x^{2}"
         , [mkLaTeXSnip| ω◞∫d 𝑥 (exp $ -(𝑥**2)) |]
-              "\\int_{\\omega{}}\\!\\!\\!\\mathrm{d}x\\ \\exp{\\left( -x^{2}\\right)}"
+              "\\int_{\\omega{}}\\!\\!\\!\\mathrm{d}x\\ {}\\exp{\\left( -x^{2}\\right)}"
         , [mkLaTeXSnip| (0,1)∫d 𝑥 ((0,1)∫d 𝑦 (𝑥*𝑦)) |]
-              "\\int\\limits_{0}^{1}\\mathrm{d}x\\ \\int\\limits_{0}^{1}\\mathrm{d}y\\ \\left(x{\\cdot}y\\right)"
+              "\\int\\limits_{0}^{1}\\mathrm{d}x\\ {}\\int\\limits_{0}^{1}\\mathrm{d}y\\ {}\\left(x{\\cdot}y\\right)"
         ]
      ]
   , testGroup "Algebraic manipulation"
@@ -146,9 +146,9 @@ tests = testGroup "Tests"
      , [mkLaTeXSnip| 𝑚 + 𝑝⁀(2+𝑞)⁀𝑟 |]
          "m+p\\left(2+q\\right)r"
      , [mkLaTeXSnip| 𝑚 + (𝑝␣𝑞␣𝑟) |]
-         "m+\\left(p\\ q\\ r\\right)"
+         "m+\\left(p\\ {}q\\ {}r\\right)"
      , [mkLaTeXSnip| 𝑚 + (𝑝␣2+𝑞␣𝑟) |]
-         "m+\\left(p\\ 2+q\\ r\\right)"
+         "m+\\left(p\\ {}2+q\\ {}r\\right)"
      , [mkLaTeXSnip| 𝑚 + (𝑝<>𝑞<>𝑟) |]
          "m+pqr"
      , [mkLaTeXSnip| 𝑚 + (𝑝<>(2+𝑞)<>𝑟) |]

@@ -73,9 +73,9 @@ _This file was generated automatically from [MkSnippets.hs](test/PdfSnippets/MkS
 ### Integration
 | Haskell | LaTeX | pdf |
 | ---: | --- | :--- |
-| `(-1,1)∫d 𝑥 (𝑥**2) ` | `\int\limits_{ -1}^{1}\mathrm{d}x\ x^{2}` | ![pdflatex-rendered version of `\int\limits_{ -1}^{1}\mathrm{d}x\ x^{2}`](test/PdfSnippets/ᓭintᓭlimits⣀ⶈᐧ⼀1ⶉᐞⶈ1ⶉᓭmathrmⶈdⶉxᓭᐧxᐞⶈ2ⶉ.png) |
-| `ω◞∫d 𝑥 (exp $ -(𝑥**2)) ` | `\int_{\omega{}}\!\!\!\mathrm{d}x\ \exp{\left( -x^{2}\right)}` | ![pdflatex-rendered version of `\int_{\omega{}}\!\!\!\mathrm{d}x\ \exp{\left( -x^{2}\right)}`](test/PdfSnippets/ᓭint⣀ⶈᓭomegaⶈⶉⶉᓭ⢘ᓭ⢘ᓭ⢘ᓭmathrmⶈdⶉxᓭᐧᓭexpⶈᓭleftᑕᐧ⼀xᐞⶈ2ⶉᓭrightᑐⶉ.png) |
-| `(0,1)∫d 𝑥 ((0,1)∫d 𝑦 (𝑥*𝑦)) ` | `\int\limits_{0}^{1}\mathrm{d}x\ \int\limits_{0}^{1}\mathrm{d}y\ \left(x{\cdot}y\right)` | ![pdflatex-rendered version of `\int\limits_{0}^{1}\mathrm{d}x\ \int\limits_{0}^{1}\mathrm{d}y\ \left(x{\cdot}y\right)`](test/PdfSnippets/ᓭintᓭlimits⣀ⶈ0ⶉᐞⶈ1ⶉᓭmathrmⶈdⶉxᓭᐧᓭintᓭlimits⣀ⶈ0ⶉᐞⶈ1ⶉᓭmathrmⶈdⶉyᓭᐧᓭleftᑕxⶈᓭcdotⶉyᓭrightᑐ.png) |
+| `(-1,1)∫d 𝑥 (𝑥**2) ` | `\int\limits_{ -1}^{1}\mathrm{d}x\ {}x^{2}` | ![pdflatex-rendered version of `\int\limits_{ -1}^{1}\mathrm{d}x\ {}x^{2}`](test/PdfSnippets/ᓭintᓭlimits⣀ⶈᐧ⼀1ⶉᐞⶈ1ⶉᓭmathrmⶈdⶉxᓭᐧⶈⶉxᐞⶈ2ⶉ.png) |
+| `ω◞∫d 𝑥 (exp $ -(𝑥**2)) ` | `\int_{\omega{}}\!\!\!\mathrm{d}x\ {}\exp{\left( -x^{2}\right)}` | ![pdflatex-rendered version of `\int_{\omega{}}\!\!\!\mathrm{d}x\ {}\exp{\left( -x^{2}\right)}`](test/PdfSnippets/ᓭint⣀ⶈᓭomegaⶈⶉⶉᓭ⢘ᓭ⢘ᓭ⢘ᓭmathrmⶈdⶉxᓭᐧⶈⶉᓭexpⶈᓭleftᑕᐧ⼀xᐞⶈ2ⶉᓭrightᑐⶉ.png) |
+| `(0,1)∫d 𝑥 ((0,1)∫d 𝑦 (𝑥*𝑦)) ` | `\int\limits_{0}^{1}\mathrm{d}x\ {}\int\limits_{0}^{1}\mathrm{d}y\ {}\left(x{\cdot}y\right)` | ![pdflatex-rendered version of `\int\limits_{0}^{1}\mathrm{d}x\ {}\int\limits_{0}^{1}\mathrm{d}y\ {}\left(x{\cdot}y\right)`](test/PdfSnippets/ᓭintᓭlimits⣀ⶈ0ⶉᐞⶈ1ⶉᓭmathrmⶈdⶉxᓭᐧⶈⶉᓭintᓭlimits⣀ⶈ0ⶉᐞⶈ1ⶉᓭmathrmⶈdⶉyᓭᐧⶈⶉᓭleftᑕxⶈᓭcdotⶉyᓭrightᑐ.png) |
 ## Algebraic manipulation
 | Haskell | LaTeX | pdf |
 | ---: | --- | :--- |
@@ -88,8 +88,8 @@ _This file was generated automatically from [MkSnippets.hs](test/PdfSnippets/MkS
 | ---: | --- | :--- |
 | `𝑚 + 𝑝⁀𝑞⁀𝑟 ` | `m+pqr` | ![pdflatex-rendered version of `m+pqr`](test/PdfSnippets/m⼦pqr.png) |
 | `𝑚 + 𝑝⁀(2+𝑞)⁀𝑟 ` | `m+p\left(2+q\right)r` | ![pdflatex-rendered version of `m+p\left(2+q\right)r`](test/PdfSnippets/m⼦pᓭleftᑕ2⼦qᓭrightᑐr.png) |
-| `𝑚 + (𝑝␣𝑞␣𝑟) ` | `m+\left(p\ q\ r\right)` | ![pdflatex-rendered version of `m+\left(p\ q\ r\right)`](test/PdfSnippets/m⼦ᓭleftᑕpᓭᐧqᓭᐧrᓭrightᑐ.png) |
-| `𝑚 + (𝑝␣2+𝑞␣𝑟) ` | `m+\left(p\ 2+q\ r\right)` | ![pdflatex-rendered version of `m+\left(p\ 2+q\ r\right)`](test/PdfSnippets/m⼦ᓭleftᑕpᓭᐧ2⼦qᓭᐧrᓭrightᑐ.png) |
+| `𝑚 + (𝑝␣𝑞␣𝑟) ` | `m+\left(p\ {}q\ {}r\right)` | ![pdflatex-rendered version of `m+\left(p\ {}q\ {}r\right)`](test/PdfSnippets/m⼦ᓭleftᑕpᓭᐧⶈⶉqᓭᐧⶈⶉrᓭrightᑐ.png) |
+| `𝑚 + (𝑝␣2+𝑞␣𝑟) ` | `m+\left(p\ {}2+q\ {}r\right)` | ![pdflatex-rendered version of `m+\left(p\ {}2+q\ {}r\right)`](test/PdfSnippets/m⼦ᓭleftᑕpᓭᐧⶈⶉ2⼦qᓭᐧⶈⶉrᓭrightᑐ.png) |
 | `𝑚 + (𝑝<>𝑞<>𝑟) ` | `m+pqr` | ![pdflatex-rendered version of `m+pqr`](test/PdfSnippets/m⼦pqr.png) |
 | `𝑚 + (𝑝<>(2+𝑞)<>𝑟) ` | `m+\left(p2+qr\right)` | ![pdflatex-rendered version of `m+\left(p2+qr\right)`](test/PdfSnippets/m⼦ᓭleftᑕp2⼦qrᓭrightᑐ.png) |
 | `𝑚 * ((1+2)<>(3+4)) ` | `m{\cdot}\left(1+23+4\right)` | ![pdflatex-rendered version of `m{\cdot}\left(1+23+4\right)`](test/PdfSnippets/mⶈᓭcdotⶉᓭleftᑕ1⼦23⼦4ᓭrightᑐ.png) |

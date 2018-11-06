@@ -114,8 +114,8 @@ factorial n = Operator (Infix (Hs.Fixity 8 Hs.InfixR) $ raw"!")
 
 infixr 3 ∧, ∨
 (∧), (∨) :: MathsInfix
-(∧) = opR 3 $ raw"\\wedge{}"
-(∨) = opR 3 $ raw"\\vee{}"
+(∧) = opR 3 $ LaTeX.comm0"wedge"
+(∨) = opR 3 $ LaTeX.comm0"vee"
 
 (∩), (∪), (-\-) :: MathsInfix
 infixr 3 ∩
@@ -129,7 +129,7 @@ infixr 5 ⸪, -→, ↪
 (⸪), (-→), (↪) :: MathsInfix
 (⸪) = opR 5 ":"
 (-→) = opR 5 LaTeX.to
-(↪) = opR 5 $ raw"\\hookrightarrow{}"
+(↪) = opR 5 $ LaTeX.comm0"hookrightarrow"
 
 infix 2 ∀:, ∃:
 (∀:), (∃:) :: MathsInfix
@@ -188,11 +188,11 @@ makeOperatorCaste "relationOperators"
                   , ("⸪=", [e|raw"{:=}"|])
                   , ("=⸪", [e|raw"{=:}"|])
 #endif
-                  , ("≡", [e|raw" \\equiv "|])
+                  , ("≡", [e|LaTeX.comm0"equiv"|])
                   , ("⩵!", [e|raw" \\overset{!}{=} "|])
                   , ("≠", [e|""LaTeX./=:""|])
-                  , ("≈", [e|raw" \\approx "|])
-                  , ("∼", [e|raw" \\sim "|])
+                  , ("≈", [e|LaTeX.comm0"approx"|])
+                  , ("∼", [e|LaTeX.comm0"sim"|])
                   , ("⪡", [e|""LaTeX.<:""|])
                   , ("⪢", [e|""LaTeX.>:""|])
                   , ("≤", [e|""LaTeX.<=:""|])
@@ -203,8 +203,8 @@ makeOperatorCaste "relationOperators"
                   , ("⊂", [e|LaTeX.subset""""|])
                   , ("/⊂", [e|raw" \\not\\subset "|])
                   , ("⊃", [e|LaTeX.supset""""|])
-                  , ("⊆", [e|raw"\\subseteq{}"|])
-                  , ("⊇", [e|raw"\\supseteq{}"|])
+                  , ("⊆", [e|LaTeX.comm0"subseteq"|])
+                  , ("⊇", [e|LaTeX.comm0"supseteq"|])
                   , ("∋", [e|LaTeX.ni""""|])
                   , ("∌", [e|raw"\\not\\ni{}"|])
                   , ("=→", [e|LaTeX.to|])
@@ -227,7 +227,7 @@ newtype Integrand γ s² s¹ s⁰ = Integrand { getIntgrand :: CAS' γ s² s¹ s
 d :: LaTeXC l => CAS' γ (Infix l) (Encapsulation l) s⁰
               -> CAS' γ (Infix l) (Encapsulation l) s⁰
               -> Integrand γ (Infix l) (Encapsulation l) s⁰
-d x f = Integrand $ opR 7 (raw "\\ ") x f
+d x f = Integrand $ opR 7 LaTeX.space x f
 
 infixr 8 ∫, ◞∫, ◞∮, ∑, ◞∑, ∏, ◞∏
 
@@ -313,8 +313,8 @@ makeOperatorCaste "juxtapositionOperators"
                   (''MathsInfix, ''LaTeX)
                   (Fixity 0 InfixR)
                   True
-                  [ ("␣", [e|raw"\\ "|])
-                  , ("...", [e|raw"{\\ldots}"|])
+                  [ ("␣", [e|LaTeX.space|])
+                  , ("...", [e|LaTeX.comm0"ldots"|])
 #if __GLASGOW_HASKELL__ > 801
                   , ("،", [e|raw","|])
                   , ("،..،", [e|raw",\\ldots,"|])
