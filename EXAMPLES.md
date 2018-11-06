@@ -68,6 +68,7 @@ _This file was generated automatically from [MkSnippets.hs](test/PdfSnippets/MkS
 | `𝑎 ⪡ ρ ` | `a<\rho{}` | ![pdflatex-rendered version of `a<\rho{}`](test/PdfSnippets/aᐸᓭrhoⶈⶉ.png) |
 | `𝑥 ⩵ 𝑦 ⩵ 𝑧 ` | `x=y=z` | ![pdflatex-rendered version of `x=y=z`](test/PdfSnippets/x〧y〧z.png) |
 | `𝑠 ⊂ 𝑡 ⊆ 𝑢 ` | `s\subset{}t\subseteq{}u` | ![pdflatex-rendered version of `s\subset{}t\subseteq{}u`](test/PdfSnippets/sᓭsubsetⶈⶉtᓭsubseteqⶈⶉu.png) |
+| `ℎ ≈ 𝑔 ∼ 𝑓 ≃ 𝑒 ≅ 𝑑 ` | `h\approx{}g\sim{}f\simeq{}e\cong{}d` | ![pdflatex-rendered version of `h\approx{}g\sim{}f\simeq{}e\cong{}d`](test/PdfSnippets/hᓭapproxⶈⶉgᓭsimⶈⶉfᓭsimeqⶈⶉeᓭcongⶈⶉd.png) |
 | `𝑝 ∈ ℚ ⊂ ℝ ` | `p\in{}\mathbb{Q}\subset{}\mathbb{R}` | ![pdflatex-rendered version of `p\in{}\mathbb{Q}\subset{}\mathbb{R}`](test/PdfSnippets/pᓭinⶈⶉᓭmathbbⶈQⶉᓭsubsetⶈⶉᓭmathbbⶈRⶉ.png) |
 ## Calculus
 ### Integration

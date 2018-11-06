@@ -114,6 +114,7 @@ tests = testGroup "Tests"
         , [mkLaTeXSnip| 𝑎 ⪡ ρ |] "a<\\rho{}"
         , [mkLaTeXSnip| 𝑥 ⩵ 𝑦 ⩵ 𝑧 |] "x=y=z"
         , [mkLaTeXSnip| 𝑠 ⊂ 𝑡 ⊆ 𝑢 |] "s\\subset{}t\\subseteq{}u"
+        , [mkLaTeXSnip| ℎ ≈ 𝑔 ∼ 𝑓 ≃ 𝑒 ≅ 𝑑 |] "h\\approx{}g\\sim{}f\\simeq{}e\\cong{}d"
 #if __GLASGOW_HASKELL__ > 801
         , [mkLaTeXSnip| 𝑝 ∈ ℚ ⊂ ℝ |] "p\\in{}\\mathbb{Q}\\subset{}\\mathbb{R}"
 #endif
