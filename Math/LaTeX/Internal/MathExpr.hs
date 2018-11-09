@@ -202,6 +202,8 @@ makeOperatorCaste "relationOperators"
                   , ("≪", [e|LaTeX.ll""""|])
                   , ("≫", [e|LaTeX.gg""""|])
                   , ("∝", [e|LaTeX.propto""""|])
+                  , ("⟂", [e|LaTeX.perp""""|])
+                  , ("∥", [e|LaTeX.parallel""""|])
                   , ("⊂", [e|LaTeX.subset""""|])
                   , ("/⊂", [e|raw" \\not\\subset "|])
                   , ("⊃", [e|LaTeX.supset""""|])

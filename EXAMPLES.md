@@ -70,6 +70,7 @@ _This file was generated automatically from [MkSnippets.hs](test/PdfSnippets/MkS
 | `𝑠 ⊂ 𝑡 ⊆ 𝑢 ` | `s\subset{}t\subseteq{}u` | ![pdflatex-rendered version of `s\subset{}t\subseteq{}u`](test/PdfSnippets/sᓭsubsetⶈⶉtᓭsubseteqⶈⶉu.png) |
 | `ℎ ≈ 𝑔 ∼ 𝑓 ≃ 𝑒 ≅ 𝑑 ` | `h\approx{}g\sim{}f\simeq{}e\cong{}d` | ![pdflatex-rendered version of `h\approx{}g\sim{}f\simeq{}e\cong{}d`](test/PdfSnippets/hᓭapproxⶈⶉgᓭsimⶈⶉfᓭsimeqⶈⶉeᓭcongⶈⶉd.png) |
 | `𝑝 ∈ ℚ ⊂ ℝ ` | `p\in{}\mathbb{Q}\subset{}\mathbb{R}` | ![pdflatex-rendered version of `p\in{}\mathbb{Q}\subset{}\mathbb{R}`](test/PdfSnippets/pᓭinⶈⶉᓭmathbbⶈQⶉᓭsubsetⶈⶉᓭmathbbⶈRⶉ.png) |
+| `𝐮 ⟂ (vec%$>𝑣) ∥ (underline%$>𝑤) ` | `\mathbf{u}\perp{}\vec{v}\parallel{}\underline{w}` | ![pdflatex-rendered version of `\mathbf{u}\perp{}\vec{v}\parallel{}\underline{w}`](test/PdfSnippets/ᓭmathbfⶈuⶉᓭperpⶈⶉᓭvecⶈvⶉᓭparallelⶈⶉᓭunderlineⶈwⶉ.png) |
 ## Calculus
 ### Integration
 | Haskell | LaTeX | pdf |

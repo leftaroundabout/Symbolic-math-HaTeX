@@ -118,6 +118,8 @@ tests = testGroup "Tests"
 #if __GLASGOW_HASKELL__ > 801
         , [mkLaTeXSnip| 𝑝 ∈ ℚ ⊂ ℝ |] "p\\in{}\\mathbb{Q}\\subset{}\\mathbb{R}"
 #endif
+        , [mkLaTeXSnip| 𝐮 ⟂ (vec%$>𝑣) ∥ (underline%$>𝑤) |]
+               "\\mathbf{u}\\perp{}\\vec{v}\\parallel{}\\underline{w}"
         ]
      ]
   , testGroup "Calculus"
