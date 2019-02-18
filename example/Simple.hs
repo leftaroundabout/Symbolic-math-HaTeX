@@ -40,9 +40,10 @@ example :: LaTeX
 example
  = TeX.title ("A simple example document for the "<>texmymath<>" Haskell package.")
    <> TeX.author "Justus Sagemüller"
-   <> TeX.raw "\\usepackage{fontspec}"
    <> TeX.usepackage [] TeX.amsmath
    <> TeX.usepackage [] TeX.amssymb
+   <> TeX.raw "\\usepackage{fontspec}"
+   <> TeX.raw "\\usepackage{bigfoot}"
    <> Babel.uselanguage `id` Babel.English
    <> TeX.document `id`do
      TeX.maketitle
@@ -54,6 +55,20 @@ example
       <>maths[[4+5*6 :: Math]]"."
       <>"Note that parenthesisation is obeyed:"
       <>maths[[(4+5)*6 :: Math]]"."
+      <>"For symbols, we recommend using the Unicode primitives that come by default "
+      <>" with the "<>TeX.verb"Math.LaTeX.Prelude"<>" module"
+      <>TeX.footnote("These symbols are originally declared in the "<>TeX.verb"dumb-cas"
+                   <>" package, in the "
+                   <>TeX.verb"CAS.Dumb.Symbols.Unicode.MathLatin_RomanGreek__BopomofoGaps"
+                   <>" module.")
+      <>". This allows symbols like "<>𝑎$<>", "<>𝑏$<>" or "<>ψ$<>" to appear natural and"
+      <>" similar to their rendered form in the plaintext source. This includes also bold,"
+      <>" “blackboard” etc. variants, and notably allows uppercase characters"
+      <>TeX.footnote("Using the GHC "<>TeX.verb"PatternSynonyms"<>" extension as a hack"
+                   <>" around Haskell's syntax restriction that identifiers must start with"
+                   <>" a lowercase character.")
+      <>" in addition to lowercase."
+      <>maths[[ 𝑎 + 𝑏 + 𝑀 + 𝑁 + 𝐱 + 𝐲 + ℍ + 𝓠 + 𝓛 + Γ + ω ]]"."
  where texmymath = TeX.tex<>"-my-Math"
 
 main :: IO ()
