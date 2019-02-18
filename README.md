@@ -6,4 +6,6 @@ The idea is to combine these features:
 - Idiomatic Haskell syntax. Who wants to bother with unreadable expressions involving either hundreds of double-backslashes or extra syntax overhead in wrapping them explicitly into HaTeX?
 Ideally, one would write expressions as if only meaning Haskell to _calculate_ them, but get the result back as a full pretty-printing LaTeX math string. _And the actual calculated result as well_, if possible!
 
-See [`EXAMPLES.md`](EXAMPLES.md) for how this works in practice.
+See [`EXAMPLES.md`](EXAMPLES.md) for how this works in practice, or [ example/Simple.hs ](example/Simple.hs) for how the library can be used for writing mathematical documents. Rendered, that looks like this:
+
+![xelatex-rendered example document](example/Simple_rendered.png)
