@@ -1,12 +1,15 @@
 -- |
 -- Module      : Main
--- Copyright   : (c) Justus Sagemüller 2017
+-- Copyright   : (c) Justus Sagemüller 2019
 -- License     : GPL v3
 -- 
--- Maintainer  : (@) sagemueller $ geo.uni-koeln.de
+-- Maintainer  : (@) jsagemue $ uni-koeln.de
 -- Stability   : experimental
 -- Portability : portable
 -- 
+-- Example document. Run `cabal run TeXMyMath-example` in the top-level directory
+-- to render it as a PDF.
+--
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE QuasiQuotes       #-}
 {-# LANGUAGE CPP               #-}
@@ -80,6 +83,12 @@ main = do
          TeX.raw "\\documentclass{article}"
           <> example
       callProcess "xelatex" [thisDocument]
+      callProcess "convert" [ "-density", "150"
+                            , thisDocument<>".pdf"
+                            , "-trim"
+                            , "-background", "white", "-alpha", "off"
+                            , "-resize", "50%"
+                            , thisDocument<>".png" ]
    putStrLn $ "Output generated in directory "<>wdAbs
  where workdir = "example/outputs"
        thisDocument = "simple"
