@@ -34,10 +34,11 @@ import Data.Function ((&))
 import Control.Monad
 import Data.Functor.Identity
 
+type Math = LaTeXMath__MathLatin_RomanGreek__BopomofoGaps
 
 example :: LaTeX
 example
- = TeX.title ("A simple example document for the "<>TeX.tex<>"-my-Math Haskell package.")
+ = TeX.title ("A simple example document for the "<>texmymath<>" Haskell package.")
    <> TeX.author "Justus Sagemüller"
    <> TeX.raw "\\usepackage{fontspec}"
    <> TeX.usepackage [] TeX.amsmath
@@ -45,7 +46,15 @@ example
    <> Babel.uselanguage `id` Babel.English
    <> TeX.document `id`do
      TeX.maketitle
-      <> "Bla bla"
+      <> "The "<>texmymath<>" package allows you to write maths formulas with a plaintext"
+      <>" syntax that is more human-readable than LaTeX, and more structurally coherent,"
+      <>" namely being Haskell source code whose AST represents how the math would"
+      <>" actually parse semantically. The simplest example would be arithmetic expressions"
+      <>" with number literals, like"
+      <>maths[[4+5*6 :: Math]]"."
+      <>"Note that parenthesisation is obeyed:"
+      <>maths[[(4+5)*6 :: Math]]"."
+ where texmymath = TeX.tex<>"-my-Math"
 
 main :: IO ()
 main = do
