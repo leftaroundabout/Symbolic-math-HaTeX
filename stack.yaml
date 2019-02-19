@@ -5,6 +5,5 @@ extra-deps:
 - decimal-literals-0.1.0.0
 - dumb-cas-0.2.0.0
 - wl-pprint-extras-3.5.0.5
-- git: https://github.com/leftaroundabout/HaTeX.git
-  commit: 5ac2283b0d723ab86f3f9f2258dacab69b0d5e57
-resolver: lts-13.7
+- HaTeX-3.20.0.0
+resolver: lts-12.0
