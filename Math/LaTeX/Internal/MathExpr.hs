@@ -29,6 +29,7 @@ import Text.LaTeX.Base.Class (LaTeXC, fromLaTeX)
 import qualified Text.LaTeX.Base.Class as LaTeX
 import qualified Text.LaTeX.Base.Types as LaTeX
 import qualified Text.LaTeX.Base.Commands as LaTeX
+import qualified Text.LaTeX.Base.Math as LaTeX
 import Text.LaTeX.Base.Syntax (LaTeX(TeXEnv))
 import qualified Text.LaTeX.Packages.AMSMath as LaTeX
 import qualified Text.LaTeX.Packages.AMSSymb as LaTeX

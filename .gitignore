@@ -31,3 +31,5 @@ junktest/*
 
 *.pdf
 *.tex
+.stack-work
+*.swp

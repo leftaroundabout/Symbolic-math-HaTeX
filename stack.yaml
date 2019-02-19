@@ -1,0 +1,9 @@
+flags: {}
+packages:
+- location: '.'
+extra-deps:
+- decimal-literals-0.1.0.0
+- dumb-cas-0.2.0.0
+- wl-pprint-extras-3.5.0.5
+- HaTeX-3.20.0.0
+resolver: lts-12.0
