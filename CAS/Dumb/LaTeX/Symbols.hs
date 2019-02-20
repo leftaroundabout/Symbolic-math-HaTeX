@@ -16,10 +16,11 @@
 {-# LANGUAGE FlexibleInstances    #-}
 {-# LANGUAGE TypeFamilies         #-}
 {-# LANGUAGE UndecidableInstances #-}
+{-# LANGUAGE PatternSynonyms      #-}
 {-# LANGUAGE CPP                  #-}
 
 module CAS.Dumb.LaTeX.Symbols ( fixateLaTeXAlgebraEncaps
-                              , AlgebraicInvSupSubEncapsulation(..) ) where
+                              , LaTeXMathEncapsulation(..) ) where
 
 import CAS.Dumb.Tree
 import CAS.Dumb.Symbols hiding (Negation, Reciprocal)
@@ -47,11 +48,16 @@ import Control.Arrow (second)
 import qualified Language.Haskell.TH as Hs
 
 
-data AlgebraicInvSupSubEncapsulation
+data LaTeXMathEncapsulation
        = Negation | Reciprocal | Subscript | Superscript
+        | StdMathsFunc StdMathsFunc
  deriving (Eq, Show)
 
-type instance SpecialEncapsulation LaTeX = AlgebraicInvSupSubEncapsulation
+data StdMathsFunc
+   = Abs
+ deriving (Eq, Show)
+
+type instance SpecialEncapsulation LaTeX = LaTeXMathEncapsulation
 
 instance RenderableEncapsulations LaTeX where
   fixateAlgebraEncaps = fixateShowAlgebraEncaps
@@ -113,6 +119,8 @@ fixateShowAlgebraEncaps (Function (SpecialEncapsulation Subscript) e)
             = Operator (Infix (Hs.Fixity 7 Hs.InfixL) $ showMagic "◞")
                (Symbol $ StringSymbol "\"\"")
                (fixateShowAlgebraEncaps e)
+fixateShowAlgebraEncaps (StdMathFn Abs e)
+            = haskellFunction "abs" $ fixateShowAlgebraEncaps e
 fixateShowAlgebraEncaps (Function f e) = Function f $ fixateShowAlgebraEncaps e
 fixateShowAlgebraEncaps (Operator o x y)
         = Operator o (fixateShowAlgebraEncaps x) (fixateShowAlgebraEncaps y)
@@ -172,6 +180,8 @@ fixateLaTeXAlgebraEncaps (Function (SpecialEncapsulation Superscript) e)
             = encapsulation (raw "{}^{") (raw "}") $ fixateLaTeXAlgebraEncaps e
 fixateLaTeXAlgebraEncaps (Function (SpecialEncapsulation Subscript) e)
             = encapsulation (raw "{}_{") (raw "}") $ fixateLaTeXAlgebraEncaps e
+fixateLaTeXAlgebraEncaps (StdMathFn Abs e)
+            = encapsulation (raw "\\left|") (raw "\\right|") $ fixateLaTeXAlgebraEncaps e
 fixateLaTeXAlgebraEncaps (Function f e) = Function f $ fixateLaTeXAlgebraEncaps e
 fixateLaTeXAlgebraEncaps (Operator o x y)
         = Operator o (fixateLaTeXAlgebraEncaps x) (fixateLaTeXAlgebraEncaps y)
@@ -259,6 +269,18 @@ latexFunction :: LaTeXC l
               -> (CAS' γ (Infix l) (Encapsulation l) (SymbolD σ l))
 latexFunction f = Function $ Encapsulation True False (raw $ f<>"{") (raw "}")
 
+haskellFunction :: l ~ LaTeX
+              => Text
+              -> (CAS' γ (Infix l) (Encapsulation l) (SymbolD σ l))
+              -> (CAS' γ (Infix l) (Encapsulation l) (SymbolD σ l))
+haskellFunction f
+    = Function $ Encapsulation True False (showMagic $ f<>" ") mempty
+
+pattern StdMathFn :: 
+           StdMathsFunc -> (CAS' γ (Infix LaTeX) (Encapsulation LaTeX) (SymbolD σ LaTeX))
+                        -> (CAS' γ (Infix LaTeX) (Encapsulation LaTeX) (SymbolD σ LaTeX))
+pattern StdMathFn f e = Function (SpecialEncapsulation (StdMathsFunc f)) e
+
 instance ∀ σ γ . (SymbolClass σ, SCConstraint σ LaTeX)
           => Num (CAS' γ (Infix LaTeX) (Encapsulation LaTeX) (SymbolD σ LaTeX)) where
   fromInteger n
@@ -270,7 +292,7 @@ instance ∀ σ γ . (SymbolClass σ, SCConstraint σ LaTeX)
   (*) = chainableInfixL (==mulOp) mulOp
    where fcs = fromCharSymbol ([]::[σ])
          mulOp = Infix (Hs.Fixity 7 Hs.InfixL) $ fcs '*'
-  abs = encapsulation (raw "\\left|") (raw "\\right|")
+  abs = StdMathFn Abs
   signum = latexFunction "\\signum"
   negate = Function $ SpecialEncapsulation Negation
 
