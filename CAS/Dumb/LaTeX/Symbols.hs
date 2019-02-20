@@ -51,6 +51,15 @@ type instance SpecialEncapsulation LaTeX = AlgebraicInvEncapsulation
 instance RenderableEncapsulations LaTeX where
   fixateAlgebraEncaps = fixateShowAlgebraEncaps
 
+showMagic :: Text -> LaTeX
+showMagic s = raw $ "｛"<>s<>"｝"
+matchShowMagic :: LaTeX -> Maybe Text
+matchShowMagic e = case render e of
+    s' | "｛"`Txt.isPrefixOf`s'
+       , "｝"`Txt.isSuffixOf`s'  -> Just $ Txt.drop 1
+                                         $ Txt.dropEnd 1 s'
+    _           -> Nothing
+
 fixateShowAlgebraEncaps :: ∀ σ γ . (SymbolClass σ, SCConstraint σ LaTeX)
          => CAS' γ (Infix LaTeX) (Encapsulation LaTeX) (SymbolD σ LaTeX)
           -> CAS' γ (Infix LaTeX) (Encapsulation LaTeX) (SymbolD σ LaTeX)
@@ -63,9 +72,7 @@ fixateShowAlgebraEncaps (OperatorChain x
      | (Infix (Hs.Fixity 7 Hs.InfixL) mulSym', Reciprocal) <- (o,ι)
      , mulSym' == mulSym
            = case fixateShowAlgebraEncaps $ OperatorChain x ys of
-               x' -> Operator (Infix (Hs.Fixity 8 Hs.InfixL) mempty)
-                  (encapsulation (raw "\\frac{") (raw "}") x')
-                  (encapsulation (raw       "{") (raw "}") z')
+               x' -> Operator (Infix (Hs.Fixity 7 Hs.InfixL) $ showMagic "/") x' z'
    where [addSym, mulSym] = fromCharSymbol ([]::[σ]) <$> "+*" :: [LaTeX]
          z' = fixateShowAlgebraEncaps z
 fixateShowAlgebraEncaps (OperatorChain x []) = fixateShowAlgebraEncaps x
@@ -77,18 +84,16 @@ fixateShowAlgebraEncaps (Operator o x (Function (SpecialEncapsulation ι) y))
            = Operator (Infix (Hs.Fixity 6 Hs.InfixL) "-") x' y'
      | (Infix (Hs.Fixity 7 Hs.InfixL) mulSym', Reciprocal) <- (o,ι)
      , mulSym' == mulSym
-           = Operator (Infix (Hs.Fixity 8 Hs.InfixL) mempty)
-                  (encapsulation (raw "\\frac{") (raw "}") x')
-                  (encapsulation (raw       "{") (raw "}") y')
+           = Operator (Infix (Hs.Fixity 7 Hs.InfixL) $ showMagic "/") x' y'
    where [addSym, mulSym] = fromCharSymbol ([]::[σ]) <$> "+*" :: [LaTeX]
          [x',y'] = fixateShowAlgebraEncaps<$>[x,y]
 fixateShowAlgebraEncaps (Function (SpecialEncapsulation Negation) e)
             = Operator (Infix (Hs.Fixity 6 Hs.InfixL) "-")
                 (Symbol $ StringSymbol " ") $ fixateShowAlgebraEncaps e
 fixateShowAlgebraEncaps (Function (SpecialEncapsulation Reciprocal) e)
-            = Operator (Infix (Hs.Fixity 8 Hs.InfixL) mempty)
-               (encapsulation (raw "\\frac{") (raw "}") . Symbol $ NatSymbol 1)
-               (encapsulation (raw       "{") (raw "}") $ fixateShowAlgebraEncaps e)
+            = Operator (Infix (Hs.Fixity 7 Hs.InfixL) $ showMagic "/")
+               (Symbol $ NatSymbol 1)
+               (fixateShowAlgebraEncaps e)
 fixateShowAlgebraEncaps (Function f e) = Function f $ fixateShowAlgebraEncaps e
 fixateShowAlgebraEncaps (Operator o x y)
         = Operator o (fixateShowAlgebraEncaps x) (fixateShowAlgebraEncaps y)
@@ -154,6 +159,7 @@ instance UnicodeSymbols LaTeX where
   toUnicodeSymbols lc
    | Just c <- Map.lookup lc mappingToUnicode    = [c]
    | lc==mempty  = ""
+   | Just s' <- matchShowMagic lc  = Txt.unpack s'
    | otherwise   = "《"++Txt.unpack(render lc)++"》"
   
 mappingFromUnicode :: Map.HashMap Char LaTeX
