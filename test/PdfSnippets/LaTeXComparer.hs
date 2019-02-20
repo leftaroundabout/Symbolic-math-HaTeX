@@ -27,7 +27,7 @@ type Expr = Expression LaTeX
 type SLaTeX = Text
 
 data TestTree = TestGroup String [TestTree]
-              | TestCase Expr String SLaTeX
+              | TestCase Expr String SLaTeX String
 
 
 mkLaTeXSnip :: QuasiQuoter
