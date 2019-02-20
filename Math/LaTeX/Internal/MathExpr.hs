@@ -373,8 +373,8 @@ toMathLaTeX' :: ∀ σ l . (LaTeXC l, SymbolClass σ, SCConstraint σ LaTeX)
      => CAS (Infix LaTeX) (Encapsulation LaTeX) (SymbolD σ LaTeX) -> l
 toMathLaTeX' = fromLaTeX . toMathLaTeX
 
-toMathLaTeX :: ∀ σ l . ( LaTeXC l, Num l, SymbolClass σ
-                       , SCConstraint σ l, RenderableEncapsulations l )
+toMathLaTeX :: ∀ σ l . ( l ~ LaTeX, SymbolClass σ
+                       , SCConstraint σ l )
                 => CAS (Infix l) (Encapsulation l) (SymbolD σ l) -> l
 toMathLaTeX = renderSymbolExpression (AtLHS $ Hs.Fixity 0 Hs.InfixL) ρ
               . fixateAlgebraEncaps
