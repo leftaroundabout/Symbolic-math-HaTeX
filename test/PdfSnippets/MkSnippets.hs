@@ -240,7 +240,10 @@ testGroup = TestGroup
 
 evalTests :: TestTree -> IO Text
 evalTests = go False 1
- where go hasHeader _ (TestCase e ec s _)
+ where go hasHeader _ (TestCase e ec s shw)
+        | shw/=shw'
+                   = error $ "Got "<>shw'<>"; expected "
+                                  <> shw<>", when showing "<>ec
         | s==s'    = do
          let snipName = "test/PdfSnippets"</>encode (Txt.unpack s)
          doesFileExist (snipName<.>".png") >>= flip
@@ -271,6 +274,7 @@ evalTests = go False 1
         | otherwise    = error $ "Got "<>show s'<>"; expected "
                                   <> show s<>", when rendering "<>ec
         where s' = LaTeX.render (toMathLaTeX e)
+              shw' = show e
        go _ i (TestGroup g (s₀:s))
               = (Txt.pack (replicate i '#' <> " " <> g <> "\n") <>)
                . Txt.concat <$> ((:) <$> go False (i+1) s₀
