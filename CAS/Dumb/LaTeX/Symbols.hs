@@ -21,7 +21,7 @@
 module CAS.Dumb.LaTeX.Symbols (fixateLaTeXAlgebraEncaps) where
 
 import CAS.Dumb.Tree
-import CAS.Dumb.Symbols
+import CAS.Dumb.Symbols hiding (Negation, Reciprocal)
 
 import Text.LaTeX
 import Text.LaTeX.Base.Class
@@ -46,7 +46,11 @@ import Control.Arrow (second)
 import qualified Language.Haskell.TH as Hs
 
 
-type instance SpecialEncapsulation LaTeX = AlgebraicInvEncapsulation
+data AlgebraicInvSupSubEncapsulation
+       = Negation | Reciprocal | Subscript | Superscript
+ deriving (Eq, Show)
+
+type instance SpecialEncapsulation LaTeX = AlgebraicInvSupSubEncapsulation
 
 instance RenderableEncapsulations LaTeX where
   fixateAlgebraEncaps = fixateShowAlgebraEncaps
