@@ -18,7 +18,7 @@
 {-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE CPP                  #-}
 
-module CAS.Dumb.LaTeX.Symbols () where
+module CAS.Dumb.LaTeX.Symbols (fixateLaTeXAlgebraEncaps) where
 
 import CAS.Dumb.Tree
 import CAS.Dumb.Symbols
@@ -49,7 +49,52 @@ import qualified Language.Haskell.TH as Hs
 type instance SpecialEncapsulation LaTeX = AlgebraicInvEncapsulation
 
 instance RenderableEncapsulations LaTeX where
-  fixateAlgebraEncaps = fixateLaTeXAlgebraEncaps
+  fixateAlgebraEncaps = fixateShowAlgebraEncaps
+
+fixateShowAlgebraEncaps :: ∀ σ γ . (SymbolClass σ, SCConstraint σ LaTeX)
+         => CAS' γ (Infix LaTeX) (Encapsulation LaTeX) (SymbolD σ LaTeX)
+          -> CAS' γ (Infix LaTeX) (Encapsulation LaTeX) (SymbolD σ LaTeX)
+fixateShowAlgebraEncaps (OperatorChain x
+                         ((o,Function (SpecialEncapsulation ι) z):ys))
+     | (Infix (Hs.Fixity 6 Hs.InfixL) addSym', Negation) <- (o,ι)
+     , addSym' == addSym
+           = case fixateShowAlgebraEncaps $ OperatorChain x ys of
+               x' -> Operator (Infix (Hs.Fixity 6 Hs.InfixL) "-") x' z'
+     | (Infix (Hs.Fixity 7 Hs.InfixL) mulSym', Reciprocal) <- (o,ι)
+     , mulSym' == mulSym
+           = case fixateShowAlgebraEncaps $ OperatorChain x ys of
+               x' -> Operator (Infix (Hs.Fixity 8 Hs.InfixL) mempty)
+                  (encapsulation (raw "\\frac{") (raw "}") x')
+                  (encapsulation (raw       "{") (raw "}") z')
+   where [addSym, mulSym] = fromCharSymbol ([]::[σ]) <$> "+*" :: [LaTeX]
+         z' = fixateShowAlgebraEncaps z
+fixateShowAlgebraEncaps (OperatorChain x []) = fixateShowAlgebraEncaps x
+fixateShowAlgebraEncaps (OperatorChain x ((o@(Infix (Hs.Fixity _ Hs.InfixL) _), z):ys))
+      = Operator o (fixateShowAlgebraEncaps $ OperatorChain x ys) (fixateShowAlgebraEncaps z)
+fixateShowAlgebraEncaps (Operator o x (Function (SpecialEncapsulation ι) y))
+     | (Infix (Hs.Fixity 6 Hs.InfixL) addSym', Negation) <- (o,ι)
+     , addSym' == addSym
+           = Operator (Infix (Hs.Fixity 6 Hs.InfixL) "-") x' y'
+     | (Infix (Hs.Fixity 7 Hs.InfixL) mulSym', Reciprocal) <- (o,ι)
+     , mulSym' == mulSym
+           = Operator (Infix (Hs.Fixity 8 Hs.InfixL) mempty)
+                  (encapsulation (raw "\\frac{") (raw "}") x')
+                  (encapsulation (raw       "{") (raw "}") y')
+   where [addSym, mulSym] = fromCharSymbol ([]::[σ]) <$> "+*" :: [LaTeX]
+         [x',y'] = fixateShowAlgebraEncaps<$>[x,y]
+fixateShowAlgebraEncaps (Function (SpecialEncapsulation Negation) e)
+            = Operator (Infix (Hs.Fixity 6 Hs.InfixL) "-")
+                (Symbol $ StringSymbol " ") $ fixateShowAlgebraEncaps e
+fixateShowAlgebraEncaps (Function (SpecialEncapsulation Reciprocal) e)
+            = Operator (Infix (Hs.Fixity 8 Hs.InfixL) mempty)
+               (encapsulation (raw "\\frac{") (raw "}") . Symbol $ NatSymbol 1)
+               (encapsulation (raw       "{") (raw "}") $ fixateShowAlgebraEncaps e)
+fixateShowAlgebraEncaps (Function f e) = Function f $ fixateShowAlgebraEncaps e
+fixateShowAlgebraEncaps (Operator o x y)
+        = Operator o (fixateShowAlgebraEncaps x) (fixateShowAlgebraEncaps y)
+fixateShowAlgebraEncaps (OperatorChain x₀ oys)
+        = OperatorChain (fixateShowAlgebraEncaps x₀) (second fixateShowAlgebraEncaps <$> oys)
+fixateShowAlgebraEncaps e = e
 
 fixateLaTeXAlgebraEncaps :: ∀ σ γ . (SymbolClass σ, SCConstraint σ LaTeX)
          => CAS' γ (Infix LaTeX) (Encapsulation LaTeX) (SymbolD σ LaTeX)
@@ -58,19 +103,19 @@ fixateLaTeXAlgebraEncaps (OperatorChain x
                          ((o,Function (SpecialEncapsulation ι) z):ys))
      | (Infix (Hs.Fixity 6 Hs.InfixL) addSym', Negation) <- (o,ι)
      , addSym' == addSym
-           = case fixateAlgebraEncaps $ OperatorChain x ys of
+           = case fixateLaTeXAlgebraEncaps $ OperatorChain x ys of
                x' -> Operator (Infix (Hs.Fixity 6 Hs.InfixL) "-") x' z'
      | (Infix (Hs.Fixity 7 Hs.InfixL) mulSym', Reciprocal) <- (o,ι)
      , mulSym' == mulSym
-           = case fixateAlgebraEncaps $ OperatorChain x ys of
+           = case fixateLaTeXAlgebraEncaps $ OperatorChain x ys of
                x' -> Operator (Infix (Hs.Fixity 8 Hs.InfixL) mempty)
                   (encapsulation (raw "\\frac{") (raw "}") x')
                   (encapsulation (raw       "{") (raw "}") z')
    where [addSym, mulSym] = fromCharSymbol ([]::[σ]) <$> "+*" :: [LaTeX]
-         z' = fixateAlgebraEncaps z
-fixateLaTeXAlgebraEncaps (OperatorChain x []) = fixateAlgebraEncaps x
+         z' = fixateLaTeXAlgebraEncaps z
+fixateLaTeXAlgebraEncaps (OperatorChain x []) = fixateLaTeXAlgebraEncaps x
 fixateLaTeXAlgebraEncaps (OperatorChain x ((o@(Infix (Hs.Fixity _ Hs.InfixL) _), z):ys))
-      = Operator o (fixateAlgebraEncaps $ OperatorChain x ys) (fixateAlgebraEncaps z)
+      = Operator o (fixateLaTeXAlgebraEncaps $ OperatorChain x ys) (fixateLaTeXAlgebraEncaps z)
 fixateLaTeXAlgebraEncaps (Operator o x (Function (SpecialEncapsulation ι) y))
      | (Infix (Hs.Fixity 6 Hs.InfixL) addSym', Negation) <- (o,ι)
      , addSym' == addSym
@@ -81,19 +126,19 @@ fixateLaTeXAlgebraEncaps (Operator o x (Function (SpecialEncapsulation ι) y))
                   (encapsulation (raw "\\frac{") (raw "}") x')
                   (encapsulation (raw       "{") (raw "}") y')
    where [addSym, mulSym] = fromCharSymbol ([]::[σ]) <$> "+*" :: [LaTeX]
-         [x',y'] = fixateAlgebraEncaps<$>[x,y]
+         [x',y'] = fixateLaTeXAlgebraEncaps<$>[x,y]
 fixateLaTeXAlgebraEncaps (Function (SpecialEncapsulation Negation) e)
             = Operator (Infix (Hs.Fixity 6 Hs.InfixL) "-")
-                (Symbol $ StringSymbol " ") $ fixateAlgebraEncaps e
+                (Symbol $ StringSymbol " ") $ fixateLaTeXAlgebraEncaps e
 fixateLaTeXAlgebraEncaps (Function (SpecialEncapsulation Reciprocal) e)
             = Operator (Infix (Hs.Fixity 8 Hs.InfixL) mempty)
                (encapsulation (raw "\\frac{") (raw "}") . Symbol $ NatSymbol 1)
-               (encapsulation (raw       "{") (raw "}") $ fixateAlgebraEncaps e)
-fixateLaTeXAlgebraEncaps (Function f e) = Function f $ fixateAlgebraEncaps e
+               (encapsulation (raw       "{") (raw "}") $ fixateLaTeXAlgebraEncaps e)
+fixateLaTeXAlgebraEncaps (Function f e) = Function f $ fixateLaTeXAlgebraEncaps e
 fixateLaTeXAlgebraEncaps (Operator o x y)
-        = Operator o (fixateAlgebraEncaps x) (fixateAlgebraEncaps y)
+        = Operator o (fixateLaTeXAlgebraEncaps x) (fixateLaTeXAlgebraEncaps y)
 fixateLaTeXAlgebraEncaps (OperatorChain x₀ oys)
-        = OperatorChain (fixateAlgebraEncaps x₀) (second fixateAlgebraEncaps <$> oys)
+        = OperatorChain (fixateLaTeXAlgebraEncaps x₀) (second fixateLaTeXAlgebraEncaps <$> oys)
 fixateLaTeXAlgebraEncaps e = e
 
 
