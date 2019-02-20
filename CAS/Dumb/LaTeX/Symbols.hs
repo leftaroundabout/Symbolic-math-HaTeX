@@ -55,6 +55,7 @@ data LaTeXMathEncapsulation
 
 data StdMathsFunc
    = Abs
+   | ConventionalFunction Text
  deriving (Eq, Show)
 
 type instance SpecialEncapsulation LaTeX = LaTeXMathEncapsulation
@@ -121,6 +122,8 @@ fixateShowAlgebraEncaps (Function (SpecialEncapsulation Subscript) e)
                (fixateShowAlgebraEncaps e)
 fixateShowAlgebraEncaps (StdMathFn Abs e)
             = haskellFunction "abs" $ fixateShowAlgebraEncaps e
+fixateShowAlgebraEncaps (ConventionalMathFn f e)
+            = haskellFunction f $ fixateShowAlgebraEncaps e
 fixateShowAlgebraEncaps (Function f e) = Function f $ fixateShowAlgebraEncaps e
 fixateShowAlgebraEncaps (Operator o x y)
         = Operator o (fixateShowAlgebraEncaps x) (fixateShowAlgebraEncaps y)
@@ -182,6 +185,8 @@ fixateLaTeXAlgebraEncaps (Function (SpecialEncapsulation Subscript) e)
             = encapsulation (raw "{}_{") (raw "}") $ fixateLaTeXAlgebraEncaps e
 fixateLaTeXAlgebraEncaps (StdMathFn Abs e)
             = encapsulation (raw "\\left|") (raw "\\right|") $ fixateLaTeXAlgebraEncaps e
+fixateLaTeXAlgebraEncaps (ConventionalMathFn f e)
+            = latexFunction ("\\"<>f) $ fixateLaTeXAlgebraEncaps e
 fixateLaTeXAlgebraEncaps (Function f e) = Function f $ fixateLaTeXAlgebraEncaps e
 fixateLaTeXAlgebraEncaps (Operator o x y)
         = Operator o (fixateLaTeXAlgebraEncaps x) (fixateLaTeXAlgebraEncaps y)
@@ -281,6 +286,11 @@ pattern StdMathFn ::
                         -> (CAS' γ (Infix LaTeX) (Encapsulation LaTeX) (SymbolD σ LaTeX))
 pattern StdMathFn f e = Function (SpecialEncapsulation (StdMathsFunc f)) e
 
+pattern ConventionalMathFn :: 
+           Text -> (CAS' γ (Infix LaTeX) (Encapsulation LaTeX) (SymbolD σ LaTeX))
+                        -> (CAS' γ (Infix LaTeX) (Encapsulation LaTeX) (SymbolD σ LaTeX))
+pattern ConventionalMathFn f e = StdMathFn (ConventionalFunction f) e
+
 instance ∀ σ γ . (SymbolClass σ, SCConstraint σ LaTeX)
           => Num (CAS' γ (Infix LaTeX) (Encapsulation LaTeX) (SymbolD σ LaTeX)) where
   fromInteger n
@@ -317,20 +327,20 @@ instance ∀ σ γ . (SymbolClass σ, SCConstraint σ LaTeX)
              a (Function (SpecialEncapsulation Superscript) b)
   logBase b a = Operator (Infix (Hs.Fixity 10 Hs.InfixL) mempty)
                   (encapsulation (raw "\\log_{") (raw "}") b) a
-  exp = latexFunction "\\exp"
-  log = latexFunction "\\log"
-  sin = latexFunction "\\sin"
-  cos = latexFunction "\\cos"
-  tan = latexFunction "\\tan"
-  asin = latexFunction "\\asin"
-  acos = latexFunction "\\acos"
-  atan = latexFunction "\\atan"
-  sinh = latexFunction "\\sinh"
-  cosh = latexFunction "\\cosh"
-  tanh = latexFunction "\\tanh"
-  asinh = latexFunction "\\asinh"
-  acosh = latexFunction "\\acosh"
-  atanh = latexFunction "\\atanh"
+  exp = ConventionalMathFn "exp"
+  log = ConventionalMathFn "log"
+  sin = ConventionalMathFn "sin"
+  cos = ConventionalMathFn "cos"
+  tan = ConventionalMathFn "tan"
+  asin = latexFunction "\\arcsin"
+  acos = latexFunction "\\arccos"
+  atan = latexFunction "\\arctan"
+  sinh = ConventionalMathFn "sinh"
+  cosh = ConventionalMathFn "cosh"
+  tanh = ConventionalMathFn "tanh"
+  asinh = latexFunction "\\operatorname{arsinh}"
+  acosh = latexFunction "\\operatorname{arcosh}"
+  atanh = latexFunction "\\operatorname{artanh}"
 
 
 
