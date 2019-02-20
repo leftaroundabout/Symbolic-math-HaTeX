@@ -147,9 +147,9 @@ f°x = opL 7 mempty f (encapsulation (raw"\\left(") (raw"\\right)") x)
 (⁀) = opR 9 mempty
 l◝⁀s = opR 9 mempty l $ encapsulation (raw"^{\\left(") (raw"\\right)}") s
 l◝s = Operator (Infix (Hs.Fixity 9 Hs.InfixR) mempty)
-             l (encapsulation (raw "^{") (raw "}") s)
+             l (Function (SpecialEncapsulation Superscript) s)
 l◞s = Operator (Infix (Hs.Fixity 9 Hs.InfixR) mempty)
-             l (encapsulation (raw "_{") (raw "}") s)
+             l (Function (SpecialEncapsulation Subscript) s)
 l₌₌s = Operator (Infix (Hs.Fixity 8 Hs.InfixR) mempty)
              (encapsulation (raw "\\underbrace{") (raw "}") l)
              (encapsulation (raw "_{") (raw "}") s)

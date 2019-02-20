@@ -18,7 +18,8 @@
 {-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE CPP                  #-}
 
-module CAS.Dumb.LaTeX.Symbols (fixateLaTeXAlgebraEncaps) where
+module CAS.Dumb.LaTeX.Symbols ( fixateLaTeXAlgebraEncaps
+                              , AlgebraicInvSupSubEncapsulation(..) ) where
 
 import CAS.Dumb.Tree
 import CAS.Dumb.Symbols hiding (Negation, Reciprocal)
@@ -89,12 +90,12 @@ fixateShowAlgebraEncaps (Operator o x (Function (SpecialEncapsulation ι) y))
      | (Infix (Hs.Fixity 7 Hs.InfixL) mulSym', Reciprocal) <- (o,ι)
      , mulSym' == mulSym
            = Operator (Infix (Hs.Fixity 7 Hs.InfixL) $ showMagic "/") x' y'
-     | (Infix (Hs.Fixity 8 Hs.InfixR) catSym', Superscript) <- (o,ι)
+     | (Infix fxty catSym', Superscript) <- (o,ι)
      , catSym' == mempty
-           = Operator (Infix (Hs.Fixity 8 Hs.InfixR) $ showMagic "◝") x' y'
-     | (Infix (Hs.Fixity 8 Hs.InfixR) catSym', Subscript) <- (o,ι)
+           = Operator (Infix fxty $ showMagic "◝") x' y'
+     | (Infix fxty catSym', Subscript) <- (o,ι)
      , catSym' == mempty
-           = Operator (Infix (Hs.Fixity 8 Hs.InfixR) $ showMagic "◞") x' y'
+           = Operator (Infix fxty $ showMagic "◞") x' y'
    where [addSym, mulSym] = fromCharSymbol ([]::[σ]) <$> "+*" :: [LaTeX]
          [x',y'] = fixateShowAlgebraEncaps<$>[x,y]
 fixateShowAlgebraEncaps (Function (SpecialEncapsulation Negation) e)
@@ -148,14 +149,14 @@ fixateLaTeXAlgebraEncaps (Operator o x (Function (SpecialEncapsulation ι) y))
            = Operator (Infix (Hs.Fixity 8 Hs.InfixL) mempty)
                   (encapsulation (raw "\\frac{") (raw "}") x')
                   (encapsulation (raw       "{") (raw "}") y')
-     | (Infix (Hs.Fixity 8 Hs.InfixR) catSym', Superscript) <- (o,ι)
+     | (Infix fxty catSym', Superscript) <- (o,ι)
      , catSym' == mempty
-           = Operator (Infix (Hs.Fixity 8 Hs.InfixR) (raw "^"))
+           = Operator (Infix fxty (raw "^"))
                   x'
                   (encapsulation (raw       "{") (raw "}") y')
-     | (Infix (Hs.Fixity 8 Hs.InfixR) catSym', Subscript) <- (o,ι)
+     | (Infix fxty catSym', Subscript) <- (o,ι)
      , catSym' == mempty
-           = Operator (Infix (Hs.Fixity 8 Hs.InfixR) (raw "_"))
+           = Operator (Infix fxty (raw "_"))
                   x'
                   (encapsulation (raw       "{") (raw "}") y')
    where [addSym, mulSym] = fromCharSymbol ([]::[σ]) <$> "+*" :: [LaTeX]
