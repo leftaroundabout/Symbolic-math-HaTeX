@@ -89,6 +89,12 @@ fixateShowAlgebraEncaps (Operator o x (Function (SpecialEncapsulation ι) y))
      | (Infix (Hs.Fixity 7 Hs.InfixL) mulSym', Reciprocal) <- (o,ι)
      , mulSym' == mulSym
            = Operator (Infix (Hs.Fixity 7 Hs.InfixL) $ showMagic "/") x' y'
+     | (Infix (Hs.Fixity 8 Hs.InfixR) catSym', Superscript) <- (o,ι)
+     , catSym' == mempty
+           = Operator (Infix (Hs.Fixity 8 Hs.InfixR) $ showMagic "◝") x' y'
+     | (Infix (Hs.Fixity 8 Hs.InfixR) catSym', Subscript) <- (o,ι)
+     , catSym' == mempty
+           = Operator (Infix (Hs.Fixity 8 Hs.InfixR) $ showMagic "◞") x' y'
    where [addSym, mulSym] = fromCharSymbol ([]::[σ]) <$> "+*" :: [LaTeX]
          [x',y'] = fixateShowAlgebraEncaps<$>[x,y]
 fixateShowAlgebraEncaps (Function (SpecialEncapsulation Negation) e)
@@ -97,6 +103,14 @@ fixateShowAlgebraEncaps (Function (SpecialEncapsulation Negation) e)
 fixateShowAlgebraEncaps (Function (SpecialEncapsulation Reciprocal) e)
             = Operator (Infix (Hs.Fixity 7 Hs.InfixL) $ showMagic "/")
                (Symbol $ NatSymbol 1)
+               (fixateShowAlgebraEncaps e)
+fixateShowAlgebraEncaps (Function (SpecialEncapsulation Superscript) e)
+            = Operator (Infix (Hs.Fixity 7 Hs.InfixL) $ showMagic "◝")
+               (Symbol $ StringSymbol "\"\"")
+               (fixateShowAlgebraEncaps e)
+fixateShowAlgebraEncaps (Function (SpecialEncapsulation Subscript) e)
+            = Operator (Infix (Hs.Fixity 7 Hs.InfixL) $ showMagic "◞")
+               (Symbol $ StringSymbol "\"\"")
                (fixateShowAlgebraEncaps e)
 fixateShowAlgebraEncaps (Function f e) = Function f $ fixateShowAlgebraEncaps e
 fixateShowAlgebraEncaps (Operator o x y)
@@ -134,6 +148,16 @@ fixateLaTeXAlgebraEncaps (Operator o x (Function (SpecialEncapsulation ι) y))
            = Operator (Infix (Hs.Fixity 8 Hs.InfixL) mempty)
                   (encapsulation (raw "\\frac{") (raw "}") x')
                   (encapsulation (raw       "{") (raw "}") y')
+     | (Infix (Hs.Fixity 8 Hs.InfixR) catSym', Superscript) <- (o,ι)
+     , catSym' == mempty
+           = Operator (Infix (Hs.Fixity 8 Hs.InfixR) (raw "^"))
+                  x'
+                  (encapsulation (raw       "{") (raw "}") y')
+     | (Infix (Hs.Fixity 8 Hs.InfixR) catSym', Subscript) <- (o,ι)
+     , catSym' == mempty
+           = Operator (Infix (Hs.Fixity 8 Hs.InfixR) (raw "_"))
+                  x'
+                  (encapsulation (raw       "{") (raw "}") y')
    where [addSym, mulSym] = fromCharSymbol ([]::[σ]) <$> "+*" :: [LaTeX]
          [x',y'] = fixateLaTeXAlgebraEncaps<$>[x,y]
 fixateLaTeXAlgebraEncaps (Function (SpecialEncapsulation Negation) e)
@@ -143,6 +167,10 @@ fixateLaTeXAlgebraEncaps (Function (SpecialEncapsulation Reciprocal) e)
             = Operator (Infix (Hs.Fixity 8 Hs.InfixL) mempty)
                (encapsulation (raw "\\frac{") (raw "}") . Symbol $ NatSymbol 1)
                (encapsulation (raw       "{") (raw "}") $ fixateLaTeXAlgebraEncaps e)
+fixateLaTeXAlgebraEncaps (Function (SpecialEncapsulation Superscript) e)
+            = encapsulation (raw "{}^{") (raw "}") $ fixateLaTeXAlgebraEncaps e
+fixateLaTeXAlgebraEncaps (Function (SpecialEncapsulation Subscript) e)
+            = encapsulation (raw "{}_{") (raw "}") $ fixateLaTeXAlgebraEncaps e
 fixateLaTeXAlgebraEncaps (Function f e) = Function f $ fixateLaTeXAlgebraEncaps e
 fixateLaTeXAlgebraEncaps (Operator o x y)
         = Operator o (fixateLaTeXAlgebraEncaps x) (fixateLaTeXAlgebraEncaps y)
@@ -263,7 +291,7 @@ instance ∀ σ γ . (SymbolClass σ, SCConstraint σ LaTeX)
   pi = Symbol $ StringSymbol pi_
   sqrt = encapsulation (raw "\\sqrt{") (raw "}")
   a ** b = Operator (Infix (Hs.Fixity 8 Hs.InfixR) mempty)
-             a (encapsulation (raw "^{") (raw "}") b)
+             a (Function (SpecialEncapsulation Superscript) b)
   logBase b a = Operator (Infix (Hs.Fixity 10 Hs.InfixL) mempty)
                   (encapsulation (raw "\\log_{") (raw "}") b) a
   exp = latexFunction "\\exp"
