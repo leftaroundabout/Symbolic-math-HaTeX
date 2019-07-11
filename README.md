@@ -8,4 +8,4 @@ Ideally, one would write expressions as if only meaning Haskell to _calculate_ t
 
 See [`EXAMPLES.md`](EXAMPLES.md) for how this works in practice, or [ example/Simple.hs ](example/Simple.hs) for how the library can be used for writing mathematical documents. Rendered, that looks like this:
 
-![xelatex-rendered example document](example/Simple_rendered.png)
+| ![TeX-my-math source for example document](example/Simple_src.png) | ![xelatex-rendered example document](example/Simple_rendered.png) |
