@@ -35,7 +35,7 @@ Description:         For tl;dr: look at <https://github.com/leftaroundabout/Symb
 License:             GPL-3
 License-file:        COPYING
 Author:              Justus Sagemüller
-Maintainer:          (@) jsagemue $ uni-koeln.de
+Maintainer:          (@) jsag $ hvl.no
 Homepage:            http://github.com/leftaroundabout/Symbolic-math-HaTeX
 Build-Type:          Simple
 Cabal-Version:       >=1.10
