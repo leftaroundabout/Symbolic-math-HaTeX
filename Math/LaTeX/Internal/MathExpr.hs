@@ -126,10 +126,11 @@ infixr 2 ∪
 infixl 2 -\-
 (-\-) = opL' 2 LaTeX.setminus
 
-infixr 5 ⸪, -→, ↪
-(⸪), (-→), (↪) :: MathsInfix
+infixr 5 ⸪, -→, ←-, ↪
+(⸪), (-→), (←-), (↪) :: MathsInfix
 (⸪) = opR 5 ":"
 (-→) = opR 5 LaTeX.to
+(←-) = opR 5 LaTeX.leftarrow
 (↪) = opR 5 $ LaTeX.comm0"hookrightarrow"
 
 infix 2 ∀:, ∃:
