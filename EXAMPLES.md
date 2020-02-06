@@ -99,7 +99,7 @@ _This file was generated automatically from [MkSnippets.hs](test/PdfSnippets/MkS
 | Haskell | LaTeX | pdf |
 | ---: | --- | :--- |
 | `set(3،4،5) ` | `\left\{3,4,5\right\}` | ![pdflatex-rendered version of `\left\{3,4,5\right\}`](test/PdfSnippets/ᓭleftᓭⶈ3،4،5ᓭrightᓭⶉ.png) |
-| `setCompr (𝑥◝2) (𝑥∈ℕ) ` | `\left\{x^{2}\mid\|x\in{}\mathbb{N}\right\}` | ![pdflatex-rendered version of `\left\{x^{2}\mid\|x\in{}\mathbb{N}\right\}`](test/PdfSnippets/ᓭleftᓭⶈxᐞⶈ2ⶉᓭmidᛁxᓭinⶈⶉᓭmathbbⶈNⶉᓭrightᓭⶉ.png) |
+| `setCompr (𝑥◝2) (𝑥∈ℕ) ` | `\left\{x^{2}\middle\|x\in{}\mathbb{N}\right\}` | ![pdflatex-rendered version of `\left\{x^{2}\middle\|x\in{}\mathbb{N}\right\}`](test/PdfSnippets/ᓭleftᓭⶈxᐞⶈ2ⶉᓭmiddleᛁxᓭinⶈⶉᓭmathbbⶈNⶉᓭrightᓭⶉ.png) |
 ## Misc
 | Haskell | LaTeX | pdf |
 | ---: | --- | :--- |

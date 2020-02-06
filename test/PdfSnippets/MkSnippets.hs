@@ -163,7 +163,7 @@ tests = testGroup "Tests"
      [ [mkLaTeXSnip| set(3،4،5) |]
          "\\left\\{3,4,5\\right\\}"
      , [mkLaTeXSnip| setCompr (𝑥◝2) (𝑥∈ℕ) |]
-         "\\left\\{x^{2}\\mid|x\\in{}\\mathbb{N}\\right\\}"
+         "\\left\\{x^{2}\\middle|x\\in{}\\mathbb{N}\\right\\}"
      ]
   , testGroup "Misc"
      [ [mkLaTeXSnip| 3*𝑧 - 1 |]
