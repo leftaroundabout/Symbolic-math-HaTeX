@@ -38,7 +38,7 @@ module Math.LaTeX.Prelude (
    , (∀:), (∃:)
    , (-→), (←-), (↦), (↪), (==>), (<==), (<=>), (∧), (∨)
    , (∫), (◞∫), (◞∮), d, (∑), (◞∑), (∏), (◞∏), del, nabla
-   , (<.<), (≤.<), (<.≤), (≤.≤), (±), (∓), set, tup, intv
+   , (<.<), (≤.<), (<.≤), (≤.≤), (±), (∓), set, setCompr, tup, intv
    , infty, norm
    , nobreaks, matrix, cases
    -- * Algebraic manipulation

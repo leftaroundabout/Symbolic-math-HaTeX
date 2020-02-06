@@ -359,6 +359,12 @@ tup = encapsulation (raw"\\left(") (raw"\\right)")
 intv = encapsulation (raw"\\left[") (raw"\\right]")
 nobreaks = encapsulation (raw"{") (raw"}")
 
+setCompr :: LaTeXC l
+  => CAS' γ (Infix l) (Encapsulation l) (SymbolD σ l)
+   -> CAS' γ (Infix l) (Encapsulation l) (SymbolD σ l)
+    -> CAS' γ (Infix l) (Encapsulation l) (SymbolD σ l)
+setCompr elm cnd = set $ opN 1 (raw"\\mid|") elm cnd
+
 
 infix 5 <.<, ≤.<, <.≤, ≤.≤
 (<.<), (≤.<), (<.≤), (≤.≤) :: MathsInfix

@@ -95,6 +95,11 @@ _This file was generated automatically from [MkSnippets.hs](test/PdfSnippets/MkS
 | `𝑚 + (𝑝<>𝑞<>𝑟) ` | `m+pqr` | ![pdflatex-rendered version of `m+pqr`](test/PdfSnippets/m⼦pqr.png) |
 | `𝑚 + (𝑝<>(2+𝑞)<>𝑟) ` | `m+\left(p2+qr\right)` | ![pdflatex-rendered version of `m+\left(p2+qr\right)`](test/PdfSnippets/m⼦ᓭleftᑕp2⼦qrᓭrightᑐ.png) |
 | `𝑚 * ((1+2)<>(3+4)) ` | `m{\cdot}\left(1+23+4\right)` | ![pdflatex-rendered version of `m{\cdot}\left(1+23+4\right)`](test/PdfSnippets/mⶈᓭcdotⶉᓭleftᑕ1⼦23⼦4ᓭrightᑐ.png) |
+## Set-builders
+| Haskell | LaTeX | pdf |
+| ---: | --- | :--- |
+| `set(3،4،5) ` | `\left\{3,4,5\right\}` | ![pdflatex-rendered version of `\left\{3,4,5\right\}`](test/PdfSnippets/ᓭleftᓭⶈ3،4،5ᓭrightᓭⶉ.png) |
+| `setCompr (𝑥◝2) (𝑥∈ℕ) ` | `\left\{x^{2}\mid\|x\in{}\mathbb{N}\right\}` | ![pdflatex-rendered version of `\left\{x^{2}\mid\|x\in{}\mathbb{N}\right\}`](test/PdfSnippets/ᓭleftᓭⶈxᐞⶈ2ⶉᓭmidᛁxᓭinⶈⶉᓭmathbbⶈNⶉᓭrightᓭⶉ.png) |
 ## Misc
 | Haskell | LaTeX | pdf |
 | ---: | --- | :--- |

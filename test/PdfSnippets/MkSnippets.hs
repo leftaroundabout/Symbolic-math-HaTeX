@@ -159,6 +159,12 @@ tests = testGroup "Tests"
      , [mkLaTeXSnip| 𝑚 * ((1+2)<>(3+4)) |]
          "m{\\cdot}\\left(1+23+4\\right)"
      ]
+  , testGroup "Set-builders"
+     [ [mkLaTeXSnip| set(3،4،5) |]
+         "\\left\\{3,4,5\\right\\}"
+     , [mkLaTeXSnip| setCompr (𝑥◝2) (𝑥∈ℕ) |]
+         "\\left\\{x^{2}\\mid|x\\in{}\\mathbb{N}\\right\\}"
+     ]
   , testGroup "Misc"
      [ [mkLaTeXSnip| 3*𝑧 - 1 |]
          "3{\\cdot}z-1"
