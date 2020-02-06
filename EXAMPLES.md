@@ -100,6 +100,8 @@ _This file was generated automatically from [MkSnippets.hs](test/PdfSnippets/MkS
 | ---: | --- | :--- |
 | `set(3،4،5) ` | `\left\{3,4,5\right\}` | ![pdflatex-rendered version of `\left\{3,4,5\right\}`](test/PdfSnippets/ᓭleftᓭⶈ3،4،5ᓭrightᓭⶉ.png) |
 | `setCompr (𝑥◝2) (𝑥∈ℕ) ` | `\left\{x^{2}\middle\|x\in{}\mathbb{N}\right\}` | ![pdflatex-rendered version of `\left\{x^{2}\middle\|x\in{}\mathbb{N}\right\}`](test/PdfSnippets/ᓭleftᓭⶈxᐞⶈ2ⶉᓭmiddleᛁxᓭinⶈⶉᓭmathbbⶈNⶉᓭrightᓭⶉ.png) |
+| `setCompr (𝑥/𝑦) (𝑥∈ℤ، 𝑦∈ℕ، 𝑦⪢0) ` | `\left\{\frac{x}{y}\middle\|x\in{}\mathbb{Z},y\in{}\mathbb{N},y>0\right\}` | ![pdflatex-rendered version of `\left\{\frac{x}{y}\middle\|x\in{}\mathbb{Z},y\in{}\mathbb{N},y>0\right\}`](test/PdfSnippets/ᓭleftᓭⶈᓭfracⶈxⶉⶈyⶉᓭmiddleᛁxᓭinⶈⶉᓭmathbbⶈZⶉ،yᓭinⶈⶉᓭmathbbⶈNⶉ،yᐳ0ᓭrightᓭⶉ.png) |
+| `setCompr (𝑥،𝑦) (𝑥∈ℤ، 𝑦∈ℝ) ` | `\left\{\left(x,y\right)\middle\|x\in{}\mathbb{Z},y\in{}\mathbb{R}\right\}` | ![pdflatex-rendered version of `\left\{\left(x,y\right)\middle\|x\in{}\mathbb{Z},y\in{}\mathbb{R}\right\}`](test/PdfSnippets/ᓭleftᓭⶈᓭleftᑕx،yᓭrightᑐᓭmiddleᛁxᓭinⶈⶉᓭmathbbⶈZⶉ،yᓭinⶈⶉᓭmathbbⶈRⶉᓭrightᓭⶉ.png) |
 ## Misc
 | Haskell | LaTeX | pdf |
 | ---: | --- | :--- |

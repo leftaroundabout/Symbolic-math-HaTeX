@@ -164,6 +164,10 @@ tests = testGroup "Tests"
          "\\left\\{3,4,5\\right\\}"
      , [mkLaTeXSnip| setCompr (𝑥◝2) (𝑥∈ℕ) |]
          "\\left\\{x^{2}\\middle|x\\in{}\\mathbb{N}\\right\\}"
+     , [mkLaTeXSnip| setCompr (𝑥/𝑦) (𝑥∈ℤ، 𝑦∈ℕ، 𝑦⪢0) |]
+         "\\left\\{\\frac{x}{y}\\middle|x\\in{}\\mathbb{Z},y\\in{}\\mathbb{N},y>0\\right\\}"
+     , [mkLaTeXSnip| setCompr (𝑥،𝑦) (𝑥∈ℤ، 𝑦∈ℝ) |]
+         "\\left\\{\\left(x,y\\right)\\middle|x\\in{}\\mathbb{Z},y\\in{}\\mathbb{R}\\right\\}"
      ]
   , testGroup "Misc"
      [ [mkLaTeXSnip| 3*𝑧 - 1 |]
