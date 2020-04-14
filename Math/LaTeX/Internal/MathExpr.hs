@@ -8,18 +8,19 @@
 -- Portability : requires GHC>7 extensions
 -- 
 
-{-# LANGUAGE OverloadedStrings      #-}
-{-# LANGUAGE RankNTypes             #-}
-{-# LANGUAGE FlexibleContexts       #-}
-{-# LANGUAGE FlexibleInstances      #-}
-{-# LANGUAGE TypeFamilies           #-}
-{-# LANGUAGE UndecidableInstances   #-}
-{-# LANGUAGE ScopedTypeVariables    #-}
-{-# LANGUAGE UnicodeSyntax          #-}
-{-# LANGUAGE TemplateHaskell        #-}
-{-# LANGUAGE TupleSections          #-}
-{-# LANGUAGE ConstraintKinds        #-}
-{-# LANGUAGE CPP                    #-}
+{-# LANGUAGE OverloadedStrings         #-}
+{-# LANGUAGE RankNTypes                #-}
+{-# LANGUAGE FlexibleContexts          #-}
+{-# LANGUAGE FlexibleInstances         #-}
+{-# LANGUAGE TypeFamilies              #-}
+{-# LANGUAGE UndecidableInstances      #-}
+{-# LANGUAGE ScopedTypeVariables       #-}
+{-# LANGUAGE UnicodeSyntax             #-}
+{-# LANGUAGE TemplateHaskell           #-}
+{-# LANGUAGE TupleSections             #-}
+{-# LANGUAGE ConstraintKinds           #-}
+{-# LANGUAGE CPP                       #-}
+{-# LANGUAGE NoMonomorphismRestriction #-}
 
 module Math.LaTeX.Internal.MathExpr where
 
@@ -118,11 +119,12 @@ infixr 3 ∧, ∨
 (∧) = opR 3 $ LaTeX.comm0"wedge"
 (∨) = opR 3 $ LaTeX.comm0"vee"
 
-(∩), (∪), (-\-) :: MathsInfix
+(∩), (∪), (⊎), (-\-) :: MathsInfix
 infixr 3 ∩
 (∩) = opR' 3 LaTeX.cap
-infixr 2 ∪
+infixr 2 ∪, ⊎
 (∪) = opR' 2 LaTeX.cup
+(⊎) = opR' 2 LaTeX.uplus
 infixl 2 -\-
 (-\-) = opL' 2 LaTeX.setminus
 
@@ -235,7 +237,7 @@ d :: LaTeXC l => CAS' γ (Infix l) (Encapsulation l) s⁰
               -> Integrand γ (Infix l) (Encapsulation l) s⁰
 d x f = Integrand $ opR 7 LaTeX.space x f
 
-infixr 8 ∫, ◞∫, ◞∮, ∑, ◞∑, ∏, ◞∏
+infixr 8 ∫, ◞∫, ◞∮, ∑, ◞∑, ∏, ◞∏, ⋃, ◞⋃, ⋂, ◞⋂, ⨄, ◞⨄
 
 (∫) :: LaTeXC l
   => ( CAS' γ (Infix l) (Encapsulation l) (SymbolD σ l)
@@ -267,47 +269,32 @@ infixr 8 ∫, ◞∫, ◞∮, ∑, ◞∑, ∏, ◞∏
              (encapsulation (raw "\\oint_{") (raw "}\\!\\!\\!") ω)
              i
 
-(∑) :: LaTeXC l
+(∑), (∏), (⋃), (⋂), (⨄) :: LaTeXC l
   => ( CAS' γ (Infix l) (Encapsulation l) (SymbolD σ l)
      , CAS' γ (Infix l) (Encapsulation l) (SymbolD σ l) )
               -> CAS' γ (Infix l) (Encapsulation l) (SymbolD σ l)
               -> CAS' γ (Infix l) (Encapsulation l) (SymbolD σ l)
-(l,r)∑m
-    = Operator (Infix (Hs.Fixity 7 Hs.InfixR) $ raw" ")
+[(∑), (∏), (⋃), (⋂), (⨄)]
+  = [ \(l,r) m
+     -> Operator (Infix (Hs.Fixity 7 Hs.InfixR) $ raw" ")
              (Operator (Infix (Hs.Fixity 9 Hs.InfixN) $ raw "^")
-                (encapsulation (raw "\\sum_{") (raw "}") l)
+                (encapsulation (raw ("\\"<>opraw<>"_{")) (raw "}") l)
                 (encapsulation (raw "{") (raw "}") r) )
              m
+    | opraw <- ["sum", "prod", "bigcup", "bigcap", "biguplus"]
+    ]
 
-(◞∑) :: LaTeXC l
+(◞∑), (◞∏), (◞⋃), (◞⋂), (◞⨄) :: LaTeXC l
   => CAS' γ (Infix l) (Encapsulation l) (SymbolD σ l)
               -> CAS' γ (Infix l) (Encapsulation l) (SymbolD σ l)
               -> CAS' γ (Infix l) (Encapsulation l) (SymbolD σ l)
-ω◞∑m
-    = Operator (Infix (Hs.Fixity 7 Hs.InfixR) $ raw " ")
-             (encapsulation (raw "\\sum_{") (raw "}") ω)
+[(◞∑), (◞∏), (◞⋃), (◞⋂), (◞⨄)]
+  = [ \ω m
+     -> Operator (Infix (Hs.Fixity 7 Hs.InfixR) $ raw " ")
+             (encapsulation (raw ("\\"<>opraw<>"_{")) (raw "}") ω)
              m
-
-(∏) :: LaTeXC l
-  => ( CAS' γ (Infix l) (Encapsulation l) (SymbolD σ l)
-     , CAS' γ (Infix l) (Encapsulation l) (SymbolD σ l) )
-              -> CAS' γ (Infix l) (Encapsulation l) (SymbolD σ l)
-              -> CAS' γ (Infix l) (Encapsulation l) (SymbolD σ l)
-(l,r)∏m
-    = Operator (Infix (Hs.Fixity 7 Hs.InfixR) $ raw" ")
-             (Operator (Infix (Hs.Fixity 9 Hs.InfixN) $ raw "^")
-                (encapsulation (raw "\\prod_{") (raw "}") l)
-                (encapsulation (raw "{") (raw "}") r) )
-             m
-
-(◞∏) :: LaTeXC l
-  => CAS' γ (Infix l) (Encapsulation l) (SymbolD σ l)
-              -> CAS' γ (Infix l) (Encapsulation l) (SymbolD σ l)
-              -> CAS' γ (Infix l) (Encapsulation l) (SymbolD σ l)
-ω◞∏m
-    = Operator (Infix (Hs.Fixity 7 Hs.InfixR) $ raw " ")
-             (encapsulation (raw "\\prod_{") (raw "}") ω)
-             m
+    | opraw <- ["sum", "prod", "bigcup", "bigcap", "biguplus"]
+    ]
 
 norm :: LaTeXC l => CAS' γ (Infix l) (Encapsulation l) (SymbolD σ l)
             -> CAS' γ (Infix l) (Encapsulation l) (SymbolD σ l)
