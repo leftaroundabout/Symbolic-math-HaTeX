@@ -119,14 +119,16 @@ infixr 3 ∧, ∨
 (∧) = opR 3 $ LaTeX.comm0"wedge"
 (∨) = opR 3 $ LaTeX.comm0"vee"
 
-(∩), (∪), (⊎), (-\-) :: MathsInfix
+(∩), (∪), (⊎), (-\-), (⧵) :: MathsInfix
 infixr 3 ∩
 (∩) = opR' 3 LaTeX.cap
 infixr 2 ∪, ⊎
 (∪) = opR' 2 LaTeX.cup
 (⊎) = opR' 2 LaTeX.uplus
-infixl 2 -\-
-(-\-) = opL' 2 LaTeX.setminus
+infixl 2 -\-, ⧵
+{-# DEPRECATED (-\-) "Use (⧵)" #-}
+(-\-) = (⧵)
+(⧵) = opL' 2 LaTeX.setminus
 
 infixr 5 ⸪, -→, ←-, ↪
 (⸪), (-→), (←-), (↪) :: MathsInfix
@@ -135,10 +137,11 @@ infixr 5 ⸪, -→, ←-, ↪
 (←-) = opR 5 LaTeX.leftarrow
 (↪) = opR 5 $ LaTeX.comm0"hookrightarrow"
 
-infix 2 ∀:, ∃:
+infix 2 ∀:, ∃:, ∄:
 (∀:), (∃:) :: MathsInfix
 (∀:) = opN 2 $ raw"\\ \\:\\forall{}"
 (∃:) = opN 2 $ raw"\\ \\:\\exists{}"
+(∄:) = opN 2 $ raw"\\ \\:\\nexists{}"
 
 infixl 7 °
 infixr 9 ◝, ⁀, ◝⁀
