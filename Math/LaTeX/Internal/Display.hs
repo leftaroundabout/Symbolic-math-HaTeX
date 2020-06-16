@@ -111,7 +111,8 @@ equations eqLines garnish = fromLaTeX . TeXEnv "align" [] $ stack eqLines
        (eqnum, terminator) = parseEqnum garnish
 
 asSafeLabel :: String -> LaTeX
-asSafeLabel = LaTeX.label . fromString . filter isAlpha
+asSafeLabel = LaTeX.label . raw . fromString
+                         -- raw: otherwise HaTeX interprets e.g. '_'
 
 -- | Include a formula / equation system as a LaTeX display.
 maths :: (LaTeXC r, LaTeXSymbol σ)
