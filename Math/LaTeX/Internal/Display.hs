@@ -39,6 +39,8 @@ import Control.Arrow
 import Data.String (fromString)
 import Data.Char (isAlpha)
 
+import GHC.Stack (HasCallStack)
+
 
 infixl 1 >$
 -- | Embed inline maths in a monadic chain of document-components. Space before
@@ -91,7 +93,7 @@ dmaths eqLines garnish = fromLaTeX . TeXEnv
 --   referenced with 'LaTeX.ref'. (The label name will /not/ appear in the rendered
 --   document output; by default it will be just a number but you can tweak it with
 --   the terminator by including the desired tag in parentheses.)
-equations :: (LaTeXC r, LaTeXSymbol σ)
+equations :: (LaTeXC r, LaTeXSymbol σ, HasCallStack)
   => [(LaTeXMath σ, String)]
               -- ^ Equations to show, with label name.
    -> String  -- ^ “Terminator” – this can include punctuation (when an equation
@@ -110,8 +112,13 @@ equations eqLines garnish = fromLaTeX . TeXEnv "align" [] $ stack eqLines
        terminator :: LaTeX
        (eqnum, terminator) = parseEqnum garnish
 
-asSafeLabel :: String -> LaTeX
-asSafeLabel = LaTeX.label . fromString . filter isAlpha
+asSafeLabel :: HasCallStack => String -> LaTeX
+asSafeLabel lbl
+  | all safeChar lbl  = LaTeX.label . raw $ fromString lbl
+  | otherwise         = error $ "Labels can only contain alphabetic characters or “"
+                                  ++safeSpecialChars++"”."
+ where safeChar c = isAlpha c || c`elem`safeSpecialChars
+       safeSpecialChars = "[]:/._"
 
 -- | Include a formula / equation system as a LaTeX display.
 maths :: (LaTeXC r, LaTeXSymbol σ)
