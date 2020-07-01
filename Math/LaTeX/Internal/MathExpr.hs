@@ -125,10 +125,12 @@ infixr 3 ∩
 infixr 2 ∪, ⊎
 (∪) = opR' 2 LaTeX.cup
 (⊎) = opR' 2 LaTeX.uplus
-infixl 2 -\-, ⧵
-{-# DEPRECATED (-\-) "Use (⧵)" #-}
+infixl 2 -\-, ⧵, ∖
+{-# DEPRECATED (-\-) "Use (∖), i.e. U+2216 SET MINUS" #-}
 (-\-) = (⧵)
-(⧵) = opL' 2 LaTeX.setminus
+(⧵) = (⧵)
+{-# DEPRECATED (⧵) "Use (∖), i.e. U+2216 SET MINUS. (You used U+29F5 REVERSE SOLIDUS OPERATOR)" #-}
+(∖) = opL' 2 LaTeX.setminus
 
 infixr 5 ⸪, -→, ←-, ↪
 (⸪), (-→), (←-), (↪) :: MathsInfix
