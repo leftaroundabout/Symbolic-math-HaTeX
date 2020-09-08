@@ -25,6 +25,9 @@ import qualified Data.Text.IO as Txt
 import Data.Char
 
 import CAS.Dumb
+import CAS.Dumb.Symbols.ASCII(ASCII)
+import CAS.Dumb.Symbols.Unicode.MathLatin_RomanGreek__BopomofoGaps
+                       (Unicode_MathLatin_RomanGreek__BopomofoGaps)
 
 import System.FilePath
 import System.Directory
@@ -37,15 +40,15 @@ import Control.Monad
 
 main :: IO ()
 main = do
-   examples <- evalTests tests
+   examples <- evalTests tests_U
    Txt.writeFile "EXAMPLES.md"
       $ "_This file was generated automatically from [MkSnippets.hs](test/PdfSnippets/MkSnippets.hs). Run `cabal test` to refresh it._\n"
        <> examples
    
 
 
-tests :: TestTree
-tests = testGroup "Tests"
+tests_U :: TestTree Unicode_MathLatin_RomanGreek__BopomofoGaps
+tests_U = testGroup "Tests"
   [ testGroup "Simple expressions"
      [ [mkLaTeXSnip|        𝑎 + 𝑏 * 𝑐 |] "a+b{\\cdot}c"
 #if __GLASGOW_HASKELL__ > 801
@@ -182,10 +185,10 @@ tests = testGroup "Tests"
   ]
 
 
-testGroup :: String -> [TestTree] -> TestTree
+testGroup :: String -> [TestTree σ] -> TestTree σ
 testGroup = TestGroup
 
-evalTests :: TestTree -> IO Text
+evalTests :: (SymbolClass σ, SCConstraint σ LaTeX) => TestTree σ -> IO Text
 evalTests = go False 1
  where go hasHeader _ (TestCase e ec s)
         | s==s'    = do

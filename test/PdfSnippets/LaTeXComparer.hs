@@ -23,11 +23,10 @@ import Language.Haskell.Meta.Parse
 import Text.LaTeX (LaTeX, Text)
 
 
-type Expr = Expression LaTeX
 type SLaTeX = Text
 
-data TestTree = TestGroup String [TestTree]
-              | TestCase Expr String SLaTeX
+data TestTree σ = TestGroup String [TestTree σ]
+                | TestCase (LaTeXMath σ) String SLaTeX
 
 
 mkLaTeXSnip :: QuasiQuoter
