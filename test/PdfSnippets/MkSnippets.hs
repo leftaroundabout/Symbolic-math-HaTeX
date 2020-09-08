@@ -19,13 +19,14 @@ import Math.LaTeX.Prelude
 import Math.LaTeX.StringLiterals
 
 import Text.LaTeX (LaTeX, raw, Text)
+import Text.LaTeX.Base.Math (gamma, xi)
 import qualified Text.LaTeX as LaTeX
 import qualified Data.Text as Txt
 import qualified Data.Text.IO as Txt
 import Data.Char
 
 import CAS.Dumb
-import CAS.Dumb.Symbols.ASCII(ASCII)
+import CAS.Dumb.Symbols.ASCII hiding (d)
 import CAS.Dumb.Symbols.Unicode.MathLatin_RomanGreek__BopomofoGaps
                        (Unicode_MathLatin_RomanGreek__BopomofoGaps)
 
@@ -40,12 +41,36 @@ import Control.Monad
 
 main :: IO ()
 main = do
-   examples <- evalTests tests_U
+   examples_U <- evalTests tests_U
    Txt.writeFile "EXAMPLES.md"
       $ "_This file was generated automatically from [MkSnippets.hs](test/PdfSnippets/MkSnippets.hs). Run `cabal test` to refresh it._\n"
-       <> examples
+       <> examples_U
+   examples_A <- evalTests tests_A
+   Txt.writeFile "EXAMPLES_ASCII.md"
+      $ "_This file was generated automatically from [MkSnippets.hs](test/PdfSnippets/MkSnippets.hs). Run `cabal test` to refresh it._\n"
+       <> examples_A
    
 
+
+tests_A :: TestTree ASCII
+tests_A = testGroup "Tests"
+  [ testGroup "Simple expressions"
+     [ [mkLaTeXSnip|        a + b * c |] "a+b{\\cdot}c"
+#if __GLASGOW_HASKELL__ > 801
+     , [mkLaTeXSnip|        A * B + C |] "A{\\cdot}B+C"
+#endif
+     , [mkLaTeXSnip|      (a + b) * c |] "\\left(a+b\\right){\\cdot}c"
+     , [mkLaTeXSnip|(a + b) / (x - y) |] "\\frac{a+b}{x-y}"
+     , [mkLaTeXSnip| (a + b)**(x - y) |] "\\left(a+b\\right)^{x-y}"
+     , [mkLaTeXSnip|         (p/q)**gamma |] "\\left(\\frac{p}{q}\\right)^{\\gamma{}}"
+     , [mkLaTeXSnip|      abs(p/q)**xi |] "\\left|\\frac{p}{q}\\right|^{\\xi{}}"
+     , [mkLaTeXSnip|          a**b**c |] "a^{b^{c}}"
+     , [mkLaTeXSnip|        (a**b)**c |] "\\left(a^{b}\\right)^{c}"
+     , [mkLaTeXSnip|      sin (sin x) |] "\\sin{\\left(\\sin{x}\\right)}"
+     , [mkLaTeXSnip|   matrix[[ 0,1]
+                             ,[-1,0]] |] "\\begin{pmatrix}0&1\\\\ -1&0\\end{pmatrix}"
+     ]
+   ]
 
 tests_U :: TestTree Unicode_MathLatin_RomanGreek__BopomofoGaps
 tests_U = testGroup "Tests"
