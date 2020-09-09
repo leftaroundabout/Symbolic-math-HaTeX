@@ -19,7 +19,8 @@ import Math.LaTeX.Prelude
 import Math.LaTeX.StringLiterals
 
 import Text.LaTeX (LaTeX, raw, Text)
-import Text.LaTeX.Base.Math (gamma, xi)
+import Text.LaTeX.Base.Math
+import Text.LaTeX.Packages.AMSFonts
 import qualified Text.LaTeX as LaTeX
 import qualified Data.Text as Txt
 import qualified Data.Text.IO as Txt
@@ -69,6 +70,42 @@ tests_A = testGroup "Tests"
      , [mkLaTeXSnip|      sin (sin x) |] "\\sin{\\left(\\sin{x}\\right)}"
      , [mkLaTeXSnip|   matrix[[ 0,1]
                              ,[-1,0]] |] "\\begin{pmatrix}0&1\\\\ -1&0\\end{pmatrix}"
+     ]
+  , testGroup "Operators"
+     [ testGroup "Arithmetic"
+        [ [mkLaTeXSnip| a + b |] "a+b"
+        , [mkLaTeXSnip| a - b |] "a-b"
+        , [mkLaTeXSnip| a * b |] "a{\\cdot}b"
+        , [mkLaTeXSnip| a `times` b |] "a\\times{}b"
+        , [mkLaTeXSnip| a +- b |] "a\\pm{}b"
+        , [mkLaTeXSnip| a -+ b |] "a\\mp{}b"
+        , [mkLaTeXSnip| a `oplus` b |] "a\\oplus{}b"
+        , [mkLaTeXSnip| a `otimes` b |] "a\\otimes{}b"
+        ]
+     , testGroup "Sub/superscripts"
+        [ [mkLaTeXSnip|         a!:b |] "{a}_{b}"
+        , [mkLaTeXSnip|    a!^(b,c) |] "{a}_{b}^{c}"
+        , [mkLaTeXSnip|     psi!:"Foo" |] "{\\psi{}}_{\\mathrm{Foo}}"
+        , [mkLaTeXSnip|     psi!:(F<>o<>o) |] "{\\psi{}}_{Foo}"
+        ]
+     , testGroup "Logical"
+        [ [mkLaTeXSnip| p `vee` q |] "p\\vee{}q"
+        , [mkLaTeXSnip| p `wedge` q |] "p\\wedge{}q"
+        , [mkLaTeXSnip| cases[(1, "Today"), (2, "Else")] |]
+                           "\\begin{cases}1&\\text{Today}\\\\2&\\text{Else}\\end{cases}"
+        ]
+     , testGroup "Relations"
+        [ [mkLaTeXSnip| a =: b |] "a=b"
+        , [mkLaTeXSnip| a >=: c |] "a\\geq{}c"
+        , [mkLaTeXSnip| a <: rho |] "a<\\rho{}"
+        , [mkLaTeXSnip| x =: y =: z |] "x=y=z"
+        , [mkLaTeXSnip| s `subset` t `subseteq` u |] "s\\subset{}t\\subseteq{}u"
+        , [mkLaTeXSnip| h `approx` i `sim` j `simeq` k `cong` l |] "h\\approx{}i\\sim{}j\\simeq{}k\\cong{}l"
+        , [mkLaTeXSnip| p `in_` mathbb Q `subset` mathbb R |] 
+              "p\\in{}\\mathbb{Q}\\subset{}\\mathbb{R}"
+        , [mkLaTeXSnip| mathbf u `perp` (vec%$>v) `parallel` (underline%$>w) |]
+               "\\mathbf{u}\\perp{}\\vec{v}\\parallel{}\\underline{w}"
+        ]
      ]
    ]
 
