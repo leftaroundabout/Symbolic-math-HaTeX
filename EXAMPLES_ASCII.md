@@ -21,11 +21,11 @@ _This file was generated automatically from [MkSnippets.hs](test/PdfSnippets/MkS
 | `a + b ` | `a+b` | ![pdflatex-rendered version of `a+b`](test/PdfSnippets/a⼦b.png) |
 | `a - b ` | `a-b` | ![pdflatex-rendered version of `a-b`](test/PdfSnippets/a⼀b.png) |
 | `a * b ` | `a{\cdot}b` | ![pdflatex-rendered version of `a{\cdot}b`](test/PdfSnippets/aⶈᓭcdotⶉb.png) |
-| `a `times` b ` | `a\times{}b` | ![pdflatex-rendered version of `a\times{}b`](test/PdfSnippets/aᓭtimesⶈⶉb.png) |
+| ``a `times` b `` | `a\times{}b` | ![pdflatex-rendered version of `a\times{}b`](test/PdfSnippets/aᓭtimesⶈⶉb.png) |
 | `a +- b ` | `a\pm{}b` | ![pdflatex-rendered version of `a\pm{}b`](test/PdfSnippets/aᓭpmⶈⶉb.png) |
 | `a -+ b ` | `a\mp{}b` | ![pdflatex-rendered version of `a\mp{}b`](test/PdfSnippets/aᓭmpⶈⶉb.png) |
-| `a `oplus` b ` | `a\oplus{}b` | ![pdflatex-rendered version of `a\oplus{}b`](test/PdfSnippets/aᓭoplusⶈⶉb.png) |
-| `a `otimes` b ` | `a\otimes{}b` | ![pdflatex-rendered version of `a\otimes{}b`](test/PdfSnippets/aᓭotimesⶈⶉb.png) |
+| ``a `oplus` b `` | `a\oplus{}b` | ![pdflatex-rendered version of `a\oplus{}b`](test/PdfSnippets/aᓭoplusⶈⶉb.png) |
+| ``a `otimes` b `` | `a\otimes{}b` | ![pdflatex-rendered version of `a\otimes{}b`](test/PdfSnippets/aᓭotimesⶈⶉb.png) |
 ### Sub/superscripts
 | Haskell | LaTeX | pdf |
 | ---: | --- | :--- |
@@ -36,13 +36,13 @@ _This file was generated automatically from [MkSnippets.hs](test/PdfSnippets/MkS
 ### Logical
 | Haskell | LaTeX | pdf |
 | ---: | --- | :--- |
-| `p `vee` q ` | `p\vee{}q` | ![pdflatex-rendered version of `p\vee{}q`](test/PdfSnippets/pᓭveeⶈⶉq.png) |
-| `p `wedge` q ` | `p\wedge{}q` | ![pdflatex-rendered version of `p\wedge{}q`](test/PdfSnippets/pᓭwedgeⶈⶉq.png) |
+| ``p `vee` q `` | `p\vee{}q` | ![pdflatex-rendered version of `p\vee{}q`](test/PdfSnippets/pᓭveeⶈⶉq.png) |
+| ``p `wedge` q `` | `p\wedge{}q` | ![pdflatex-rendered version of `p\wedge{}q`](test/PdfSnippets/pᓭwedgeⶈⶉq.png) |
 | `cases[(1, "Today"), (2, "Else")] ` | `\begin{cases}1&\text{Today}\\2&\text{Else}\end{cases}` | ![pdflatex-rendered version of `\begin{cases}1&\text{Today}\\2&\text{Else}\end{cases}`](test/PdfSnippets/ᓭbeginⶈcasesⶉ1ತᓭtextⶈTodayⶉᓭᓭ2ತᓭtextⶈElseⶉᓭendⶈcasesⶉ.png) |
 ### Relations
 | Haskell | LaTeX | pdf |
 | ---: | --- | :--- |
-| `s `subset` t `subseteq` u ` | `s\subset{}t\subseteq{}u` | ![pdflatex-rendered version of `s\subset{}t\subseteq{}u`](test/PdfSnippets/sᓭsubsetⶈⶉtᓭsubseteqⶈⶉu.png) |
-| `h `approx` i `sim` j `simeq` k `cong` l ` | `h\approx{}i\sim{}j\simeq{}k\cong{}l` | ![pdflatex-rendered version of `h\approx{}i\sim{}j\simeq{}k\cong{}l`](test/PdfSnippets/hᓭapproxⶈⶉiᓭsimⶈⶉjᓭsimeqⶈⶉkᓭcongⶈⶉl.png) |
-| `p `in_` mathbb Q `subset` mathbb R ` | `p\in{}\mathbb{Q}\subset{}\mathbb{R}` | ![pdflatex-rendered version of `p\in{}\mathbb{Q}\subset{}\mathbb{R}`](test/PdfSnippets/pᓭinⶈⶉᓭmathbbⶈQⶉᓭsubsetⶈⶉᓭmathbbⶈRⶉ.png) |
-| `mathbf u `perp` (vec%$>v) `parallel` (underline%$>w) ` | `\mathbf{u}\perp{}\vec{v}\parallel{}\underline{w}` | ![pdflatex-rendered version of `\mathbf{u}\perp{}\vec{v}\parallel{}\underline{w}`](test/PdfSnippets/ᓭmathbfⶈuⶉᓭperpⶈⶉᓭvecⶈvⶉᓭparallelⶈⶉᓭunderlineⶈwⶉ.png) |
+| ``s `subset` t `subseteq` u `` | `s\subset{}t\subseteq{}u` | ![pdflatex-rendered version of `s\subset{}t\subseteq{}u`](test/PdfSnippets/sᓭsubsetⶈⶉtᓭsubseteqⶈⶉu.png) |
+| ``h `approx` i `sim` j `simeq` k `cong` l `` | `h\approx{}i\sim{}j\simeq{}k\cong{}l` | ![pdflatex-rendered version of `h\approx{}i\sim{}j\simeq{}k\cong{}l`](test/PdfSnippets/hᓭapproxⶈⶉiᓭsimⶈⶉjᓭsimeqⶈⶉkᓭcongⶈⶉl.png) |
+| ``p `in_` mathbb Q `subset` mathbb R `` | `p\in{}\mathbb{Q}\subset{}\mathbb{R}` | ![pdflatex-rendered version of `p\in{}\mathbb{Q}\subset{}\mathbb{R}`](test/PdfSnippets/pᓭinⶈⶉᓭmathbbⶈQⶉᓭsubsetⶈⶉᓭmathbbⶈRⶉ.png) |
+| ``mathbf u `perp` (vec%$>v) `parallel` (underline%$>w) `` | `\mathbf{u}\perp{}\vec{v}\parallel{}\underline{w}` | ![pdflatex-rendered version of `\mathbf{u}\perp{}\vec{v}\parallel{}\underline{w}`](test/PdfSnippets/ᓭmathbfⶈuⶉᓭperpⶈⶉᓭvecⶈvⶉᓭparallelⶈⶉᓭunderlineⶈwⶉ.png) |

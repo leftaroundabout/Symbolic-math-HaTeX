@@ -95,11 +95,7 @@ tests_A = testGroup "Tests"
                            "\\begin{cases}1&\\text{Today}\\\\2&\\text{Else}\\end{cases}"
         ]
      , testGroup "Relations"
-        [ [mkLaTeXSnip| a =: b |] "a=b"
-        , [mkLaTeXSnip| a >=: c |] "a\\geq{}c"
-        , [mkLaTeXSnip| a <: rho |] "a<\\rho{}"
-        , [mkLaTeXSnip| x =: y =: z |] "x=y=z"
-        , [mkLaTeXSnip| s `subset` t `subseteq` u |] "s\\subset{}t\\subseteq{}u"
+        [[mkLaTeXSnip| s `subset` t `subseteq` u |] "s\\subset{}t\\subseteq{}u"
         , [mkLaTeXSnip| h `approx` i `sim` j `simeq` k `cong` l |] "h\\approx{}i\\sim{}j\\simeq{}k\\cong{}l"
         , [mkLaTeXSnip| p `in_` mathbb Q `subset` mathbb R |] 
               "p\\in{}\\mathbb{Q}\\subset{}\\mathbb{R}"
@@ -274,9 +270,9 @@ evalTests = go False 1
          return . (if hasHeader then id
                                 else (("| Haskell | LaTeX | pdf |"
                                    <>"\n| ---: | --- | :--- |\n")<>)) $
-           "| "<>mconcat["`"
-                  <>mkGithubtablesaveCode(Txt.pack (dropWhile (==' ') ecl))
-                          <>"` " | ecl<-lines ec]
+           "| "<>mconcat[codesnippetify $
+                   mkGithubtablesaveCode(Txt.pack (dropWhile (==' ') ecl))
+                          | ecl<-lines ec]
            <>"| `"<>mkGithubtablesaveCode s
            <>"` | ![pdflatex-rendered version of `"<>mkGithubtablesaveCode s
                             <>"`]("<>Txt.pack(snipName<.>"png")<>") |\n"
@@ -287,6 +283,9 @@ evalTests = go False 1
               = (Txt.pack (replicate i '#' <> " " <> g <> "\n") <>)
                . Txt.concat <$> ((:) <$> go False (i+1) s₀
                                      <*> mapM (go True $ i+1) s)
+       codesnippetify s
+        | '`'`elem`(Txt.unpack s)  = "``"<>s<>"`` "
+        | otherwise                =  "`"<>s<>"` "
 
 
 
