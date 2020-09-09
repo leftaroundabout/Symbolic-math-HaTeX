@@ -197,8 +197,24 @@ fixateLaTeXAlgebraEncaps e = e
 
 instance ASCIISymbols LaTeX where
   fromASCIISymbol c
-   | isAlpha c  = fromString [c]
-  toASCIISymbols (TeXRaw s) = Txt.unpack s
+   | Just lc <- Map.lookup c mappingFromASCII  = lc
+   | otherwise  = error $ "ASCII symbol '"++[c]++"' not supported in LaTeX expressions."
+  toASCIISymbols lc
+   | Just c <- Map.lookup lc mappingToASCII    = [c]
+   | lc==mempty  = ""
+   | Just s' <- matchShowMagic lc  = Txt.unpack s'
+   | otherwise   = "《"++Txt.unpack(render lc)++"》"
+
+mappingFromASCII :: Map.HashMap Char LaTeX
+mappingToASCII :: Map.HashMap LaTeX Char
+InvertibleMap mappingFromASCII mappingToASCII
+   = mapToLaTeXWith id     ['a'..'z']
+                           ['a'..'z']
+ <|> mapToLaTeXWith id     ['A'..'Z']
+                           ['A'..'Z']
+ <|> fromAssocList (zip
+           ['+', '-', '*']
+           ["+", "-", raw"{\\cdot}"])
 
 instance UnicodeSymbols LaTeX where
   fromUnicodeSymbol c
