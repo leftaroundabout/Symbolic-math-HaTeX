@@ -95,7 +95,11 @@ tests_A = testGroup "Tests"
                            "\\begin{cases}1&\\text{Today}\\\\2&\\text{Else}\\end{cases}"
         ]
      , testGroup "Relations"
-        [[mkLaTeXSnip| s `subset` t `subseteq` u |] "s\\subset{}t\\subseteq{}u"
+        [ [mkLaTeXSnip| a =: b |] "a=b"
+        , [mkLaTeXSnip| a >=: c |] "a\\geq{}c"
+        , [mkLaTeXSnip| a <: rho |] "a<\\rho{}"
+        , [mkLaTeXSnip| x =: y =: z |] "x=y=z"
+        , [mkLaTeXSnip| s `subset` t `subseteq` u |] "s\\subset{}t\\subseteq{}u"
         , [mkLaTeXSnip| h `approx` i `sim` j `simeq` k `cong` l |] "h\\approx{}i\\sim{}j\\simeq{}k\\cong{}l"
         , [mkLaTeXSnip| p `in_` mathbb Q `subset` mathbb R |] 
               "p\\in{}\\mathbb{Q}\\subset{}\\mathbb{R}"

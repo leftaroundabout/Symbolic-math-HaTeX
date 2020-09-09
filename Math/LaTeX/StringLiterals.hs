@@ -26,8 +26,11 @@ import CAS.Dumb.Tree
 import CAS.Dumb.Symbols
 
 import Data.String
+import Data.Char (isAlpha)
 
 
 instance (SymbolClass σ, SCConstraint σ LaTeX)
      => IsString (CAS' γ (Infix LaTeX) (Encapsulation LaTeX) (SymbolD σ LaTeX)) where
-  fromString = Symbol . StringSymbol . LaTeX.mathrm . fromString
+  fromString s = Symbol . StringSymbol .
+    (if any isAlpha s then LaTeX.mathrm
+                      else id) $ fromString s

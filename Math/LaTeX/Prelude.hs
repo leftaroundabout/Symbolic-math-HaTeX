@@ -56,6 +56,7 @@ import CAS.Dumb.Symbols.Unicode.MathLatin_RomanGreek__BopomofoGaps hiding ((%$>)
 import CAS.Dumb.Symbols
 import Math.LaTeX.Internal.MathExpr
 import Math.LaTeX.Internal.Display
+import Math.LaTeX.StringLiterals
 
 import Text.LaTeX.Base.Class (LaTeXC)
 import Text.LaTeX.Base (raw, LaTeX)

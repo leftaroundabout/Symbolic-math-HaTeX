@@ -42,6 +42,10 @@ _This file was generated automatically from [MkSnippets.hs](test/PdfSnippets/MkS
 ### Relations
 | Haskell | LaTeX | pdf |
 | ---: | --- | :--- |
+| `a =: b ` | `a=b` | ![pdflatex-rendered version of `a=b`](test/PdfSnippets/a〧b.png) |
+| `a >=: c ` | `a\geq{}c` | ![pdflatex-rendered version of `a\geq{}c`](test/PdfSnippets/aᓭgeqⶈⶉc.png) |
+| `a <: rho ` | `a<\rho{}` | ![pdflatex-rendered version of `a<\rho{}`](test/PdfSnippets/aᐸᓭrhoⶈⶉ.png) |
+| `x =: y =: z ` | `x=y=z` | ![pdflatex-rendered version of `x=y=z`](test/PdfSnippets/x〧y〧z.png) |
 | ``s `subset` t `subseteq` u `` | `s\subset{}t\subseteq{}u` | ![pdflatex-rendered version of `s\subset{}t\subseteq{}u`](test/PdfSnippets/sᓭsubsetⶈⶉtᓭsubseteqⶈⶉu.png) |
 | ``h `approx` i `sim` j `simeq` k `cong` l `` | `h\approx{}i\sim{}j\simeq{}k\cong{}l` | ![pdflatex-rendered version of `h\approx{}i\sim{}j\simeq{}k\cong{}l`](test/PdfSnippets/hᓭapproxⶈⶉiᓭsimⶈⶉjᓭsimeqⶈⶉkᓭcongⶈⶉl.png) |
 | ``p `in_` mathbb Q `subset` mathbb R `` | `p\in{}\mathbb{Q}\subset{}\mathbb{R}` | ![pdflatex-rendered version of `p\in{}\mathbb{Q}\subset{}\mathbb{R}`](test/PdfSnippets/pᓭinⶈⶉᓭmathbbⶈQⶉᓭsubsetⶈⶉᓭmathbbⶈRⶉ.png) |
