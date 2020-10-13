@@ -243,6 +243,8 @@ tests_U = testGroup "Tests"
          "\\left.\\frac{x}{2}\\right|_{x=0}^{1}"
      , TestCase (3 - 1 &~~! [ ㄒ-ㄗ ⩵ -(ㄗ-ㄒ) ])
           "3 - 1 &~~! [ ㄒ-ㄗ ⩵ -(ㄗ-ㄒ) ]" "3-1= -\\left(1-3\\right)"
+     , [mkLaTeXSnip| 𝑎 ∗ 𝑏 |] "a\\ast{}b"
+     , [mkLaTeXSnip| 𝑎 ⋆ 𝑏 |] "a\\star{}b"
      ]
   ]
 

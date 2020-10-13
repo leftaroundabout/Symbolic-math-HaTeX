@@ -109,3 +109,5 @@ _This file was generated automatically from [MkSnippets.hs](test/PdfSnippets/MkS
 | `𝑎-𝑏+𝑐 ` | `a-b+c` | ![pdflatex-rendered version of `a-b+c`](test/PdfSnippets/a⼀b⼦c.png) |
 | `(𝑥/2)\|◞◝(𝑥⩵0,1) ` | `\left.\frac{x}{2}\right\|_{x=0}^{1}` | ![pdflatex-rendered version of `\left.\frac{x}{2}\right\|_{x=0}^{1}`](test/PdfSnippets/ᓭleft៰ᓭfracⶈxⶉⶈ2ⶉᓭrightᛁ⣀ⶈx〧0ⶉᐞⶈ1ⶉ.png) |
 | `3 - 1 &~~! [ ㄒ-ㄗ ⩵ -(ㄗ-ㄒ) ]` | `3-1= -\left(1-3\right)` | ![pdflatex-rendered version of `3-1= -\left(1-3\right)`](test/PdfSnippets/3⼀1〧ᐧ⼀ᓭleftᑕ1⼀3ᓭrightᑐ.png) |
+| `𝑎 ∗ 𝑏 ` | `a\ast{}b` | ![pdflatex-rendered version of `a\ast{}b`](test/PdfSnippets/aᓭastⶈⶉb.png) |
+| `𝑎 ⋆ 𝑏 ` | `a\star{}b` | ![pdflatex-rendered version of `a\star{}b`](test/PdfSnippets/aᓭstarⶈⶉb.png) |
