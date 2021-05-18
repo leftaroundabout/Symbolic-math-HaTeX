@@ -32,6 +32,7 @@ _This file was generated automatically from [MkSnippets.hs](test/PdfSnippets/MkS
 | `𝑎 + 𝑏 ` | `a+b` | ![pdflatex-rendered version of `a+b`](test/PdfSnippets/a⼦b.png) |
 | `𝑎 - 𝑏 ` | `a-b` | ![pdflatex-rendered version of `a-b`](test/PdfSnippets/a⼀b.png) |
 | `𝑎 * 𝑏 ` | `a{\cdot}b` | ![pdflatex-rendered version of `a{\cdot}b`](test/PdfSnippets/aⶈᓭcdotⶉb.png) |
+| `𝑎 <،> 𝑏 ` | `\left\langle{a,b}\right\rangle` | ![pdflatex-rendered version of `\left\langle{a,b}\right\rangle`](test/PdfSnippets/ᓭleftᓭlangleⶈa،bⶉᓭrightᓭrangle.png) |
 | `𝑎 × 𝑏 ` | `a\times{}b` | ![pdflatex-rendered version of `a\times{}b`](test/PdfSnippets/aᓭtimesⶈⶉb.png) |
 | `𝑎 ± 𝑏 ` | `a\pm{}b` | ![pdflatex-rendered version of `a\pm{}b`](test/PdfSnippets/aᓭpmⶈⶉb.png) |
 | `𝑎 ∓ 𝑏 ` | `a\mp{}b` | ![pdflatex-rendered version of `a\mp{}b`](test/PdfSnippets/aᓭmpⶈⶉb.png) |

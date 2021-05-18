@@ -436,6 +436,10 @@ instance LaTeXSymbol σ => VectorSpace (LaTeXMath σ) where
   type Scalar (LaTeXMath σ) = LaTeXMath σ
   (*^) = (*)
 
-instance LaTeXSymbol σ => InnerSpace (LaTeXMath σ) where
-  l <.> r = encapsulation (raw"\\left\\langle{") (raw"}\\right\\rangle")
+infix 7 <،>
+(<،>) :: MathsInfix
+l <،> r = encapsulation (raw"\\left\\langle{") (raw"}\\right\\rangle")
                 $ opN 0 (raw",") l r
+
+instance LaTeXSymbol σ => InnerSpace (LaTeXMath σ) where
+  (<.>) = (<،>)
