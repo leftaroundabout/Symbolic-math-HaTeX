@@ -33,3 +33,5 @@ junktest/*
 *.tex
 .stack-work
 *.swp
+.ghc.environment*
+dist-newstyle
