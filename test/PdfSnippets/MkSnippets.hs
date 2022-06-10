@@ -28,8 +28,6 @@ import Data.Char
 
 import CAS.Dumb
 import CAS.Dumb.Symbols.ASCII hiding (d)
-import CAS.Dumb.Symbols.Unicode.MathLatin_RomanGreek__BopomofoGaps
-                       (Unicode_MathLatin_RomanGreek__BopomofoGaps)
 
 import System.FilePath
 import System.Directory
