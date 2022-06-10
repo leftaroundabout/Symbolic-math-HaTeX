@@ -233,6 +233,10 @@ tests_U = testGroup "Tests"
      , [mkLaTeXSnip| setCompr (𝑥،𝑦) (𝑥∈ℤ، 𝑦∈ℝ) |]
          "\\left\\{\\left(x,y\\right)\\middle|x\\in{}\\mathbb{Z},y\\in{}\\mathbb{R}\\right\\}"
      ]
+  , testGroup "Stylised symbols"
+     [ [mkLaTeXSnip| 𝓐<>𝔅<>𝔥<>𝐏<>𝐳 |]
+         "\\mathcal{A}\\mathfrak{B}\\mathfrak{h}\\mathbf{P}\\mathbf{z}"
+     ]
   , testGroup "Misc"
      [ [mkLaTeXSnip| 3*𝑧 - 1 |]
          "3{\\cdot}z-1"

@@ -241,8 +241,10 @@ InvertibleMap mappingFromUnicode mappingToUnicode
                            "CHQRZN"
  <|> mapToLaTeXWith mathcal ['𝓐'..'𝓩']
                             ['A'..'Z']
- <|> mapToLaTeXWith mathfrak "𝔄𝔅ℭ𝔇𝔈𝔉𝔊ℌℑ𝔍𝔎𝔏𝔐𝔑𝔒𝔓𝔔ℜ𝔖𝔗𝔘𝔙𝔚𝔛𝔜"
-                             "ABCDEFGHIJKLMNOPQRSTUVWXY"
+ <|> mapToLaTeXWith mathfrak "𝔄𝔅ℭ𝔇𝔈𝔉𝔊ℌℑ𝔍𝔎𝔏𝔐𝔑𝔒𝔓𝔔ℜ𝔖𝔗𝔘𝔙𝔚𝔛𝔜ℨ"
+                             "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+ <|> mapToLaTeXWith mathfrak "𝔞𝔟𝔠𝔡𝔢𝔣𝔤𝔥𝔦𝔧𝔨𝔩𝔪𝔫𝔬𝔭𝔮𝔯𝔰𝔱𝔲𝔳𝔴𝔵𝔶𝔷"
+                             "abcdefghijklmnopqrstuvwxyz"
  <|> fromAssocList (zip
            ['α',  'β', 'γ',  'δ',  'ε',       'ζ', 'η','θ',  'ϑ',     'ι', 'κ',  'λ'   ]
            [alpha,beta,gamma,delta,varepsilon,zeta,eta,theta,vartheta,iota,kappa,lambda])
