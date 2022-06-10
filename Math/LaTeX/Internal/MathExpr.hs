@@ -147,22 +147,34 @@ infix 2 ∀:, ∃:, ∄:
 (∃:) = opN 2 $ raw"\\ \\:\\exists{}"
 (∄:) = opN 2 $ raw"\\ \\:\\nexists{}"
 
-infixl 7 °
-infixr 9 ◝, ⁀, ◝⁀
+infixl 7 °, ☾
+infixr 7 ☽
+infixr 9 ◝, ⁀, ‸, ◝⁀
 infixr 9 ◞
 infixl 8 |◞, |◝, |◞◝
 infixl 8 ◞◝, ₌₌
-(°), (⁀), (◝), (◝⁀), (◞), (|◞), (₌₌) :: MathsInfix
+(°), (☾), (☽), (⁀), (◝), (◝⁀), (◞), (|◞), (₌₌), (╰─┬─╯) :: MathsInfix
+{-# DEPRECATED (°) "Use (☾), i.e. U+263E LAST QUARTER MOON" #-}
+f☽x = opR 7 mempty (encapsulation (raw"\\left(") (raw"\\right)") f) x
+f☾x = opL 7 mempty f (encapsulation (raw"\\left(") (raw"\\right)") x)
 f°x = opL 7 mempty f (encapsulation (raw"\\left(") (raw"\\right)") x)
+{-# DEPRECATED (⁀) "Use (‸), i.e. U+2038 CARET" #-}
 (⁀) = opR 9 mempty
+(‸) = opR 9 mempty
+{-# DEPRECATED (◝⁀) "Use manual parenthesization" #-}
 l◝⁀s = opR 9 mempty l $ encapsulation (raw"^{\\left(") (raw"\\right)}") s
 l◝s = Operator (Infix (Hs.Fixity 9 Hs.InfixR) mempty)
              l (Function (SpecialEncapsulation Superscript) s)
 l◞s = Operator (Infix (Hs.Fixity 9 Hs.InfixR) mempty)
              l (Function (SpecialEncapsulation Subscript) s)
-l₌₌s = Operator (Infix (Hs.Fixity 8 Hs.InfixR) mempty)
-             (encapsulation (raw "\\underbrace{") (raw "}") l)
-             (encapsulation (raw "_{") (raw "}") s)
+expression
+ ╰─┬─╯
+ label
+    = Operator (Infix (Hs.Fixity 8 Hs.InfixR) mempty)
+             (encapsulation (raw "\\underbrace{") (raw "}") expression)
+             (encapsulation (raw "_{") (raw "}") label)
+{-# DEPRECATED (₌₌) "Use (╰─┬─╯), i.e. Unicode box drawings" #-}
+(₌₌) = (╰─┬─╯)
 l◞◝(s,p) = Operator (Infix (Hs.Fixity 9 Hs.InfixR) mempty)
              l
            $ Operator (Infix (Hs.Fixity 9 Hs.InfixR) mempty)
@@ -308,18 +320,22 @@ norm :: LaTeXC l => CAS' γ (Infix l) (Encapsulation l) (SymbolD σ l)
 norm = encapsulation (raw "\\left\\|") (raw "\\right\\|")
     
 
-
 makeOperatorCaste "juxtapositionOperators"
                   (''MathsInfix, ''LaTeX)
                   (Fixity 0 InfixR)
                   True
                   [ ("␣", [e|LaTeX.space|])
                   , ("...", [e|LaTeX.comm0"ldots"|])
+                  , ("⍪", [e|raw","|])
+                  , ("⍪..⍪", [e|raw",\\ldots,"|])
 #if __GLASGOW_HASKELL__ > 801
                   , ("،", [e|raw","|])
                   , ("،..،", [e|raw",\\ldots,"|])
 #endif
                   ]
+
+{-# DEPRECATED (،) "Use (⍪), i.e. U+236A APL FUNCTIONAL SYMBOL COMMA" #-}
+{-# DEPRECATED (،..،) "Use (⍪..⍪), i.e. U+236A APL FUNCTIONAL SYMBOL COMMA" #-}
 
 
 matrix :: LaTeXC l =>
@@ -436,10 +452,16 @@ instance LaTeXSymbol σ => VectorSpace (LaTeXMath σ) where
   type Scalar (LaTeXMath σ) = LaTeXMath σ
   (*^) = (*)
 
+infix 7 <⍪>
+(<⍪>) :: MathsInfix
+l <⍪> r = encapsulation (raw"\\left\\langle{") (raw"}\\right\\rangle")
+                $ opN 0 (raw",") l r
+
 infix 7 <،>
+{-# DEPRECATED (<،>) "Use (<⍪>), i.e. U+236A APL FUNCTIONAL SYMBOL COMMA" #-}
 (<،>) :: MathsInfix
 l <،> r = encapsulation (raw"\\left\\langle{") (raw"}\\right\\rangle")
                 $ opN 0 (raw",") l r
 
 instance LaTeXSymbol σ => InnerSpace (LaTeXMath σ) where
-  (<.>) = (<،>)
+  (<.>) = (<⍪>)

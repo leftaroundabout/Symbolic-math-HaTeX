@@ -140,7 +140,7 @@ tests_U = testGroup "Tests"
         [ [mkLaTeXSnip| 𝑎 + 𝑏 |] "a+b"
         , [mkLaTeXSnip| 𝑎 - 𝑏 |] "a-b"
         , [mkLaTeXSnip| 𝑎 * 𝑏 |] "a{\\cdot}b"
-        , [mkLaTeXSnip| 𝑎 <،> 𝑏 |] "\\left\\langle{a,b}\\right\\rangle"
+        , [mkLaTeXSnip| 𝑎<⍪>𝑏 |] "\\left\\langle{a,b}\\right\\rangle"
         , [mkLaTeXSnip| 𝑎 × 𝑏 |] "a\\times{}b"
         , [mkLaTeXSnip| 𝑎 ± 𝑏 |] "a\\pm{}b"
         , [mkLaTeXSnip| 𝑎 ∓ 𝑏 |] "a\\mp{}b"
@@ -151,16 +151,21 @@ tests_U = testGroup "Tests"
         [ [mkLaTeXSnip|         𝑎◞𝑏 |] "a_{b}"
         , [mkLaTeXSnip|    𝑎◞◝(𝑏,𝑐) |] "a_{b}^{c}"
         , [mkLaTeXSnip|     ψ◞"Foo" |] "\\psi{}_{\\mathrm{Foo}}"
-#if __GLASGOW_HASKELL__ > 801
-        , [mkLaTeXSnip|     ψ◞𝐹⁀𝑜⁀𝑜 |] "\\psi{}_{Foo}"
-        , [mkLaTeXSnip|      𝑓◝⁀3°𝑥 |] "f^{\\left(3\\right)}\\left(x\\right)"
-#endif
+        , [mkLaTeXSnip|     ψ◞𝐹‸𝑜‸𝑜 |] "\\psi{}_{Foo}"
+        , [mkLaTeXSnip|  𝑓◝(3☽"")☾𝑥 |] "f^{\\left(3\\right)}\\left(x\\right)"
         ]
      , testGroup "Function application"
-        [ [mkLaTeXSnip|         𝑓°𝑥 |] "f\\left(x\\right)"
+        [ [mkLaTeXSnip|         𝑓☾𝑥 |] "f\\left(x\\right)"
+        , [mkLaTeXSnip|     𝑓☾(𝑔☾𝑥) |] "f\\left(g\\left(x\\right)\\right)"
 #if __GLASGOW_HASKELL__ > 801
-        , [mkLaTeXSnip|     𝑓°(𝑥،𝑦) |] "f\\left(x,y\\right)"
+        , [mkLaTeXSnip|     𝑓☾(𝑥⍪𝑦) |] "f\\left(x,y\\right)"
 #endif
+        , [mkLaTeXSnip|       𝓕☾φ☾𝑥 |] 
+                 "\\mathcal{F}\\left(\\varphi{}\\right)\\left(x\\right)"
+        , [mkLaTeXSnip|     (𝑓∘𝑔)☽𝑥 |] "\\left(f\\circ{}g\\right)x"
+        , [mkLaTeXSnip| (𝑓∘𝑔)☽(𝑥*𝑦) |]
+                 "\\left(f\\circ{}g\\right)\\left(x{\\cdot}y\\right)"
+        , [mkLaTeXSnip|       𝑓∘𝑔☾𝑥 |] "f\\circ{}g\\left(x\\right)"
         ]
      , testGroup "Logical"
         [ [mkLaTeXSnip| 𝑝 ∨ 𝑞 |] "p\\vee{}q"
@@ -208,9 +213,9 @@ tests_U = testGroup "Tests"
          "x+y=x+x{\\cdot}\\left(1+x\\right)=2^{p}+2^{p}{\\cdot}\\left(1+2^{p}\\right)"
      ]
   , testGroup "Juxtaposition"
-     [ [mkLaTeXSnip| 𝑚 + 𝑝⁀𝑞⁀𝑟 |]
+     [ [mkLaTeXSnip| 𝑚 + 𝑝‸𝑞‸𝑟 |]
          "m+pqr"
-     , [mkLaTeXSnip| 𝑚 + 𝑝⁀(2+𝑞)⁀𝑟 |]
+     , [mkLaTeXSnip| 𝑚 + 𝑝‸(2+𝑞)‸𝑟 |]
          "m+p\\left(2+q\\right)r"
      , [mkLaTeXSnip| 𝑚 + (𝑝␣𝑞␣𝑟) |]
          "m+\\left(p\\ {}q\\ {}r\\right)"
@@ -224,13 +229,13 @@ tests_U = testGroup "Tests"
          "m{\\cdot}\\left(1+23+4\\right)"
      ]
   , testGroup "Set-builders"
-     [ [mkLaTeXSnip| set(3،4،5) |]
+     [ [mkLaTeXSnip| set(3⍪4⍪5) |]
          "\\left\\{3,4,5\\right\\}"
      , [mkLaTeXSnip| setCompr (𝑥◝2) (𝑥∈ℕ) |]
          "\\left\\{x^{2}\\middle|x\\in{}\\mathbb{N}\\right\\}"
-     , [mkLaTeXSnip| setCompr (𝑥/𝑦) (𝑥∈ℤ، 𝑦∈ℕ، 𝑦⪢0) |]
+     , [mkLaTeXSnip| setCompr (𝑥/𝑦) (𝑥∈ℤ⍪ 𝑦∈ℕ⍪ 𝑦⪢0) |]
          "\\left\\{\\frac{x}{y}\\middle|x\\in{}\\mathbb{Z},y\\in{}\\mathbb{N},y>0\\right\\}"
-     , [mkLaTeXSnip| setCompr (𝑥،𝑦) (𝑥∈ℤ، 𝑦∈ℝ) |]
+     , [mkLaTeXSnip| setCompr (𝑥⍪𝑦) (𝑥∈ℤ⍪ 𝑦∈ℝ) |]
          "\\left\\{\\left(x,y\\right)\\middle|x\\in{}\\mathbb{Z},y\\in{}\\mathbb{R}\\right\\}"
      ]
   , testGroup "Stylised symbols"
@@ -244,6 +249,9 @@ tests_U = testGroup "Tests"
          "a-b+c"
      , [mkLaTeXSnip| (𝑥/2)|◞◝(𝑥⩵0,1) |]
          "\\left.\\frac{x}{2}\\right|_{x=0}^{1}"
+     , [mkLaTeXSnip| 𝑏 + (𝑥/2)
+                         ╰─┬─╯"fraction" |]
+         "b+\\underbrace{\\frac{x}{2}}_{\\mathrm{fraction}}"
      , TestCase (3 - 1 &~~! [ ㄒ-ㄗ ⩵ -(ㄗ-ㄒ) ])
           "3 - 1 &~~! [ ㄒ-ㄗ ⩵ -(ㄗ-ㄒ) ]" "3-1= -\\left(1-3\\right)"
      , [mkLaTeXSnip| 𝑎 ∗ 𝑏 |] "a\\ast{}b"

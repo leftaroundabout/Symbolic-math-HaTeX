@@ -32,7 +32,7 @@ _This file was generated automatically from [MkSnippets.hs](test/PdfSnippets/MkS
 | `𝑎 + 𝑏 ` | `a+b` | ![pdflatex-rendered version of `a+b`](test/PdfSnippets/a⼦b.png) |
 | `𝑎 - 𝑏 ` | `a-b` | ![pdflatex-rendered version of `a-b`](test/PdfSnippets/a⼀b.png) |
 | `𝑎 * 𝑏 ` | `a{\cdot}b` | ![pdflatex-rendered version of `a{\cdot}b`](test/PdfSnippets/aⶈᓭcdotⶉb.png) |
-| `𝑎 <،> 𝑏 ` | `\left\langle{a,b}\right\rangle` | ![pdflatex-rendered version of `\left\langle{a,b}\right\rangle`](test/PdfSnippets/ᓭleftᓭlangleⶈa،bⶉᓭrightᓭrangle.png) |
+| `𝑎<⍪>𝑏 ` | `\left\langle{a,b}\right\rangle` | ![pdflatex-rendered version of `\left\langle{a,b}\right\rangle`](test/PdfSnippets/ᓭleftᓭlangleⶈa،bⶉᓭrightᓭrangle.png) |
 | `𝑎 × 𝑏 ` | `a\times{}b` | ![pdflatex-rendered version of `a\times{}b`](test/PdfSnippets/aᓭtimesⶈⶉb.png) |
 | `𝑎 ± 𝑏 ` | `a\pm{}b` | ![pdflatex-rendered version of `a\pm{}b`](test/PdfSnippets/aᓭpmⶈⶉb.png) |
 | `𝑎 ∓ 𝑏 ` | `a\mp{}b` | ![pdflatex-rendered version of `a\mp{}b`](test/PdfSnippets/aᓭmpⶈⶉb.png) |
@@ -44,13 +44,18 @@ _This file was generated automatically from [MkSnippets.hs](test/PdfSnippets/MkS
 | `𝑎◞𝑏 ` | `a_{b}` | ![pdflatex-rendered version of `a_{b}`](test/PdfSnippets/a⣀ⶈbⶉ.png) |
 | `𝑎◞◝(𝑏,𝑐) ` | `a_{b}^{c}` | ![pdflatex-rendered version of `a_{b}^{c}`](test/PdfSnippets/a⣀ⶈbⶉᐞⶈcⶉ.png) |
 | `ψ◞"Foo" ` | `\psi{}_{\mathrm{Foo}}` | ![pdflatex-rendered version of `\psi{}_{\mathrm{Foo}}`](test/PdfSnippets/ᓭpsiⶈⶉ⣀ⶈᓭmathrmⶈFooⶉⶉ.png) |
-| `ψ◞𝐹⁀𝑜⁀𝑜 ` | `\psi{}_{Foo}` | ![pdflatex-rendered version of `\psi{}_{Foo}`](test/PdfSnippets/ᓭpsiⶈⶉ⣀ⶈFooⶉ.png) |
-| `𝑓◝⁀3°𝑥 ` | `f^{\left(3\right)}\left(x\right)` | ![pdflatex-rendered version of `f^{\left(3\right)}\left(x\right)`](test/PdfSnippets/fᐞⶈᓭleftᑕ3ᓭrightᑐⶉᓭleftᑕxᓭrightᑐ.png) |
+| `ψ◞𝐹‸𝑜‸𝑜 ` | `\psi{}_{Foo}` | ![pdflatex-rendered version of `\psi{}_{Foo}`](test/PdfSnippets/ᓭpsiⶈⶉ⣀ⶈFooⶉ.png) |
+| `𝑓◝(3☽"")☾𝑥 ` | `f^{\left(3\right)}\left(x\right)` | ![pdflatex-rendered version of `f^{\left(3\right)}\left(x\right)`](test/PdfSnippets/fᐞⶈᓭleftᑕ3ᓭrightᑐⶉᓭleftᑕxᓭrightᑐ.png) |
 ### Function application
 | Haskell | LaTeX | pdf |
 | ---: | --- | :--- |
-| `𝑓°𝑥 ` | `f\left(x\right)` | ![pdflatex-rendered version of `f\left(x\right)`](test/PdfSnippets/fᓭleftᑕxᓭrightᑐ.png) |
-| `𝑓°(𝑥،𝑦) ` | `f\left(x,y\right)` | ![pdflatex-rendered version of `f\left(x,y\right)`](test/PdfSnippets/fᓭleftᑕx،yᓭrightᑐ.png) |
+| `𝑓☾𝑥 ` | `f\left(x\right)` | ![pdflatex-rendered version of `f\left(x\right)`](test/PdfSnippets/fᓭleftᑕxᓭrightᑐ.png) |
+| `𝑓☾(𝑔☾𝑥) ` | `f\left(g\left(x\right)\right)` | ![pdflatex-rendered version of `f\left(g\left(x\right)\right)`](test/PdfSnippets/fᓭleftᑕgᓭleftᑕxᓭrightᑐᓭrightᑐ.png) |
+| `𝑓☾(𝑥⍪𝑦) ` | `f\left(x,y\right)` | ![pdflatex-rendered version of `f\left(x,y\right)`](test/PdfSnippets/fᓭleftᑕx،yᓭrightᑐ.png) |
+| `𝓕☾φ☾𝑥 ` | `\mathcal{F}\left(\varphi{}\right)\left(x\right)` | ![pdflatex-rendered version of `\mathcal{F}\left(\varphi{}\right)\left(x\right)`](test/PdfSnippets/ᓭmathcalⶈFⶉᓭleftᑕᓭvarphiⶈⶉᓭrightᑐᓭleftᑕxᓭrightᑐ.png) |
+| `(𝑓∘𝑔)☽𝑥 ` | `\left(f\circ{}g\right)x` | ![pdflatex-rendered version of `\left(f\circ{}g\right)x`](test/PdfSnippets/ᓭleftᑕfᓭcircⶈⶉgᓭrightᑐx.png) |
+| `(𝑓∘𝑔)☽(𝑥*𝑦) ` | `\left(f\circ{}g\right)\left(x{\cdot}y\right)` | ![pdflatex-rendered version of `\left(f\circ{}g\right)\left(x{\cdot}y\right)`](test/PdfSnippets/ᓭleftᑕfᓭcircⶈⶉgᓭrightᑐᓭleftᑕxⶈᓭcdotⶉyᓭrightᑐ.png) |
+| `𝑓∘𝑔☾𝑥 ` | `f\circ{}g\left(x\right)` | ![pdflatex-rendered version of `f\circ{}g\left(x\right)`](test/PdfSnippets/fᓭcircⶈⶉgᓭleftᑕxᓭrightᑐ.png) |
 ### Logical
 | Haskell | LaTeX | pdf |
 | ---: | --- | :--- |
@@ -89,8 +94,8 @@ _This file was generated automatically from [MkSnippets.hs](test/PdfSnippets/MkS
 ## Juxtaposition
 | Haskell | LaTeX | pdf |
 | ---: | --- | :--- |
-| `𝑚 + 𝑝⁀𝑞⁀𝑟 ` | `m+pqr` | ![pdflatex-rendered version of `m+pqr`](test/PdfSnippets/m⼦pqr.png) |
-| `𝑚 + 𝑝⁀(2+𝑞)⁀𝑟 ` | `m+p\left(2+q\right)r` | ![pdflatex-rendered version of `m+p\left(2+q\right)r`](test/PdfSnippets/m⼦pᓭleftᑕ2⼦qᓭrightᑐr.png) |
+| `𝑚 + 𝑝‸𝑞‸𝑟 ` | `m+pqr` | ![pdflatex-rendered version of `m+pqr`](test/PdfSnippets/m⼦pqr.png) |
+| `𝑚 + 𝑝‸(2+𝑞)‸𝑟 ` | `m+p\left(2+q\right)r` | ![pdflatex-rendered version of `m+p\left(2+q\right)r`](test/PdfSnippets/m⼦pᓭleftᑕ2⼦qᓭrightᑐr.png) |
 | `𝑚 + (𝑝␣𝑞␣𝑟) ` | `m+\left(p\ {}q\ {}r\right)` | ![pdflatex-rendered version of `m+\left(p\ {}q\ {}r\right)`](test/PdfSnippets/m⼦ᓭleftᑕpᓭᐧⶈⶉqᓭᐧⶈⶉrᓭrightᑐ.png) |
 | `𝑚 + (𝑝␣2+𝑞␣𝑟) ` | `m+\left(p\ {}2+q\ {}r\right)` | ![pdflatex-rendered version of `m+\left(p\ {}2+q\ {}r\right)`](test/PdfSnippets/m⼦ᓭleftᑕpᓭᐧⶈⶉ2⼦qᓭᐧⶈⶉrᓭrightᑐ.png) |
 | `𝑚 + (𝑝<>𝑞<>𝑟) ` | `m+pqr` | ![pdflatex-rendered version of `m+pqr`](test/PdfSnippets/m⼦pqr.png) |
@@ -99,20 +104,21 @@ _This file was generated automatically from [MkSnippets.hs](test/PdfSnippets/MkS
 ## Set-builders
 | Haskell | LaTeX | pdf |
 | ---: | --- | :--- |
-| `set(3،4،5) ` | `\left\{3,4,5\right\}` | ![pdflatex-rendered version of `\left\{3,4,5\right\}`](test/PdfSnippets/ᓭleftᓭⶈ3،4،5ᓭrightᓭⶉ.png) |
+| `set(3⍪4⍪5) ` | `\left\{3,4,5\right\}` | ![pdflatex-rendered version of `\left\{3,4,5\right\}`](test/PdfSnippets/ᓭleftᓭⶈ3،4،5ᓭrightᓭⶉ.png) |
 | `setCompr (𝑥◝2) (𝑥∈ℕ) ` | `\left\{x^{2}\middle\|x\in{}\mathbb{N}\right\}` | ![pdflatex-rendered version of `\left\{x^{2}\middle\|x\in{}\mathbb{N}\right\}`](test/PdfSnippets/ᓭleftᓭⶈxᐞⶈ2ⶉᓭmiddleᛁxᓭinⶈⶉᓭmathbbⶈNⶉᓭrightᓭⶉ.png) |
-| `setCompr (𝑥/𝑦) (𝑥∈ℤ، 𝑦∈ℕ، 𝑦⪢0) ` | `\left\{\frac{x}{y}\middle\|x\in{}\mathbb{Z},y\in{}\mathbb{N},y>0\right\}` | ![pdflatex-rendered version of `\left\{\frac{x}{y}\middle\|x\in{}\mathbb{Z},y\in{}\mathbb{N},y>0\right\}`](test/PdfSnippets/ᓭleftᓭⶈᓭfracⶈxⶉⶈyⶉᓭmiddleᛁxᓭinⶈⶉᓭmathbbⶈZⶉ،yᓭinⶈⶉᓭmathbbⶈNⶉ،yᐳ0ᓭrightᓭⶉ.png) |
-| `setCompr (𝑥،𝑦) (𝑥∈ℤ، 𝑦∈ℝ) ` | `\left\{\left(x,y\right)\middle\|x\in{}\mathbb{Z},y\in{}\mathbb{R}\right\}` | ![pdflatex-rendered version of `\left\{\left(x,y\right)\middle\|x\in{}\mathbb{Z},y\in{}\mathbb{R}\right\}`](test/PdfSnippets/ᓭleftᓭⶈᓭleftᑕx،yᓭrightᑐᓭmiddleᛁxᓭinⶈⶉᓭmathbbⶈZⶉ،yᓭinⶈⶉᓭmathbbⶈRⶉᓭrightᓭⶉ.png) |
+| `setCompr (𝑥/𝑦) (𝑥∈ℤ⍪ 𝑦∈ℕ⍪ 𝑦⪢0) ` | `\left\{\frac{x}{y}\middle\|x\in{}\mathbb{Z},y\in{}\mathbb{N},y>0\right\}` | ![pdflatex-rendered version of `\left\{\frac{x}{y}\middle\|x\in{}\mathbb{Z},y\in{}\mathbb{N},y>0\right\}`](test/PdfSnippets/ᓭleftᓭⶈᓭfracⶈxⶉⶈyⶉᓭmiddleᛁxᓭinⶈⶉᓭmathbbⶈZⶉ،yᓭinⶈⶉᓭmathbbⶈNⶉ،yᐳ0ᓭrightᓭⶉ.png) |
+| `setCompr (𝑥⍪𝑦) (𝑥∈ℤ⍪ 𝑦∈ℝ) ` | `\left\{\left(x,y\right)\middle\|x\in{}\mathbb{Z},y\in{}\mathbb{R}\right\}` | ![pdflatex-rendered version of `\left\{\left(x,y\right)\middle\|x\in{}\mathbb{Z},y\in{}\mathbb{R}\right\}`](test/PdfSnippets/ᓭleftᓭⶈᓭleftᑕx،yᓭrightᑐᓭmiddleᛁxᓭinⶈⶉᓭmathbbⶈZⶉ،yᓭinⶈⶉᓭmathbbⶈRⶉᓭrightᓭⶉ.png) |
 ## Stylised symbols
 | Haskell | LaTeX | pdf |
 | ---: | --- | :--- |
-| `` `𝓐<>𝔅<>𝔥<>𝐏<>𝐳` `` | `\mathcal{A}\mathfrak{B}\mathfrak{h}\mathbf{P}\mathbf{z}` | ![pdflatex-rendered version of `\mathcal{A}\mathfrak{B}\mathfrak{h}\mathbf{P}\mathbf{z}`](test/PdfSnippets/ᓭmathcalⶈAⶉᓭmathfrakⶈBⶉᓭmathfrakⶈhⶉᓭmathbfⶈPⶉᓭmathbfⶈzⶉ.png) |
+| `𝓐<>𝔅<>𝔥<>𝐏<>𝐳 ` | `\mathcal{A}\mathfrak{B}\mathfrak{h}\mathbf{P}\mathbf{z}` | ![pdflatex-rendered version of `\mathcal{A}\mathfrak{B}\mathfrak{h}\mathbf{P}\mathbf{z}`](test/PdfSnippets/ᓭmathcalⶈAⶉᓭmathfrakⶈBⶉᓭmathfrakⶈhⶉᓭmathbfⶈPⶉᓭmathbfⶈzⶉ.png) |
 ## Misc
 | Haskell | LaTeX | pdf |
 | ---: | --- | :--- |
 | `3*𝑧 - 1 ` | `3{\cdot}z-1` | ![pdflatex-rendered version of `3{\cdot}z-1`](test/PdfSnippets/3ⶈᓭcdotⶉz⼀1.png) |
 | `𝑎-𝑏+𝑐 ` | `a-b+c` | ![pdflatex-rendered version of `a-b+c`](test/PdfSnippets/a⼀b⼦c.png) |
 | `(𝑥/2)\|◞◝(𝑥⩵0,1) ` | `\left.\frac{x}{2}\right\|_{x=0}^{1}` | ![pdflatex-rendered version of `\left.\frac{x}{2}\right\|_{x=0}^{1}`](test/PdfSnippets/ᓭleft៰ᓭfracⶈxⶉⶈ2ⶉᓭrightᛁ⣀ⶈx〧0ⶉᐞⶈ1ⶉ.png) |
+| `𝑏 + (𝑥/2)` `╰─┬─╯"fraction" ` | `b+\underbrace{\frac{x}{2}}_{\mathrm{fraction}}` | ![pdflatex-rendered version of `b+\underbrace{\frac{x}{2}}_{\mathrm{fraction}}`](test/PdfSnippets/b⼦ᓭunderbraceⶈᓭfracⶈxⶉⶈ2ⶉⶉ⣀ⶈᓭmathrmⶈfractionⶉⶉ.png) |
 | `3 - 1 &~~! [ ㄒ-ㄗ ⩵ -(ㄗ-ㄒ) ]` | `3-1= -\left(1-3\right)` | ![pdflatex-rendered version of `3-1= -\left(1-3\right)`](test/PdfSnippets/3⼀1〧ᐧ⼀ᓭleftᑕ1⼀3ᓭrightᑐ.png) |
 | `𝑎 ∗ 𝑏 ` | `a\ast{}b` | ![pdflatex-rendered version of `a\ast{}b`](test/PdfSnippets/aᓭastⶈⶉb.png) |
 | `𝑎 ⋆ 𝑏 ` | `a\star{}b` | ![pdflatex-rendered version of `a\star{}b`](test/PdfSnippets/aᓭstarⶈⶉb.png) |
