@@ -154,7 +154,7 @@ tests_U = testGroup "Tests"
         , [mkLaTeXSnip|     ψ◞𝐹‸𝑜‸𝑜 |] "\\psi{}_{Foo}"
         , [mkLaTeXSnip|  𝑓◝(3☽"")☾𝑥 |] "f^{\\left(3\\right)}\\left(x\\right)"
         ]
-     , testGroup "Function application"
+     , testGroup "Function application and definition"
         [ [mkLaTeXSnip|         𝑓☾𝑥 |] "f\\left(x\\right)"
         , [mkLaTeXSnip|     𝑓☾(𝑔☾𝑥) |] "f\\left(g\\left(x\\right)\\right)"
 #if __GLASGOW_HASKELL__ > 801
@@ -166,6 +166,8 @@ tests_U = testGroup "Tests"
         , [mkLaTeXSnip| (𝑓∘𝑔)☽(𝑥*𝑦) |]
                  "\\left(f\\circ{}g\\right)\\left(x{\\cdot}y\\right)"
         , [mkLaTeXSnip|       𝑓∘𝑔☾𝑥 |] "f\\circ{}g\\left(x\\right)"
+        , [mkLaTeXSnip| 𝑓 ÷ (ℤ-→ℝ) |] "f:\\mathbb{Z}\\to{}\\mathbb{R}"
+        , [mkLaTeXSnip| 𝑓☾𝑥 ÷= 𝑥+π |] "f\\left(x\\right){:=}x+\\pi{}"
         ]
      , testGroup "Logical"
         [ [mkLaTeXSnip| 𝑝 ∨ 𝑞 |] "p\\vee{}q"
@@ -327,6 +329,7 @@ encode = concatMap enc
        enc '>' = "ᐳ"
        enc ',' = "،"
        enc '.' = "៰"
+       enc ':' = "⦂"
        enc ' ' = "ᐧ"
        enc c = error $ "Unencodable character '"++[c]++"'"
 

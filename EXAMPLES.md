@@ -46,7 +46,7 @@ _This file was generated automatically from [MkSnippets.hs](test/PdfSnippets/MkS
 | `ψ◞"Foo" ` | `\psi{}_{\mathrm{Foo}}` | ![pdflatex-rendered version of `\psi{}_{\mathrm{Foo}}`](test/PdfSnippets/ᓭpsiⶈⶉ⣀ⶈᓭmathrmⶈFooⶉⶉ.png) |
 | `ψ◞𝐹‸𝑜‸𝑜 ` | `\psi{}_{Foo}` | ![pdflatex-rendered version of `\psi{}_{Foo}`](test/PdfSnippets/ᓭpsiⶈⶉ⣀ⶈFooⶉ.png) |
 | `𝑓◝(3☽"")☾𝑥 ` | `f^{\left(3\right)}\left(x\right)` | ![pdflatex-rendered version of `f^{\left(3\right)}\left(x\right)`](test/PdfSnippets/fᐞⶈᓭleftᑕ3ᓭrightᑐⶉᓭleftᑕxᓭrightᑐ.png) |
-### Function application
+### Function application and definition
 | Haskell | LaTeX | pdf |
 | ---: | --- | :--- |
 | `𝑓☾𝑥 ` | `f\left(x\right)` | ![pdflatex-rendered version of `f\left(x\right)`](test/PdfSnippets/fᓭleftᑕxᓭrightᑐ.png) |
@@ -56,6 +56,8 @@ _This file was generated automatically from [MkSnippets.hs](test/PdfSnippets/MkS
 | `(𝑓∘𝑔)☽𝑥 ` | `\left(f\circ{}g\right)x` | ![pdflatex-rendered version of `\left(f\circ{}g\right)x`](test/PdfSnippets/ᓭleftᑕfᓭcircⶈⶉgᓭrightᑐx.png) |
 | `(𝑓∘𝑔)☽(𝑥*𝑦) ` | `\left(f\circ{}g\right)\left(x{\cdot}y\right)` | ![pdflatex-rendered version of `\left(f\circ{}g\right)\left(x{\cdot}y\right)`](test/PdfSnippets/ᓭleftᑕfᓭcircⶈⶉgᓭrightᑐᓭleftᑕxⶈᓭcdotⶉyᓭrightᑐ.png) |
 | `𝑓∘𝑔☾𝑥 ` | `f\circ{}g\left(x\right)` | ![pdflatex-rendered version of `f\circ{}g\left(x\right)`](test/PdfSnippets/fᓭcircⶈⶉgᓭleftᑕxᓭrightᑐ.png) |
+| `𝑓 ÷ (ℤ-→ℝ) ` | `f:\mathbb{Z}\to{}\mathbb{R}` | ![pdflatex-rendered version of `f:\mathbb{Z}\to{}\mathbb{R}`](test/PdfSnippets/f⦂ᓭmathbbⶈZⶉᓭtoⶈⶉᓭmathbbⶈRⶉ.png) |
+| `𝑓☾𝑥 ÷= 𝑥+π ` | `f\left(x\right){:=}x+\pi{}` | ![pdflatex-rendered version of `f\left(x\right){:=}x+\pi{}`](test/PdfSnippets/fᓭleftᑕxᓭrightᑐⶈ⦂〧ⶉx⼦ᓭpiⶈⶉ.png) |
 ### Logical
 | Haskell | LaTeX | pdf |
 | ---: | --- | :--- |

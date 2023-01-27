@@ -135,8 +135,10 @@ infixl 2 -\-, ⧵, ∖
 (∖) = opL' 2 LaTeX.setminus
 
 infixr 5 ⸪, -→, ←-, ↪
-(⸪), (-→), (←-), (↪) :: MathsInfix
+(÷), (⸪), (-→), (←-), (↪) :: MathsInfix
+{-# DEPRECATED (⸪) "Use (÷), i.e. U+00F7 DIVISION SIGN" #-}
 (⸪) = opR 5 ":"
+(÷) = opR 5 ":"
 (-→) = opR 5 LaTeX.to
 (←-) = opR 5 LaTeX.leftarrow
 (↪) = opR 5 $ LaTeX.comm0"hookrightarrow"
@@ -211,6 +213,8 @@ makeOperatorCaste "relationOperators"
                   , ("⸪=", [e|raw"{:=}"|])
                   , ("=⸪", [e|raw"{=:}"|])
 #endif
+                  , ("÷=", [e|raw"{:=}"|])
+                  , ("=÷", [e|raw"{=:}"|])
                   , ("≡", [e|LaTeX.comm0"equiv"|])
                   , ("⩵!", [e|raw" \\overset{!}{=} "|])
                   , ("≠", [e|""LaTeX./=:""|])
