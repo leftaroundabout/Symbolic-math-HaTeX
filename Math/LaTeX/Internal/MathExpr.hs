@@ -18,6 +18,7 @@
 {-# LANGUAGE UnicodeSyntax             #-}
 {-# LANGUAGE TemplateHaskell           #-}
 {-# LANGUAGE TupleSections             #-}
+{-# LANGUAGE TypeOperators             #-}
 {-# LANGUAGE ConstraintKinds           #-}
 {-# LANGUAGE CPP                       #-}
 {-# LANGUAGE NoMonomorphismRestriction #-}
