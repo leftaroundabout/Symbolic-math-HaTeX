@@ -135,7 +135,7 @@ infixl 2 -\-, ⧵, ∖
 {-# DEPRECATED (⧵) "Use (∖), i.e. U+2216 SET MINUS. (You used U+29F5 REVERSE SOLIDUS OPERATOR)" #-}
 (∖) = opL' 2 LaTeX.setminus
 
-infixr 5 ⸪, -→, ←-, ↪
+infixr 5 ⸪, ÷, -→, ←-, ↪
 (÷), (⸪), (-→), (←-), (↪) :: MathsInfix
 {-# DEPRECATED (⸪) "Use (÷), i.e. U+00F7 DIVISION SIGN" #-}
 (⸪) = opR 5 ":"
