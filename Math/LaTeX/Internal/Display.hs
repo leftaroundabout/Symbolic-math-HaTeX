@@ -37,7 +37,7 @@ import Data.Foldable (fold)
 import Data.Monoid ((<>))
 import Control.Arrow
 import Data.String (fromString)
-import Data.Char (isAlpha)
+import Data.Char (isAlphaNum)
 
 import GHC.Stack (HasCallStack)
 
@@ -117,7 +117,7 @@ asSafeLabel lbl
   | all safeChar lbl  = LaTeX.label . raw $ fromString lbl
   | otherwise         = error $ "Labels can only contain alphabetic characters or “"
                                   ++safeSpecialChars++"”."
- where safeChar c = isAlpha c || c`elem`safeSpecialChars
+ where safeChar c = isAlphaNum c || c`elem`safeSpecialChars
        safeSpecialChars = "[]:/._"
 
 -- | Include a formula / equation system as a LaTeX display.
