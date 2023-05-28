@@ -93,6 +93,7 @@ dmaths eqLines garnish = fromLaTeX . TeXEnv
 --   referenced with 'LaTeX.ref'. (The label name will /not/ appear in the rendered
 --   document output; by default it will be just a number but you can tweak it with
 --   the terminator by including the desired tag in parentheses.)
+--   Leaving the label empty (i.e. @""@) will suppress numbering on this equation.
 equations :: (LaTeXC r, LaTeXSymbol σ, HasCallStack)
   => [(LaTeXMath σ, String)]
               -- ^ Equations to show, with label name.
@@ -113,6 +114,7 @@ equations eqLines garnish = fromLaTeX . TeXEnv "align" [] $ stack eqLines
        (eqnum, terminator) = parseEqnum garnish
 
 asSafeLabel :: HasCallStack => String -> LaTeX
+asSafeLabel "" = LaTeX.nonumber
 asSafeLabel lbl
   | all safeChar lbl  = LaTeX.label . raw $ fromString lbl
   | otherwise         = error $ "Labels can only contain alphabetic characters or “"
