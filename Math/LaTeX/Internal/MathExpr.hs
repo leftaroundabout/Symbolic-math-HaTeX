@@ -258,6 +258,12 @@ nabla = atom $ raw "\\nabla{}\\!"
 infty = atom LaTeX.infty
 
 
+semiencapsulate :: LaTeXC l => Int -> CAS' γ (Infix l) (Encapsulation l) (SymbolD σ l)
+                                   -> CAS' γ (Infix l) (Encapsulation l) (SymbolD σ l)
+semiencapsulate fxty e
+   = don'tParenthesise $ Operator (Infix (Hs.Fixity fxty Hs.InfixN) (raw mempty))
+                           (atom mempty) e
+
 
 newtype Integrand γ s² s¹ s⁰ = Integrand { getIntgrand :: CAS' γ s² s¹ s⁰ }
 
@@ -266,7 +272,10 @@ d :: LaTeXC l => CAS' γ (Infix l) (Encapsulation l) s⁰
               -> Integrand γ (Infix l) (Encapsulation l) s⁰
 d x f = Integrand $ opR 7 LaTeX.space x f
 
-infixr 8 ∫, ◞∫, ◞∮, ∑, ◞∑, ∏, ◞∏, ⋃, ◞⋃, ⋂, ◞⋂, ⨄, ◞⨄
+infixr 7 ∫, ◞∫, ◞∮, ∑, ◞∑
+infixr 8 ∏, ◞∏
+infixr 3 ⋃, ◞⋃, ⨄, ◞⨄
+infixr 4 ⋂, ◞⋂
 
 (∫) :: LaTeXC l
   => ( CAS' γ (Infix l) (Encapsulation l) (SymbolD σ l)
@@ -278,7 +287,7 @@ infixr 8 ∫, ◞∫, ◞∮, ∑, ◞∑, ∏, ◞∏, ⋃, ◞⋃, ⋂, ◞⋂
              (Operator (Infix (Hs.Fixity 9 Hs.InfixN) $ raw "^")
                 (encapsulation (raw "\\int\\limits_{") (raw "}") l)
                 (encapsulation (raw "{") (raw "}") r) )
-             i
+             (semiencapsulate 6 i)
 
 (◞∫) :: LaTeXC l
   => CAS' γ (Infix l) (Encapsulation l) (SymbolD σ l)
@@ -287,7 +296,7 @@ infixr 8 ∫, ◞∫, ◞∮, ∑, ◞∑, ∏, ◞∏, ⋃, ◞⋃, ⋂, ◞⋂
 ω◞∫Integrand i
     = Operator (Infix (Hs.Fixity 7 Hs.InfixR) $ LaTeX.mathrm "d")
              (encapsulation (raw "\\int_{") (raw "}\\!\\!\\!") ω)
-             i
+             (semiencapsulate 6 i)
 
 (◞∮) :: LaTeXC l
   => CAS' γ (Infix l) (Encapsulation l) (SymbolD σ l)
@@ -296,7 +305,7 @@ infixr 8 ∫, ◞∫, ◞∮, ∑, ◞∑, ∏, ◞∏, ⋃, ◞⋃, ⋂, ◞⋂
 ω◞∮Integrand i
     = Operator (Infix (Hs.Fixity 7 Hs.InfixR) $ LaTeX.mathrm "d")
              (encapsulation (raw "\\oint_{") (raw "}\\!\\!\\!") ω)
-             i
+             (semiencapsulate 6 i)
 
 (∑), (∏), (⋃), (⋂), (⨄) :: LaTeXC l
   => ( CAS' γ (Infix l) (Encapsulation l) (SymbolD σ l)
@@ -305,12 +314,14 @@ infixr 8 ∫, ◞∫, ◞∮, ∑, ◞∑, ∏, ◞∏, ⋃, ◞⋃, ⋂, ◞⋂
               -> CAS' γ (Infix l) (Encapsulation l) (SymbolD σ l)
 [(∑), (∏), (⋃), (⋂), (⨄)]
   = [ \(l,r) m
-     -> Operator (Infix (Hs.Fixity 7 Hs.InfixR) $ raw" ")
+     -> Operator (Infix (Hs.Fixity outerFxty Hs.InfixR) $ raw" ")
              (Operator (Infix (Hs.Fixity 9 Hs.InfixN) $ raw "^")
                 (encapsulation (raw ("\\"<>opraw<>"_{")) (raw "}") l)
                 (encapsulation (raw "{") (raw "}") r) )
-             m
-    | opraw <- ["sum", "prod", "bigcup", "bigcap", "biguplus"]
+             (semiencapsulate innerFxty m)
+    | (opraw, outerFxty, innerFxty)
+        <- [ ("sum", 7, 6), ("prod", 8, 7)
+           , ("bigcup", 3, 2), ("bigcap", 4, 3), ("biguplus", 3, 2) ]
     ]
 
 (◞∑), (◞∏), (◞⋃), (◞⋂), (◞⨄) :: LaTeXC l
@@ -319,10 +330,12 @@ infixr 8 ∫, ◞∫, ◞∮, ∑, ◞∑, ∏, ◞∏, ⋃, ◞⋃, ⋂, ◞⋂
               -> CAS' γ (Infix l) (Encapsulation l) (SymbolD σ l)
 [(◞∑), (◞∏), (◞⋃), (◞⋂), (◞⨄)]
   = [ \ω m
-     -> Operator (Infix (Hs.Fixity 7 Hs.InfixR) $ raw " ")
+     -> Operator (Infix (Hs.Fixity outerFxty Hs.InfixR) $ raw " ")
              (encapsulation (raw ("\\"<>opraw<>"_{")) (raw "}") ω)
-             m
-    | opraw <- ["sum", "prod", "bigcup", "bigcap", "biguplus"]
+             (semiencapsulate innerFxty m)
+    | (opraw, outerFxty, innerFxty)
+        <- [ ("sum", 7, 6), ("prod", 8, 7)
+           , ("bigcup", 3, 2), ("bigcap", 4, 3), ("biguplus", 3, 2) ]
     ]
 
 norm :: LaTeXC l => CAS' γ (Infix l) (Encapsulation l) (SymbolD σ l)
