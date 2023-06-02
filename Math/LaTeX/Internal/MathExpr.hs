@@ -225,6 +225,8 @@ makeOperatorCaste "relationOperators"
                   , ("≅", [e|LaTeX.comm0"cong"|])
                   , ("⪡", [e|""LaTeX.<:""|])
                   , ("⪢", [e|""LaTeX.>:""|])
+                  , ("⪪", [e|""LaTeX.<:""|])
+                  , ("⪫", [e|""LaTeX.>:""|])
                   , ("≤", [e|""LaTeX.<=:""|])
                   , ("≥", [e|""LaTeX.>=:""|])
                   , ("≪", [e|LaTeX.ll""""|])
@@ -245,6 +247,9 @@ makeOperatorCaste "relationOperators"
                   , ("∉", [e|raw"\\not\\in{}"|])
                   , ("↦", [e|LaTeX.mapsto|])
                   ]
+
+{-# DEPRECATED (⪡) "Use (⪪), i.e. U+2AAA SMALLER THAN" #-}
+{-# DEPRECATED (⪢) "Use (⪫), i.e. U+2AAB LARGER THAN" #-}
 
 del, nabla, infty :: (SymbolClass σ, SCConstraint σ LaTeX)
           => CAS' γ s² s¹ (SymbolD σ LaTeX)

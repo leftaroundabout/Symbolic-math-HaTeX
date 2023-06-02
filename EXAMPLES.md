@@ -73,7 +73,7 @@ _This file was generated automatically from [MkSnippets.hs](test/PdfSnippets/MkS
 | ---: | --- | :--- |
 | `𝑎 ⩵ 𝑏 ` | `a=b` | ![pdflatex-rendered version of `a=b`](test/PdfSnippets/a〧b.png) |
 | `𝑎 ≥ 𝑐 ` | `a\geq{}c` | ![pdflatex-rendered version of `a\geq{}c`](test/PdfSnippets/aᓭgeqⶈⶉc.png) |
-| `𝑎 ⪡ ρ ` | `a<\rho{}` | ![pdflatex-rendered version of `a<\rho{}`](test/PdfSnippets/aᐸᓭrhoⶈⶉ.png) |
+| `𝑎 ⪪ ρ ` | `a<\rho{}` | ![pdflatex-rendered version of `a<\rho{}`](test/PdfSnippets/aᐸᓭrhoⶈⶉ.png) |
 | `𝑥 ⩵ 𝑦 ⩵ 𝑧 ` | `x=y=z` | ![pdflatex-rendered version of `x=y=z`](test/PdfSnippets/x〧y〧z.png) |
 | `𝑠 ⊂ 𝑡 ⊆ 𝑢 ` | `s\subset{}t\subseteq{}u` | ![pdflatex-rendered version of `s\subset{}t\subseteq{}u`](test/PdfSnippets/sᓭsubsetⶈⶉtᓭsubseteqⶈⶉu.png) |
 | `ℎ ≈ 𝑔 ∼ 𝑓 ≃ 𝑒 ≅ 𝑑 ` | `h\approx{}g\sim{}f\simeq{}e\cong{}d` | ![pdflatex-rendered version of `h\approx{}g\sim{}f\simeq{}e\cong{}d`](test/PdfSnippets/hᓭapproxⶈⶉgᓭsimⶈⶉfᓭsimeqⶈⶉeᓭcongⶈⶉd.png) |
@@ -108,7 +108,7 @@ _This file was generated automatically from [MkSnippets.hs](test/PdfSnippets/MkS
 | ---: | --- | :--- |
 | `set(3⍪4⍪5) ` | `\left\{3,4,5\right\}` | ![pdflatex-rendered version of `\left\{3,4,5\right\}`](test/PdfSnippets/ᓭleftᓭⶈ3،4،5ᓭrightᓭⶉ.png) |
 | `setCompr (𝑥◝2) (𝑥∈ℕ) ` | `\left\{x^{2}\middle\|x\in{}\mathbb{N}\right\}` | ![pdflatex-rendered version of `\left\{x^{2}\middle\|x\in{}\mathbb{N}\right\}`](test/PdfSnippets/ᓭleftᓭⶈxᐞⶈ2ⶉᓭmiddleᛁxᓭinⶈⶉᓭmathbbⶈNⶉᓭrightᓭⶉ.png) |
-| `setCompr (𝑥/𝑦) (𝑥∈ℤ⍪ 𝑦∈ℕ⍪ 𝑦⪢0) ` | `\left\{\frac{x}{y}\middle\|x\in{}\mathbb{Z},y\in{}\mathbb{N},y>0\right\}` | ![pdflatex-rendered version of `\left\{\frac{x}{y}\middle\|x\in{}\mathbb{Z},y\in{}\mathbb{N},y>0\right\}`](test/PdfSnippets/ᓭleftᓭⶈᓭfracⶈxⶉⶈyⶉᓭmiddleᛁxᓭinⶈⶉᓭmathbbⶈZⶉ،yᓭinⶈⶉᓭmathbbⶈNⶉ،yᐳ0ᓭrightᓭⶉ.png) |
+| `setCompr (𝑥/𝑦) (𝑥∈ℤ⍪ 𝑦∈ℕ⍪ 𝑦⪫0) ` | `\left\{\frac{x}{y}\middle\|x\in{}\mathbb{Z},y\in{}\mathbb{N},y>0\right\}` | ![pdflatex-rendered version of `\left\{\frac{x}{y}\middle\|x\in{}\mathbb{Z},y\in{}\mathbb{N},y>0\right\}`](test/PdfSnippets/ᓭleftᓭⶈᓭfracⶈxⶉⶈyⶉᓭmiddleᛁxᓭinⶈⶉᓭmathbbⶈZⶉ،yᓭinⶈⶉᓭmathbbⶈNⶉ،yᐳ0ᓭrightᓭⶉ.png) |
 | `setCompr (𝑥⍪𝑦) (𝑥∈ℤ⍪ 𝑦∈ℝ) ` | `\left\{\left(x,y\right)\middle\|x\in{}\mathbb{Z},y\in{}\mathbb{R}\right\}` | ![pdflatex-rendered version of `\left\{\left(x,y\right)\middle\|x\in{}\mathbb{Z},y\in{}\mathbb{R}\right\}`](test/PdfSnippets/ᓭleftᓭⶈᓭleftᑕx،yᓭrightᑐᓭmiddleᛁxᓭinⶈⶉᓭmathbbⶈZⶉ،yᓭinⶈⶉᓭmathbbⶈRⶉᓭrightᓭⶉ.png) |
 ## Stylised symbols
 | Haskell | LaTeX | pdf |

@@ -182,7 +182,7 @@ tests_U = testGroup "Tests"
      , testGroup "Relations"
         [ [mkLaTeXSnip| 𝑎 ⩵ 𝑏 |] "a=b"
         , [mkLaTeXSnip| 𝑎 ≥ 𝑐 |] "a\\geq{}c"
-        , [mkLaTeXSnip| 𝑎 ⪡ ρ |] "a<\\rho{}"
+        , [mkLaTeXSnip| 𝑎 ⪪ ρ |] "a<\\rho{}"
         , [mkLaTeXSnip| 𝑥 ⩵ 𝑦 ⩵ 𝑧 |] "x=y=z"
         , [mkLaTeXSnip| 𝑠 ⊂ 𝑡 ⊆ 𝑢 |] "s\\subset{}t\\subseteq{}u"
         , [mkLaTeXSnip| ℎ ≈ 𝑔 ∼ 𝑓 ≃ 𝑒 ≅ 𝑑 |] "h\\approx{}g\\sim{}f\\simeq{}e\\cong{}d"
@@ -235,7 +235,7 @@ tests_U = testGroup "Tests"
          "\\left\\{3,4,5\\right\\}"
      , [mkLaTeXSnip| setCompr (𝑥◝2) (𝑥∈ℕ) |]
          "\\left\\{x^{2}\\middle|x\\in{}\\mathbb{N}\\right\\}"
-     , [mkLaTeXSnip| setCompr (𝑥/𝑦) (𝑥∈ℤ⍪ 𝑦∈ℕ⍪ 𝑦⪢0) |]
+     , [mkLaTeXSnip| setCompr (𝑥/𝑦) (𝑥∈ℤ⍪ 𝑦∈ℕ⍪ 𝑦⪫0) |]
          "\\left\\{\\frac{x}{y}\\middle|x\\in{}\\mathbb{Z},y\\in{}\\mathbb{N},y>0\\right\\}"
      , [mkLaTeXSnip| setCompr (𝑥⍪𝑦) (𝑥∈ℤ⍪ 𝑦∈ℝ) |]
          "\\left\\{\\left(x,y\\right)\\middle|x\\in{}\\mathbb{Z},y\\in{}\\mathbb{R}\\right\\}"
