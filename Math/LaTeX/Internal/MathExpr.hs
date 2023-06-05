@@ -101,12 +101,13 @@ infixl 6 ±, ∓, ⊕, +..+
 (⊕) = opL' 6 LaTeX.oplus
 (+..+) = opL 6 $ raw"+\\ldots+"
 
-infixl 7 ×, ∘, ⊗, *..*
+infixl 7 ×, ∘, ⊗, ⊙, *..*
 (×), (⊗), (∘), (*..*) :: MathsInfix
 (×) = opL' 7 LaTeX.times
 (∗) = opL' 7 (LaTeX.*:)
 (⋆) = opL' 7 LaTeX.star
 (⊗) = opL' 7 LaTeX.otimes
+(⊙) = opL' 7 LaTeX.odot
 (∘) = opL' 7 LaTeX.circ
 (*..*) = opL 7 $ raw"{\\cdot\\ldots\\cdot}"
 
