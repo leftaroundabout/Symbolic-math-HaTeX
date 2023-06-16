@@ -101,11 +101,13 @@ infixl 6 ±, ∓, ⊕, +..+
 (⊕) = opL' 6 LaTeX.oplus
 (+..+) = opL 6 $ raw"+\\ldots+"
 
-infixl 7 ×, ∘, ⊗, ⊙, *..*
+infixl 7 ×, ∘, ★, ⊗, ⊙, *..*
 (×), (⊗), (∘), (*..*) :: MathsInfix
 (×) = opL' 7 LaTeX.times
 (∗) = opL' 7 (LaTeX.*:)
+{-# DEPRECATED (⋆) "Use (★), i.e. U+2606 BLACK STAR. (You used U+22C6 STAR OPERATOR)" #-}
 (⋆) = opL' 7 LaTeX.star
+(★) = opL' 7 LaTeX.star
 (⊗) = opL' 7 LaTeX.otimes
 (⊙) = opL' 7 LaTeX.odot
 (∘) = opL' 7 LaTeX.circ
@@ -136,11 +138,24 @@ infixl 2 -\-, ⧵, ∖
 {-# DEPRECATED (⧵) "Use (∖), i.e. U+2216 SET MINUS. (You used U+29F5 REVERSE SOLIDUS OPERATOR)" #-}
 (∖) = opL' 2 LaTeX.setminus
 
-infixr 5 ⸪, ÷, -→, ←-, ↪
-(÷), (⸪), (-→), (←-), (↪) :: MathsInfix
+infixr 5 ⸪, ÷, ÷␣
+
 {-# DEPRECATED (⸪) "Use (÷), i.e. U+00F7 DIVISION SIGN" #-}
+(⸪) :: MathsInfix
 (⸪) = opR 5 ":"
+
+-- | A simple colon operator. Does /not/ render as a division sign, the bar is only
+--   for visual disambiguation in Haskell code.
+(÷) :: MathsInfix
 (÷) = opR 5 ":"
+
+-- | A colon operator with padding, suitable for function signatures.
+--   Uses LaTeX @\\colon@ macro.
+(÷␣) :: MathsInfix
+(÷␣) = opR 5 $ LaTeX.comm0"colon"
+
+infixr 5  -→, ←-, ↪
+(-→), (←-), (↪) :: MathsInfix
 (-→) = opR 5 LaTeX.to
 (←-) = opR 5 LaTeX.leftarrow
 (↪) = opR 5 $ LaTeX.comm0"hookrightarrow"
@@ -153,6 +168,7 @@ infix 2 ∀:, ∃:, ∄:
 
 infixl 7 °, ☾
 infixr 7 ☽
+infix 7 ☽☾
 infixr 9 ◝, ⁀, ‸, ◝⁀
 infixr 9 ◞
 infixl 8 |◞, |◝, |◞◝
@@ -161,6 +177,8 @@ infixl 8 ◞◝, ₌₌
 {-# DEPRECATED (°) "Use (☾), i.e. U+263E LAST QUARTER MOON" #-}
 f☽x = opR 7 mempty (encapsulation (raw"\\left(") (raw"\\right)") f) x
 f☾x = opL 7 mempty f (encapsulation (raw"\\left(") (raw"\\right)") x)
+f☽☾x = opN 7 mempty (encapsulation (raw"\\left(") (raw"\\right)") f)
+                    (encapsulation (raw"\\left(") (raw"\\right)") x)
 f°x = opL 7 mempty f (encapsulation (raw"\\left(") (raw"\\right)") x)
 {-# DEPRECATED (⁀) "Use (‸), i.e. U+2038 CARET" #-}
 (⁀) = opR 9 mempty
@@ -273,8 +291,8 @@ d :: LaTeXC l => CAS' γ (Infix l) (Encapsulation l) s⁰
               -> Integrand γ (Infix l) (Encapsulation l) s⁰
 d x f = Integrand $ opR 7 LaTeX.space x f
 
-infixr 7 ∫, ◞∫, ◞∮, ∑, ◞∑
-infixr 8 ∏, ◞∏
+infixr 7 ∫, ◞∫, ◞∮, ∑, ◞∑, ◞◝⊕, ◞⊕
+infixr 8 ∏, ◞∏, ◞◝⊗, ◞⊗
 infixr 3 ⋃, ◞⋃, ⨄, ◞⨄
 infixr 4 ⋂, ◞⋂
 
@@ -308,12 +326,12 @@ infixr 4 ⋂, ◞⋂
              (encapsulation (raw "\\oint_{") (raw "}\\!\\!\\!") ω)
              (semiencapsulate 6 i)
 
-(∑), (∏), (⋃), (⋂), (⨄) :: LaTeXC l
+(∑), (∏), (⋃), (⋂), (⨄), (◞◝⊕), (◞◝⊗) :: LaTeXC l
   => ( CAS' γ (Infix l) (Encapsulation l) (SymbolD σ l)
      , CAS' γ (Infix l) (Encapsulation l) (SymbolD σ l) )
               -> CAS' γ (Infix l) (Encapsulation l) (SymbolD σ l)
               -> CAS' γ (Infix l) (Encapsulation l) (SymbolD σ l)
-[(∑), (∏), (⋃), (⋂), (⨄)]
+[(∑), (∏), (⋃), (⋂), (⨄), (◞◝⊕), (◞◝⊗)]
   = [ \(l,r) m
      -> Operator (Infix (Hs.Fixity outerFxty Hs.InfixR) $ raw" ")
              (Operator (Infix (Hs.Fixity 9 Hs.InfixN) $ raw "^")
@@ -322,21 +340,23 @@ infixr 4 ⋂, ◞⋂
              (semiencapsulate innerFxty m)
     | (opraw, outerFxty, innerFxty)
         <- [ ("sum", 7, 6), ("prod", 8, 7)
-           , ("bigcup", 3, 2), ("bigcap", 4, 3), ("biguplus", 3, 2) ]
+           , ("bigcup", 3, 2), ("bigcap", 4, 3), ("biguplus", 3, 2)
+           , ("bigoplus", 7, 6), ("bigotimes", 8, 7) ]
     ]
 
-(◞∑), (◞∏), (◞⋃), (◞⋂), (◞⨄) :: LaTeXC l
+(◞∑), (◞∏), (◞⋃), (◞⋂), (◞⨄), (◞⊕), (◞⊗) :: LaTeXC l
   => CAS' γ (Infix l) (Encapsulation l) (SymbolD σ l)
               -> CAS' γ (Infix l) (Encapsulation l) (SymbolD σ l)
               -> CAS' γ (Infix l) (Encapsulation l) (SymbolD σ l)
-[(◞∑), (◞∏), (◞⋃), (◞⋂), (◞⨄)]
+[(◞∑), (◞∏), (◞⋃), (◞⋂), (◞⨄), (◞⊕), (◞⊗)]
   = [ \ω m
      -> Operator (Infix (Hs.Fixity outerFxty Hs.InfixR) $ raw " ")
              (encapsulation (raw ("\\"<>opraw<>"_{")) (raw "}") ω)
              (semiencapsulate innerFxty m)
     | (opraw, outerFxty, innerFxty)
         <- [ ("sum", 7, 6), ("prod", 8, 7)
-           , ("bigcup", 3, 2), ("bigcap", 4, 3), ("biguplus", 3, 2) ]
+           , ("bigcup", 3, 2), ("bigcap", 4, 3), ("biguplus", 3, 2)
+           , ("bigoplus", 7, 6), ("bigotimes", 8, 7) ]
     ]
 
 norm :: LaTeXC l => CAS' γ (Infix l) (Encapsulation l) (SymbolD σ l)
