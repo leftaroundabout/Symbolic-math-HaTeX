@@ -49,7 +49,7 @@ module Math.LaTeX.Prelude (
    , nobreaks, matrix, cases
    -- * Algebraic manipulation
    -- #algebraManip
-   , (&~~!), (&~~:), continueExpr, (&)
+   , (&~~!), (&~~:), continueExpr
    , (&~:), (&~?), (&~!), (|->)
    -- * Use in documents
    , (Math.LaTeX.Prelude.$<>), (Math.LaTeX.Prelude.>$)
