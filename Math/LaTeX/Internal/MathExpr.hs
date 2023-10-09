@@ -239,6 +239,7 @@ makeOperatorCaste "relationOperators"
                   , ("⩵!", [e|raw" \\overset{!}{=} "|])
                   , ("≠", [e|""LaTeX./=:""|])
                   , ("≈", [e|LaTeX.comm0"approx"|])
+                  , ("≉", [e|LaTeX.comm0"not\\approx"|])
                   , ("∼", [e|LaTeX.comm0"sim"|])
                   , ("≃", [e|LaTeX.comm0"simeq"|])
                   , ("≅", [e|LaTeX.comm0"cong"|])
