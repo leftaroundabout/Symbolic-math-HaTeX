@@ -154,10 +154,11 @@ infixr 5 ⸪, ÷, ÷␣
 (÷␣) :: MathsInfix
 (÷␣) = opR 5 $ LaTeX.comm0"colon"
 
-infixr 5  -→, ←-, ↪
+infixr 5  -→, ←-, ←→, ↪
 (-→), (←-), (↪) :: MathsInfix
-(-→) = opR 5 LaTeX.to
+(-→) = opR 5 LaTeX.rightarrow
 (←-) = opR 5 LaTeX.leftarrow
+(←→) = opR 5 LaTeX.leftrightarrow
 (↪) = opR 5 $ LaTeX.comm0"hookrightarrow"
 
 infix 2 ∀:, ∃:, ∄:
