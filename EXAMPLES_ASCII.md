@@ -13,7 +13,7 @@ _This file was generated automatically from [MkSnippets.hs](test/PdfSnippets/MkS
 | `a**b**c ` | `a^{b^{c}}` | ![pdflatex-rendered version of `a^{b^{c}}`](test/PdfSnippets/aᐞⶈbᐞⶈcⶉⶉ.png) |
 | `(a**b)**c ` | `\left(a^{b}\right)^{c}` | ![pdflatex-rendered version of `\left(a^{b}\right)^{c}`](test/PdfSnippets/ᓭleftᑕaᐞⶈbⶉᓭrightᑐᐞⶈcⶉ.png) |
 | `sin (sin x) ` | `\sin{\left(\sin{x}\right)}` | ![pdflatex-rendered version of `\sin{\left(\sin{x}\right)}`](test/PdfSnippets/ᓭsinⶈᓭleftᑕᓭsinⶈxⶉᓭrightᑐⶉ.png) |
-| `matrix[[ 0,1]` `,[-1,0]] ` | `\begin{pmatrix}0&1\\ -1&0\end{pmatrix}` | ![pdflatex-rendered version of `\begin{pmatrix}0&1\\ -1&0\end{pmatrix}`](test/PdfSnippets/ᓭbeginⶈpmatrixⶉ0ತ1ᓭᓭᐧ⼀1ತ0ᓭendⶈpmatrixⶉ.png) |
+| `matrix[[ 0,1]` `,[-1,0]] ` | `\begin{pmatrix}0&1\\[0em] -1&0\end{pmatrix}` | ![pdflatex-rendered version of `\begin{pmatrix}0&1\\[0em] -1&0\end{pmatrix}`](test/PdfSnippets/ᓭbeginⶈpmatrixⶉ0ತ1ᓭᓭꫡ0emꫠᐧ⼀1ತ0ᓭendⶈpmatrixⶉ.png) |
 ## Operators
 ### Arithmetic
 | Haskell | LaTeX | pdf |
@@ -33,12 +33,13 @@ _This file was generated automatically from [MkSnippets.hs](test/PdfSnippets/MkS
 | `a!^(b,c) ` | `{a}_{b}^{c}` | ![pdflatex-rendered version of `{a}_{b}^{c}`](test/PdfSnippets/ⶈaⶉ⣀ⶈbⶉᐞⶈcⶉ.png) |
 | `psi!:"Foo" ` | `{\psi{}}_{\mathrm{Foo}}` | ![pdflatex-rendered version of `{\psi{}}_{\mathrm{Foo}}`](test/PdfSnippets/ⶈᓭpsiⶈⶉⶉ⣀ⶈᓭmathrmⶈFooⶉⶉ.png) |
 | `psi!:(F<>o<>o) ` | `{\psi{}}_{Foo}` | ![pdflatex-rendered version of `{\psi{}}_{Foo}`](test/PdfSnippets/ⶈᓭpsiⶈⶉⶉ⣀ⶈFooⶉ.png) |
+| `prime theta ` | `{\theta{}}'` | ![pdflatex-rendered version of `{\theta{}}'`](test/PdfSnippets/ⶈᓭthetaⶈⶉⶉ❜.png) |
 ### Logical
 | Haskell | LaTeX | pdf |
 | ---: | --- | :--- |
 | ``p `vee` q `` | `p\vee{}q` | ![pdflatex-rendered version of `p\vee{}q`](test/PdfSnippets/pᓭveeⶈⶉq.png) |
 | ``p `wedge` q `` | `p\wedge{}q` | ![pdflatex-rendered version of `p\wedge{}q`](test/PdfSnippets/pᓭwedgeⶈⶉq.png) |
-| `cases[(1, "Today"), (2, "Else")] ` | `\begin{cases}1&\text{Today}\\2&\text{Else}\end{cases}` | ![pdflatex-rendered version of `\begin{cases}1&\text{Today}\\2&\text{Else}\end{cases}`](test/PdfSnippets/ᓭbeginⶈcasesⶉ1ತᓭtextⶈTodayⶉᓭᓭ2ತᓭtextⶈElseⶉᓭendⶈcasesⶉ.png) |
+| `cases[(1, "Today"), (2, "Else")] ` | `\begin{cases}1&\text{Today}\\[0em]2&\text{Else}\end{cases}` | ![pdflatex-rendered version of `\begin{cases}1&\text{Today}\\[0em]2&\text{Else}\end{cases}`](test/PdfSnippets/ᓭbeginⶈcasesⶉ1ತᓭtextⶈTodayⶉᓭᓭꫡ0emꫠ2ತᓭtextⶈElseⶉᓭendⶈcasesⶉ.png) |
 ### Relations
 | Haskell | LaTeX | pdf |
 | ---: | --- | :--- |

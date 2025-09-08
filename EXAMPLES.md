@@ -14,7 +14,7 @@ _This file was generated automatically from [MkSnippets.hs](test/PdfSnippets/MkS
 | `(𝑎**𝑏)**𝑐 ` | `\left(a^{b}\right)^{c}` | ![pdflatex-rendered version of `\left(a^{b}\right)^{c}`](test/PdfSnippets/ᓭleftᑕaᐞⶈbⶉᓭrightᑐᐞⶈcⶉ.png) |
 | `sin (sin 𝑥) ` | `\sin{\left(\sin{x}\right)}` | ![pdflatex-rendered version of `\sin{\left(\sin{x}\right)}`](test/PdfSnippets/ᓭsinⶈᓭleftᑕᓭsinⶈxⶉᓭrightᑐⶉ.png) |
 | `(𝑖⩵0,3)∑ 𝑖 ` | `\sum_{i=0}^{3} i` | ![pdflatex-rendered version of `\sum_{i=0}^{3} i`](test/PdfSnippets/ᓭsum⣀ⶈi〧0ⶉᐞⶈ3ⶉᐧi.png) |
-| `matrix[[ 0,1]` `,[-1,0]] ` | `\begin{pmatrix}0&1\\ -1&0\end{pmatrix}` | ![pdflatex-rendered version of `\begin{pmatrix}0&1\\ -1&0\end{pmatrix}`](test/PdfSnippets/ᓭbeginⶈpmatrixⶉ0ತ1ᓭᓭᐧ⼀1ತ0ᓭendⶈpmatrixⶉ.png) |
+| `matrix[[ 0,1]` `,[-1,0]] ` | `\begin{pmatrix}0&1\\[0em] -1&0\end{pmatrix}` | ![pdflatex-rendered version of `\begin{pmatrix}0&1\\[0em] -1&0\end{pmatrix}`](test/PdfSnippets/ᓭbeginⶈpmatrixⶉ0ತ1ᓭᓭꫡ0emꫠᐧ⼀1ತ0ᓭendⶈpmatrixⶉ.png) |
 ## Number literals
 | Haskell | LaTeX | pdf |
 | ---: | --- | :--- |
@@ -56,7 +56,7 @@ _This file was generated automatically from [MkSnippets.hs](test/PdfSnippets/MkS
 | `(𝑓∘𝑔)☽𝑥 ` | `\left(f\circ{}g\right)x` | ![pdflatex-rendered version of `\left(f\circ{}g\right)x`](test/PdfSnippets/ᓭleftᑕfᓭcircⶈⶉgᓭrightᑐx.png) |
 | `(𝑓∘𝑔)☽(𝑥*𝑦) ` | `\left(f\circ{}g\right)\left(x{\cdot}y\right)` | ![pdflatex-rendered version of `\left(f\circ{}g\right)\left(x{\cdot}y\right)`](test/PdfSnippets/ᓭleftᑕfᓭcircⶈⶉgᓭrightᑐᓭleftᑕxⶈᓭcdotⶉyᓭrightᑐ.png) |
 | `𝑓∘𝑔☾𝑥 ` | `f\circ{}g\left(x\right)` | ![pdflatex-rendered version of `f\circ{}g\left(x\right)`](test/PdfSnippets/fᓭcircⶈⶉgᓭleftᑕxᓭrightᑐ.png) |
-| `𝑓 ÷ (ℤ-→ℝ) ` | `f:\mathbb{Z}\to{}\mathbb{R}` | ![pdflatex-rendered version of `f:\mathbb{Z}\to{}\mathbb{R}`](test/PdfSnippets/f⦂ᓭmathbbⶈZⶉᓭtoⶈⶉᓭmathbbⶈRⶉ.png) |
+| `𝑓 ÷ (ℤ-→ℝ) ` | `f:\mathbb{Z}\rightarrow{}\mathbb{R}` | ![pdflatex-rendered version of `f:\mathbb{Z}\rightarrow{}\mathbb{R}`](test/PdfSnippets/f⦂ᓭmathbbⶈZⶉᓭrightarrowⶈⶉᓭmathbbⶈRⶉ.png) |
 | `𝑓☾𝑥 ÷= 𝑥+π ` | `f\left(x\right){:=}x+\pi{}` | ![pdflatex-rendered version of `f\left(x\right){:=}x+\pi{}`](test/PdfSnippets/fᓭleftᑕxᓭrightᑐⶈ⦂〧ⶉx⼦ᓭpiⶈⶉ.png) |
 ### Logical
 | Haskell | LaTeX | pdf |
@@ -67,7 +67,7 @@ _This file was generated automatically from [MkSnippets.hs](test/PdfSnippets/MkS
 | `𝑝<==𝑞 ` | `p\Longleftarrow{}q` | ![pdflatex-rendered version of `p\Longleftarrow{}q`](test/PdfSnippets/pᓭLongleftarrowⶈⶉq.png) |
 | `𝑝<=>𝑞 ` | `p\Longleftrightarrow{}q` | ![pdflatex-rendered version of `p\Longleftrightarrow{}q`](test/PdfSnippets/pᓭLongleftrightarrowⶈⶉq.png) |
 | `𝑝==>𝑞==>𝑟 ` | `p\Longrightarrow{}q\Longrightarrow{}r` | ![pdflatex-rendered version of `p\Longrightarrow{}q\Longrightarrow{}r`](test/PdfSnippets/pᓭLongrightarrowⶈⶉqᓭLongrightarrowⶈⶉr.png) |
-| `cases[(1, "Today"), (2, "Else")] ` | `\begin{cases}1&\text{Today}\\2&\text{Else}\end{cases}` | ![pdflatex-rendered version of `\begin{cases}1&\text{Today}\\2&\text{Else}\end{cases}`](test/PdfSnippets/ᓭbeginⶈcasesⶉ1ತᓭtextⶈTodayⶉᓭᓭ2ತᓭtextⶈElseⶉᓭendⶈcasesⶉ.png) |
+| `cases[(1, "Today"), (2, "Else")] ` | `\begin{cases}1&\text{Today}\\[0em]2&\text{Else}\end{cases}` | ![pdflatex-rendered version of `\begin{cases}1&\text{Today}\\[0em]2&\text{Else}\end{cases}`](test/PdfSnippets/ᓭbeginⶈcasesⶉ1ತᓭtextⶈTodayⶉᓭᓭꫡ0emꫠ2ತᓭtextⶈElseⶉᓭendⶈcasesⶉ.png) |
 ### Relations
 | Haskell | LaTeX | pdf |
 | ---: | --- | :--- |

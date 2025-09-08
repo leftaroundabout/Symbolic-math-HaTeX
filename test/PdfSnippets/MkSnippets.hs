@@ -67,7 +67,7 @@ tests_A = testGroup "Tests"
      , [mkLaTeXSnip|        (a**b)**c |] "\\left(a^{b}\\right)^{c}"
      , [mkLaTeXSnip|      sin (sin x) |] "\\sin{\\left(\\sin{x}\\right)}"
      , [mkLaTeXSnip|   matrix[[ 0,1]
-                             ,[-1,0]] |] "\\begin{pmatrix}0&1\\\\ -1&0\\end{pmatrix}"
+                             ,[-1,0]] |] "\\begin{pmatrix}0&1\\\\[0em] -1&0\\end{pmatrix}"
      ]
   , testGroup "Operators"
      [ testGroup "Arithmetic"
@@ -90,7 +90,7 @@ tests_A = testGroup "Tests"
         [ [mkLaTeXSnip| p `vee` q |] "p\\vee{}q"
         , [mkLaTeXSnip| p `wedge` q |] "p\\wedge{}q"
         , [mkLaTeXSnip| cases[(1, "Today"), (2, "Else")] |]
-                           "\\begin{cases}1&\\text{Today}\\\\2&\\text{Else}\\end{cases}"
+                           "\\begin{cases}1&\\text{Today}\\\\[0em]2&\\text{Else}\\end{cases}"
         ]
      , testGroup "Relations"
         [ [mkLaTeXSnip| a =: b |] "a=b"
@@ -124,7 +124,7 @@ tests_U = testGroup "Tests"
      , [mkLaTeXSnip|      sin (sin 𝑥) |] "\\sin{\\left(\\sin{x}\\right)}"
      , [mkLaTeXSnip|       (𝑖⩵0,3)∑ 𝑖 |] "\\sum_{i=0}^{3} i"
      , [mkLaTeXSnip|   matrix[[ 0,1]
-                             ,[-1,0]] |] "\\begin{pmatrix}0&1\\\\ -1&0\\end{pmatrix}"
+                             ,[-1,0]] |] "\\begin{pmatrix}0&1\\\\[0em] -1&0\\end{pmatrix}"
      ]
   , testGroup "Number literals"
      [ [mkLaTeXSnip| 25697325 |] "25697325"
@@ -166,7 +166,7 @@ tests_U = testGroup "Tests"
         , [mkLaTeXSnip| (𝑓∘𝑔)☽(𝑥*𝑦) |]
                  "\\left(f\\circ{}g\\right)\\left(x{\\cdot}y\\right)"
         , [mkLaTeXSnip|       𝑓∘𝑔☾𝑥 |] "f\\circ{}g\\left(x\\right)"
-        , [mkLaTeXSnip| 𝑓 ÷ (ℤ-→ℝ) |] "f:\\mathbb{Z}\\to{}\\mathbb{R}"
+        , [mkLaTeXSnip| 𝑓 ÷ (ℤ-→ℝ) |] "f:\\mathbb{Z}\\rightarrow{}\\mathbb{R}"
         , [mkLaTeXSnip| 𝑓☾𝑥 ÷= 𝑥+π |] "f\\left(x\\right){:=}x+\\pi{}"
         ]
      , testGroup "Logical"
@@ -177,7 +177,7 @@ tests_U = testGroup "Tests"
         , [mkLaTeXSnip| 𝑝<=>𝑞 |] "p\\Longleftrightarrow{}q"
         , [mkLaTeXSnip| 𝑝==>𝑞==>𝑟 |] "p\\Longrightarrow{}q\\Longrightarrow{}r"
         , [mkLaTeXSnip| cases[(1, "Today"), (2, "Else")] |]
-                           "\\begin{cases}1&\\text{Today}\\\\2&\\text{Else}\\end{cases}"
+                           "\\begin{cases}1&\\text{Today}\\\\[0em]2&\\text{Else}\\end{cases}"
         ]
      , testGroup "Relations"
         [ [mkLaTeXSnip| 𝑎 ⩵ 𝑏 |] "a=b"
@@ -319,6 +319,8 @@ encode = concatMap enc
        enc '}' = "ⶉ"
        enc '(' = "ᑕ"
        enc ')' = "ᑐ"
+       enc '[' = "ꫡ"
+       enc ']' = "ꫠ"
        enc '^' = "ᐞ"
        enc '_' = "⣀"
        enc '|' = "ᛁ"
