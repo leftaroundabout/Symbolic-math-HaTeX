@@ -46,6 +46,7 @@ _This file was generated automatically from [MkSnippets.hs](test/PdfSnippets/MkS
 | `ψ◞"Foo" ` | `\psi{}_{\mathrm{Foo}}` | ![pdflatex-rendered version of `\psi{}_{\mathrm{Foo}}`](test/PdfSnippets/ᓭpsiⶈⶉ⣀ⶈᓭmathrmⶈFooⶉⶉ.png) |
 | `ψ◞𝐹‸𝑜‸𝑜 ` | `\psi{}_{Foo}` | ![pdflatex-rendered version of `\psi{}_{Foo}`](test/PdfSnippets/ᓭpsiⶈⶉ⣀ⶈFooⶉ.png) |
 | `𝑓◝(3☽"")☾𝑥 ` | `f^{\left(3\right)}\left(x\right)` | ![pdflatex-rendered version of `f^{\left(3\right)}\left(x\right)`](test/PdfSnippets/fᐞⶈᓭleftᑕ3ᓭrightᑐⶉᓭleftᑕxᓭrightᑐ.png) |
+| `prime 𝑓 ` | `{f}'` | ![pdflatex-rendered version of `{f}'`](test/PdfSnippets/ⶈfⶉ❜.png) |
 ### Function application and definition
 | Haskell | LaTeX | pdf |
 | ---: | --- | :--- |

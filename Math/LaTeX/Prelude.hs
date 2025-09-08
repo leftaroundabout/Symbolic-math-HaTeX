@@ -139,8 +139,9 @@ infixr 6 $<>
 -- 
 -- We give no guarantee that this will work without name clashes or type ambiguities.
 
-prime :: LaTeXC l => l -> l
-prime = (<>raw"'")
+prime :: CAS' γ (Infix LaTeX) (Encapsulation LaTeX) (SymbolD σ LaTeX)
+              -> CAS' γ (Infix LaTeX) (Encapsulation LaTeX) (SymbolD σ LaTeX)
+prime = encapsulation (raw "{") (raw "}'")
 
 infix 2 |->
 (|->) :: CAS' γ s² s¹ s⁰ -> CAS' γ s² s¹ s⁰ -> Equality' γ s² s¹ s⁰

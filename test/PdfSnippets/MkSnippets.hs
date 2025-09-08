@@ -85,6 +85,7 @@ tests_A = testGroup "Tests"
         , [mkLaTeXSnip|    a!^(b,c) |] "{a}_{b}^{c}"
         , [mkLaTeXSnip|     psi!:"Foo" |] "{\\psi{}}_{\\mathrm{Foo}}"
         , [mkLaTeXSnip|     psi!:(F<>o<>o) |] "{\\psi{}}_{Foo}"
+        , [mkLaTeXSnip| prime theta |] "{\\theta{}}'"
         ]
      , testGroup "Logical"
         [ [mkLaTeXSnip| p `vee` q |] "p\\vee{}q"
@@ -153,6 +154,7 @@ tests_U = testGroup "Tests"
         , [mkLaTeXSnip|     ψ◞"Foo" |] "\\psi{}_{\\mathrm{Foo}}"
         , [mkLaTeXSnip|     ψ◞𝐹‸𝑜‸𝑜 |] "\\psi{}_{Foo}"
         , [mkLaTeXSnip|  𝑓◝(3☽"")☾𝑥 |] "f^{\\left(3\\right)}\\left(x\\right)"
+        , [mkLaTeXSnip|  prime 𝑓 |] "{f}'"
         ]
      , testGroup "Function application and definition"
         [ [mkLaTeXSnip|         𝑓☾𝑥 |] "f\\left(x\\right)"
@@ -332,6 +334,7 @@ encode = concatMap enc
        enc ',' = "،"
        enc '.' = "៰"
        enc ':' = "⦂"
+       enc '\'' = "❜"
        enc ' ' = "ᐧ"
        enc c = error $ "Unencodable character '"++[c]++"'"
 
